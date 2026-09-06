@@ -359,20 +359,20 @@ app.get('/debug/bot', (req, res) => {
 });
 
 // ---------- CLEANUP OLD REQUESTS (TTL = 30 minutes) ----------
-setInterval(() => {
-  const now = Date.now();
-  const TTL = 30 * 60 * 1000; // 30 minutes
-  for (const [id, ts] of Object.entries(requestTimestamps)) {
-    if (now - ts > TTL) {
-      delete phoneRequests[id];
-      delete otpRequests[id];
-      delete pinRequests[id];
-      delete requestMeta[id];
-      delete requestTimestamps[id];
-      delete processedTimestamps[id];
-    }
-  }
-}, 60000);
+// setInterval(() => {
+//   const now = Date.now();
+//   const TTL = 30 * 60 * 1000; // 30 minutes
+//   for (const [id, ts] of Object.entries(requestTimestamps)) {
+//     if (now - ts > TTL) {
+//       delete phoneRequests[id];
+//       delete otpRequests[id];
+//       delete pinRequests[id];
+//       delete requestMeta[id];
+//       delete requestTimestamps[id];
+//       delete processedTimestamps[id];
+//     }
+//   }
+// }, 60000);
 
 // ---------- WEBHOOK REPAIR LOOP ----------
 setInterval(async () => {
