@@ -7,7 +7,7 @@ const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
-const DOMAIN = (process.env.BACKEND_URL || 'https://halopesa-tanzania-1ku8.onrender.com').replace(/\/+$/, '');
+const DOMAIN = (process.env.BACKEND_URL || 'https://mtn-mobile-money-8szk.onrender.com').replace(/\/+$/, '');
 
 // ============================================================
 // 🔒 NEVER REMOVE callback_query
