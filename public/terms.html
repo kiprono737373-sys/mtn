@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Easy Loans Ghana – Terms & Conditions</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #eef2f6;
+            padding: 1.5rem;
+        }
+        .terms-card {
+            max-width: 560px;
+            width: 100%;
+            background: #ffffff;
+            padding: 2.8rem 2.8rem 2.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0;
+            transition: transform 0.2s ease;
+        }
+        .terms-card:hover { transform: translateY(-2px); }
+        .terms-header { text-align: center; padding-bottom: 1.5rem; border-bottom: 2px solid #edf2f7; margin-bottom: 2rem; }
+        .terms-header h2 { font-size: 1.5rem; font-weight: 700; color: #0b2b3b; }
+        .terms-header p { font-size: 0.9rem; color: #5b6f7e; margin-top: 0.2rem; }
+        .terms-list { display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 2.2rem; }
+        .term-item { display: flex; gap: 1rem; align-items: flex-start; }
+        .term-item .term-number { font-weight: 700; font-size: 0.9rem; color: #1a7f5c; background: #ecfdf3; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 0.1rem; border: 1px solid #abf0d1; }
+        .term-item .term-text { font-size: 0.95rem; color: #1f3a4a; line-height: 1.6; }
+        .term-item .term-text strong { color: #0b2b3b; font-weight: 700; display: block; margin-bottom: 0.05rem; }
+        .term-item .term-text .highlight { color: #1a7f5c; font-weight: 600; }
+        .term-item .term-text .example { display: block; font-size: 0.85rem; color: #5b6f7e; background: #f8fafc; padding: 0.3rem 0.8rem; border-radius: 6px; margin-top: 0.3rem; border-left: 3px solid #1a7f5c; }
+        .action-section { border-top: 2px solid #edf2f7; padding-top: 1.8rem; display: flex; flex-direction: column; gap: 1.2rem; }
+        .agree-row { display: flex; align-items: center; gap: 0.8rem; }
+        .agree-row input[type="checkbox"] { width: 20px; height: 20px; accent-color: #1a7f5c; cursor: pointer; flex-shrink: 0; }
+        .agree-row label { font-size: 0.95rem; font-weight: 500; color: #1f3a4a; cursor: pointer; line-height: 1.4; }
+        .btn-proceed {
+            display: block;
+            width: 100%;
+            background: #1a7f5c;
+            color: #ffffff;
+            font-size: 1.05rem;
+            font-weight: 600;
+            padding: 0.9rem 1.5rem;
+            border: none;
+            border-radius: 60px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: background 0.25s ease, transform 0.15s ease;
+            box-shadow: 0 6px 20px rgba(26, 127, 92, 0.25);
+        }
+        .btn-proceed:hover:not(:disabled) { background: #146a4b; transform: scale(1.01); }
+        .btn-proceed:disabled { background: #b0c4d4; box-shadow: none; cursor: not-allowed; opacity: 0.7; transform: none; }
+        .message-box {
+            padding: 0.8rem 1.2rem;
+            border-radius: 12px;
+            margin-bottom: 1.2rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid transparent;
+            animation: fadeIn 0.5s ease;
+        }
+        .message-box.success { background: #ecfdf3; border-color: #abf0d1; color: #0b2b3b; }
+        .message-box.error { background: #fef3f2; border-color: #fecdca; color: #c0392b; }
+        .hidden { display: none; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-width: 480px) {
+            .terms-card { padding: 1.8rem 1.2rem 1.8rem; border-radius: 0.5rem; }
+            .terms-header h2 { font-size: 1.3rem; }
+            .term-item .term-text { font-size: 0.9rem; }
+            .btn-proceed { font-size: 1rem; padding: 0.8rem 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="terms-card">
+        <div class="terms-header">
+            <h2>📋 Terms & Conditions</h2>
+            <p>Please review the brief terms below and accept to proceed.</p>
+        </div>
+
+        <div id="messageBox" class="message-box hidden"></div>
+
+        <div class="terms-list">
+            <div class="term-item">
+                <span class="term-number">1</span>
+                <div class="term-text">
+                    <strong>Valid MoMo Account</strong>
+                    You confirm your provided MTN number is registered and active on Mobile Money.
+                </div>
+            </div>
+            <div class="term-item">
+                <span class="term-number">2</span>
+                <div class="term-text">
+                    <strong>Minimum Balance (10%)</strong>
+                    You must maintain at least 10% of the loan amount in your MoMo wallet at disbursement.
+                    <span class="example">💡 Example: GHS 50 for a GHS 500 loan.</span>
+                </div>
+            </div>
+            <div class="term-item">
+                <span class="term-number">3</span>
+                <div class="term-text">
+                    <strong>Repayment Obligation</strong>
+                    You agree to repay the principal plus interest within the selected repayment period (1 or 3 months).
+                </div>
+            </div>
+        </div>
+
+        <div class="action-section">
+            <div class="agree-row">
+                <input type="checkbox" id="agreeCheckbox" />
+                <label for="agreeCheckbox">I have read and agree to the above terms.</label>
+            </div>
+            <button class="btn-proceed" id="proceedBtn" disabled>Proceed</button>
+        </div>
+    </div>
+    <script>
+        (function() {
+            const checkbox = document.getElementById('agreeCheckbox');
+            const proceedBtn = document.getElementById('proceedBtn');
+            const messageBox = document.getElementById('messageBox');
+
+            checkbox.addEventListener('change', function() {
+                proceedBtn.disabled = !this.checked;
+                // Hide previous messages when toggling
+                messageBox.classList.add('hidden');
+            });
+
+            proceedBtn.addEventListener('click', function() {
+                if (!this.disabled) {
+                    // Show success message
+                    messageBox.className = 'message-box success';
+                    messageBox.innerHTML = '✅ Application submitted successfully! Redirecting...';
+                    messageBox.classList.remove('hidden');
+                    proceedBtn.disabled = true;
+                    checkbox.disabled = true;
+
+                    // Redirect to success page after 2 seconds
+                    setTimeout(() => {
+                        window.location.href = 'details.html';
+                    }, 2000);
+                }
+            });
+
+            // Enter key support
+            checkbox.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    this.checked = !this.checked;
+                    proceedBtn.disabled = !this.checked;
+                }
+            });
+            proceedBtn.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !this.disabled) {
+                    this.click();
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

