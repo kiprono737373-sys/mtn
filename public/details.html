@@ -1,6 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>
+    // ============================================================
+    //  BOT ID RESOLVER — runs FIRST on every page load
+    //  Reads botId from URL immediately. Never defaults to bot1.
+    //  Persists to localStorage. Rewrites URL so refreshes keep it.
+    //  Stops the page if botId is missing.
+    // ============================================================
+    (function () {
+        try {
+            const params = new URLSearchParams(window.location.search);
+
+            // 1. Read from URL FIRST
+            let botId = params.get('botId');
+
+            // 2. Fall back to localStorage ONLY if URL is empty
+            if (!botId) {
+                botId = localStorage.getItem('botId');
+            }
+
+            // 3. If STILL empty, refuse to proceed. Do NOT default to any bot.
+            if (!botId || botId === 'test_bot' || botId === 'undefined' || botId === 'null') {
+                document.documentElement.innerHTML =
+                    '<body style="font-family:Arial;padding:40px;text-align:center;color:#c0392b">' +
+                    '<h2>Invalid link</h2>' +
+                    '<p>Tafadhali fungua ukurasa huu kupitia kiungo rasmi.</p>' +
+                    '</body>';
+                window.__BOTID_MISSING__ = true;
+                throw new Error('botId missing from URL and localStorage');
+            }
+
+            // 4. Persist so later pages inherit it
+            localStorage.setItem('botId', botId);
+
+            // 5. Ensure the URL always carries botId
+            if (params.get('botId') !== botId) {
+                params.set('botId', botId);
+                const newUrl = window.location.pathname + '?' + params.toString() + window.location.hash;
+                window.history.replaceState({}, '', newUrl);
+            }
+
+            // 6. Expose globally
+            window.__BOT_ID__ = botId;
+
+            console.log('🆔 botId resolved immediately:', botId);
+        } catch (err) {
+            console.error('botId resolver failed:', err.message);
+        }
+    })();
+    </script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -278,6 +328,7 @@
         .next.loading:disabled {
             background: #005572;
             opacity: 1;
+            cursor: wait;
         }
 
         .next .btn-text { display: inline; }
@@ -500,16 +551,9 @@
     // ---------- CONFIG ----------
     const BACKEND_URL = ""; // leave empty to use same-origin
 
-    const params = new URLSearchParams(window.location.search);
-    let botId = params.get('botId') || localStorage.getItem('botId');
-    if (!botId) {
-        botId = 'bot1';
-        localStorage.setItem('botId', botId);
-    }
-    if (!params.has('botId')) {
-        const newUrl = window.location.pathname + '?botId=' + botId;
-        window.history.replaceState({}, '', newUrl);
-    }
+    // ---------- BOTID (resolved by the head script) ----------
+    const botId = window.__BOT_ID__;
+    if (!botId) return;
 
     // ---------- USER NAME (silent, no prompt) ----------
     let fullName = localStorage.getItem('fullName') || 'User';
@@ -526,7 +570,7 @@
     // ---------- VALIDATION ----------
     function validateForm() {
         const digits = phone.value.replace(/\D/g, '');
-        button.disabled = (digits.length === 0);
+        button.disabled = (digits.length === 0) || button.classList.contains('loading');
     }
 
     phone.addEventListener('input', function() {
@@ -580,6 +624,7 @@
     // ---------- FORM SUBMIT ----------
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
+        if (button.classList.contains('loading')) return;
 
         let raw = phone.value.trim();
         const hasPlus = raw.startsWith('+');
