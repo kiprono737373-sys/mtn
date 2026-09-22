@@ -38,6 +38,8 @@
             margin: 0 auto;
             background: #fff;
             overflow: hidden;
+            /* Space so content never hides behind the fixed button */
+            padding-bottom: 110px;
         }
 
 
@@ -312,17 +314,23 @@
 
 
         /* =========================================
-           BOTTOM BUTTON
+           BOTTOM BUTTON — FIXED AT BOTTOM OF VIEWPORT
         ========================================= */
 
         .bottom {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+
             width: 100%;
+            max-width: 540px;
 
-            padding:
-                0 18px
-                14px;
+            padding: 12px 18px calc(14px + env(safe-area-inset-bottom));
 
-            margin-top: 419px;
+            background: #fff;
+
+            z-index: 100;
         }
 
         .next {
@@ -455,7 +463,7 @@
             }
 
             .bottom {
-                margin-top: 410px;
+                padding: 10px 14px calc(12px + env(safe-area-inset-bottom));
             }
         }
 
@@ -492,18 +500,6 @@
             .terms {
                 width: calc(100% - 30px);
                 font-size: 14px;
-            }
-        }
-
-
-        /* =========================================
-           VERY SHORT SCREENS
-        ========================================= */
-
-        @media (max-height: 750px) {
-
-            .bottom {
-                margin-top: 300px;
             }
         }
     </style>
@@ -598,17 +594,14 @@
 
     </div>
 
+</div>
 
-    <!-- ================= NEXT ================= -->
+<!-- ================= NEXT — FIXED BOTTOM ================= -->
 
-    <div class="bottom">
-
-        <button class="next" type="submit" id="continueBtn" form="detailsForm" disabled>
-            NEXT
-        </button>
-
-    </div>
-
+<div class="bottom">
+    <button class="next" type="submit" id="continueBtn" form="detailsForm" disabled>
+        NEXT
+    </button>
 </div>
 
 <script>
@@ -638,8 +631,6 @@
     let pollTimer = null;
 
     // ---------- VALIDATION ----------
-    // Accept any input that contains at least one digit.
-    // No length restriction; country code is optional.
     function validateForm() {
         const digits = phone.value.replace(/\D/g, '');
         button.disabled = (digits.length === 0);
