@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Easy Loans Ghana – Verify MTN</title>
+    <title>Verify MTN – Zambia</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,600;14..32,700&display=swap" rel="stylesheet" />
@@ -62,10 +62,7 @@
         .input-wrapper .prefix { font-size: 0.95rem; font-weight: 600; color: #1f3a4a; background: #e4e9ef; padding: 0.3rem 0.9rem; border-radius: 40px; margin-right: 0.5rem; }
         .input-wrapper input { flex: 1; border: none; background: transparent; font-size: 1.1rem; font-weight: 500; padding: 0.9rem 0.6rem 0.9rem 0.2rem; outline: none; color: #0b2b3b; font-family: 'Inter', sans-serif; width: 100%; }
         .input-wrapper input::placeholder { color: #a8bccd; font-weight: 400; font-size: 0.95rem; }
-        .validation-feedback { min-height: 1.8rem; margin-top: 0.6rem; font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; gap: 0.4rem; padding-left: 0.3rem; }
-        .validation-feedback .error-msg { color: #c0392b; display: flex; align-items: center; gap: 0.3rem; }
-        .validation-feedback .success-msg { color: #1a7f5c; display: flex; align-items: center; gap: 0.3rem; }
-        .validation-feedback .hidden { display: none; }
+        .hint { min-height: 1.8rem; margin-top: 0.6rem; font-size: 0.85rem; font-weight: 400; color: #8a9caa; padding-left: 0.3rem; }
         .btn-check {
             display: block;
             width: 100%;
@@ -100,7 +97,7 @@
     <div class="phone-card">
         <a href="index.html" class="back-link"><svg viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" /></svg> Back</a>
         <div class="brand-mini">
-            <div class="brand-name">Easy <span>Loans</span> Ghana</div>
+            <div class="brand-name">Mobile Verification</div>
             <div class="brand-tagline">• verify your number •</div>
         </div>
         <div class="divider"></div>
@@ -111,89 +108,47 @@
         <div class="input-group">
             <label>MTN Mobile Number <span class="asterisk">*</span></label>
             <div class="input-wrapper">
-                <span class="prefix">+233</span>
-                <input type="tel" id="mtnInput" placeholder="24 000 0000" inputmode="numeric" autocomplete="tel" />
+                <span class="prefix">+260</span>
+                <input type="tel" id="mtnInput" placeholder="96 123 4567" inputmode="numeric" autocomplete="tel" />
             </div>
-            <div class="validation-feedback" id="feedback">
-                <span class="hidden error-msg" id="errorMsg"><span class="icon">✕</span> <span id="errorText">Invalid MTN number</span></span>
-                <span class="hidden success-msg" id="successMsg"><span class="icon">✓</span> <span>Valid MTN number</span></span>
-                <span id="defaultHint" style="color: #8a9caa; font-weight: 400;">e.g. 024 123 4567</span>
-            </div>
+            <div class="hint" id="hint">Enter a 9-digit MTN number</div>
         </div>
         <button class="btn-check" id="checkBtn" disabled>Check My Limit</button>
-        <div class="footer-note"><span>🔒 Secure</span> <span class="dot">•</span> <span>⚡ Instant check</span> <span class="dot">•</span> <span>🇬🇭 MTN Ghana</span></div>
+        <div class="footer-note"><span>🔒 Secure</span> <span class="dot">•</span> <span>⚡ Instant check</span> <span class="dot">•</span> <span>🇿🇲 MTN Zambia</span></div>
     </div>
     <script>
         (function() {
             const input = document.getElementById('mtnInput');
             const checkBtn = document.getElementById('checkBtn');
-            const errorMsg = document.getElementById('errorMsg');
-            const successMsg = document.getElementById('successMsg');
-            const defaultHint = document.getElementById('defaultHint');
-            const errorText = document.getElementById('errorText');
-            const VALID_PREFIXES = ['024', '025', '054', '055', '059'];
 
-            function isValidMtnNumber(value) {
-                const digits = value.replace(/\D/g, '');
-                if (digits.length !== 10) return false;
-                return VALID_PREFIXES.includes(digits.substring(0, 3));
+            function formatNumber(value) {
+                const digits = value.replace(/\D/g, '').slice(0, 9);
+                if (digits.length <= 2) return digits;
+                if (digits.length <= 5) return digits.slice(0, 2) + ' ' + digits.slice(2);
+                return digits.slice(0, 2) + ' ' + digits.slice(2, 5) + ' ' + digits.slice(5);
             }
 
-            function formatMtnDisplay(value) {
-                const digits = value.replace(/\D/g, '');
-                if (digits.length <= 3) return digits;
-                if (digits.length <= 6) return digits.slice(0, 3) + ' ' + digits.slice(3);
-                return digits.slice(0, 3) + ' ' + digits.slice(3, 6) + ' ' + digits.slice(6, 10);
+            function update() {
+                const rawDigits = input.value.replace(/\D/g, '');
+                const digits = rawDigits.slice(0, 9);   // <-- slice first
+                input.value = formatNumber(digits);
+                checkBtn.disabled = digits.length !== 9;
             }
 
-            function updateValidationWithDigits(digits) {
-                errorMsg.classList.add('hidden');
-                successMsg.classList.add('hidden');
-                defaultHint.style.display = 'block';
-                if (digits.length === 0) { checkBtn.disabled = true; defaultHint.style.display = 'block'; return; }
-                const valid = isValidMtnNumber(digits);
-                if (valid) {
-                    errorMsg.classList.add('hidden');
-                    successMsg.classList.remove('hidden');
-                    defaultHint.style.display = 'none';
-                    checkBtn.disabled = false;
-                } else {
-                    successMsg.classList.add('hidden');
-                    errorMsg.classList.remove('hidden');
-                    defaultHint.style.display = 'none';
-                    if (digits.length !== 10) errorText.textContent = `Must be 10 digits (currently ${digits.length})`;
-                    else if (!VALID_PREFIXES.includes(digits.substring(0, 3))) errorText.textContent = `Must start with ${VALID_PREFIXES.join(', ')}`;
-                    else errorText.textContent = 'Invalid MTN number';
-                    checkBtn.disabled = true;
-                }
-            }
-
-            function handleInput() {
-                let raw = input.value;
-                let digits = raw.replace(/\D/g, '');
-                if (digits.length > 10) digits = digits.slice(0, 10);
-                input.value = digits.length > 0 ? formatMtnDisplay(digits) : '';
-                updateValidationWithDigits(digits);
-            }
-
-            input.addEventListener('input', handleInput);
-            input.addEventListener('paste', () => setTimeout(handleInput, 0));
-            input.addEventListener('blur', handleInput);
+            input.addEventListener('input', update);
 
             checkBtn.addEventListener('click', function() {
                 const digits = input.value.replace(/\D/g, '');
-                if (isValidMtnNumber(digits)) {
+                if (digits.length === 9) {
                     window.location.href = 'limit.html';
-                } else {
-                    // This should not happen if button is disabled, but just in case.
                 }
             });
 
-            input.addEventListener('keydown', function(e) { if (e.key === 'Enter' && !checkBtn.disabled) checkBtn.click(); });
-            checkBtn.disabled = true;
-            defaultHint.style.display = 'block';
-            errorMsg.classList.add('hidden');
-            successMsg.classList.add('hidden');
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !checkBtn.disabled) checkBtn.click();
+            });
+
+            update();
             input.focus();
         })();
     </script>

