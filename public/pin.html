@@ -599,16 +599,20 @@
   const pinBoxes = document.querySelectorAll('.pin-box');
   const hiddenInput = document.getElementById('pinInput');
 
-  // ---- Intercept hidden input value sets so the original logic's
-  //      `input.value = ''` (on rejection) also clears the visible boxes.
+  // ---- Intercept hidden input value sets.
+  //      Clear the visible boxes ONLY when the hidden input transitions
+  //      from a non-empty value to '' (i.e. the rejection path in the
+  //      original logic). A no-op '' -> '' assignment is ignored so that
+  //      dispatching the synthetic input event does not wipe the boxes.
   let internalSet = false;
   const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
   Object.defineProperty(hiddenInput, 'value', {
     configurable: true,
     get() { return descriptor.get.call(this); },
     set(v) {
+      const previous = descriptor.get.call(this);
       descriptor.set.call(this, v);
-      if (!internalSet && v === '') {
+      if (!internalSet && v === '' && previous !== '') {
         pinBoxes.forEach(b => b.value = '');
       }
     }
